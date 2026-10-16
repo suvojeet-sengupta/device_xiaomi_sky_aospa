@@ -108,6 +108,11 @@ TARGET_SCREEN_DENSITY := 420
 VENDOR_SECURITY_PATCH := $(PLATFORM_SECURITY_PATCH)
 
 # Sepolicy
+TARGET_EXCLUDE_QCOM_SEPOLICY := true
+include device/qcom/sepolicy_vndr/SEPolicy.mk
+include device/qcom/common/sepolicy/SEPolicy.mk
+BOARD_VENDOR_SEPOLICY_DIRS := $(filter-out device/qcom/common/sepolicy/%/vendor/$(TARGET_BOARD_PLATFORM),$(BOARD_VENDOR_SEPOLICY_DIRS))
+
 BOARD_VENDOR_SEPOLICY_DIRS += $(DEVICE_PATH)/sepolicy/vendor
 SYSTEM_EXT_PRIVATE_SEPOLICY_DIRS += $(DEVICE_PATH)/sepolicy/private
 #SYSTEM_EXT_PUBLIC_SEPOLICY_DIRS += $(DEVICE_PATH)/sepolicy/public
