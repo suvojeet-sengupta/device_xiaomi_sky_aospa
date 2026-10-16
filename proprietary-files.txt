@@ -306,9 +306,7 @@ vendor/lib64/libubifocus.so
 vendor/lib64/libvideoutils.so;MODULE_SUFFIX=_sky;OVERRIDES=libvideoutils
 vendor/lib64/libbitmlengine.so
 vendor/lib64/libbitmlenginev2.so;DISABLE_CHECKELF
-vendor/lib64/libc++_shared.so
 vendor/lib64/libchilog.so
-vendor/lib64/libmpbase.so
 vendor/lib64/libopencv.so
 vendor/lib64/libopencv3a.so
 vendor/lib64/libopestriping.so
@@ -319,11 +317,9 @@ vendor/lib64/libqllengine.so
 vendor/lib64/libqshcamera.so
 vendor/lib64/librelight_only.so
 vendor/lib64/libsfeShiftExtrapolation.so
-vendor/lib64/libswregistrationalgo.so
 vendor/lib64/libsynx.so
 vendor/lib64/libtfestriping.so
 vendor/lib64/libthreadutils.so
-vendor/lib64/libubifocus.so
 vendor/lib64/libhme.so
 vendor/lib64/libhdr10plus.so
 vendor/lib64/libmiphone_preview_bokeh.so
@@ -676,7 +672,6 @@ vendor/lib64/libgoodixhwfingerprint.so;DISABLE_CHECKELF
 vendor/lib64/com.fingerprints.extension@1.0.so;MODULE_SUFFIX=_vendor
 
 # FM
-vendor/lib64/hw/vendor.qti.hardware.fm@1.0-impl.so
 
 # Gatekeeper
 vendor/bin/hw/android.hardware.gatekeeper@1.0-service-qti
@@ -716,7 +711,6 @@ vendor/lib64/libasn1cper.so
 vendor/lib64/libasn1crt.so
 vendor/lib64/libasn1crtx.so
 vendor/lib64/libbatching.so
-vendor/lib64/libcacertclient.so
 vendor/lib64/libcdfw.so
 vendor/lib64/libcdfw_remote_api.so
 vendor/lib64/libdataitems.so
@@ -728,7 +722,6 @@ vendor/lib64/libgeofencing.so
 vendor/lib64/libgps.utils.so
 vendor/lib64/libizat_client_api.so
 vendor/lib64/libizat_core.so
-vendor/lib64/libjnihelper.so
 vendor/lib64/liblbs_core.so
 vendor/lib64/liblowi_client.so
 vendor/lib64/liblowi_wifihal.so
@@ -767,9 +760,6 @@ vendor/lib64/vendor.qti.hardware.limits@1.0.so;MODULE_SUFFIX=_vendor
 vendor/lib64/vendor.qti.hardware.limits@1.1.so;MODULE_SUFFIX=_vendor
 
 # Listen
-vendor/lib64/libcapiv2svacnnvendor.so
-vendor/lib64/libcapiv2svarnnvendor.so
-vendor/lib64/libcapiv2uvvendor.so
 
 # Media
 vendor/etc/media_codecs.xml
@@ -786,7 +776,6 @@ vendor/lib64/libdsd2pcm.so
 vendor/lib64/vendor.qti.hardware.vpp@2.0.so
 
 # Memory
-vendor/lib64/libvmmem.so
 
 # Mlipay
 vendor/bin/mlipayd@1.1
@@ -890,16 +879,12 @@ vendor/etc/sec_config
 vendor/etc/seccomp_policy/qti-systemd.policy
 vendor/lib64/libdiag.so
 vendor/lib64/libjson.so
-vendor/lib64/liblx-ar_util.so
-vendor/lib64/liblx-osal.so
 vendor/lib64/libpdmapper.so
 vendor/lib64/libpdnotifier.so
 vendor/lib64/libdsutils.so
 vendor/lib64/libidl.so
 vendor/lib64/libmdmdetect.so
 vendor/lib64/libminkdescriptor.so
-vendor/lib64/libpdmapper.so
-vendor/lib64/libpdnotifier.so
 vendor/lib64/libqcci_legacy.so
 vendor/lib64/libqdi.so
 vendor/lib64/libqdp.so
@@ -1068,8 +1053,6 @@ vendor/lib64/vendor.qti.hardware.radio.qtiradio@2.5.so;MODULE_SUFFIX=_vendor
 vendor/lib64/vendor.qti.hardware.radio.qtiradio@2.6.so;MODULE_SUFFIX=_vendor
 vendor/lib64/vendor.qti.hardware.radio.qcriNvOpt@1.0.so;MODULE_SUFFIX=_vendor
 vendor/lib64/vendor.qti.hardware.radio.qtiradio-V8-ndk_platform.so;MODULE_SUFFIX=_vendor
-vendor/lib64/qcrilNr_aidl_IQtiRadioConfig.so
-vendor/lib64/vendor.qti.hardware.radio.qtiradioconfig-V2-ndk_platform.so;MODULE_SUFFIX=_vendor
 vendor/lib64/vendor.qti.hardware.radio.uim@1.0.so;MODULE_SUFFIX=_vendor
 vendor/lib64/vendor.qti.hardware.radio.uim@1.1.so;MODULE_SUFFIX=_vendor
 vendor/lib64/vendor.qti.hardware.radio.uim@1.2.so;MODULE_SUFFIX=_vendor
@@ -1152,11 +1135,8 @@ vendor/lib64/libnanopb.so
 vendor/lib64/libsdsprpc.so
 vendor/lib64/libsensorslog.so
 vendor/lib64/libsns_api.so
-vendor/lib64/libsns_device_mode_stub.so
 vendor/lib64/libsns_direct_channel_stub.so
 vendor/lib64/libsns_registry_skel.so
-vendor/lib64/libsnsapi.so
-vendor/lib64/libsnsdiaglog.so
 vendor/lib64/libssc.so
 vendor/lib64/libssc_default_listener.so
 vendor/lib64/sensors.ssc.so
