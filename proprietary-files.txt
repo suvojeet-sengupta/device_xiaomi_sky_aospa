@@ -75,6 +75,7 @@ vendor/lib64/libar-acdb.so
 vendor/lib64/libar-gpr.so
 vendor/lib64/libar-gsl.so
 vendor/lib64/libar-pal.so;DISABLE_CHECKELF
+vendor/lib64/libmisight.so
 vendor/lib64/libats.so
 vendor/lib64/libbatterylistener.so
 vendor/lib64/libfmpal.so
