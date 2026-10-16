@@ -15,15 +15,11 @@ from extract_utils.main import ExtractUtils, ExtractUtilsModule
 namespace_imports = [
     'device/xiaomi/sky',
     'hardware/xiaomi',
-    'hardware/qcom/display',
-    'hardware/qcom/display/gralloc',
-    'hardware/qcom/display/libdebug',
     'vendor/qcom/common/vendor/adreno/s',
     'vendor/qcom/common/vendor/display/5.10',
     'vendor/qcom/common/vendor/media/5.10',
     'vendor/qcom/common/vendor/perf',
     'vendor/qcom/common/vendor/wlan',
-    'vendor/qcom/opensource/agm',
 ]
 
 
