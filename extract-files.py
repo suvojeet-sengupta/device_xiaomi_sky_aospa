@@ -40,10 +40,6 @@ lib_fixups: lib_fixups_user_type = {
     **base_lib_fixups,
     (
         'audio.primary.parrot',
-        'libqc2filter',
-        'libsdm-disp-vndapis',
-        'libsdmextension',
-        'libvideoutils',
     ): lib_fixup_device_suffix,
     (
         'android.hardware.soundtrigger*',
