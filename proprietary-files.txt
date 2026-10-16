@@ -571,8 +571,6 @@ vendor/lib64/vendor.qti.diaghal@1.0.so;MODULE_SUFFIX=_vendor
 
 # Display
 vendor/bin/hw/vendor.qti.hardware.display.composer-service;MODULE_SUFFIX=_sky;OVERRIDES=vendor.qti.hardware.display.composer-service
-vendor/etc/init/vendor.qti.hardware.display.composer-service.rc
-vendor/etc/vintf/manifest/vendor.qti.hardware.display.composer-service.xml
 vendor/lib64/libdisplayconfig.qti.so
 vendor/lib64/libsdedrm.so
 vendor/lib64/libsdm-disp-vndapis.so;MODULE_SUFFIX=_sky;OVERRIDES=libsdm-disp-vndapis
