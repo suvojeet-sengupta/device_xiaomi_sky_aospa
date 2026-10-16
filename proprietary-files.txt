@@ -95,7 +95,6 @@ vendor/lib64/soundfx/libqcomvoiceprocessing.so
 vendor/lib64/soundfx/libshoebox.so
 vendor/lib64/soundfx/libvolumelistener.so
 vendor/lib64/vendor.qti.hardware.AGMIPC@1.0-impl.so;DISABLE_CHECKELF
-vendor/lib64/vendor.qti.hardware.AGMIPC@1.0.so;MODULE_SUFFIX=_vendor
 vendor/lib64/vendor.qti.hardware.pal@1.0-impl.so
 vendor/lib64/vendor.qti.hardware.pal@1.0.so;MODULE_SUFFIX=_vendor
 
@@ -589,15 +588,6 @@ vendor/lib64/libdisplayfeature.so
 vendor/lib64/libdisplayfeatureservice.so
 vendor/lib64/vendor.xiaomi.hardware.displayfeature@1.0.so;MODULE_SUFFIX=_vendor
 vendor/lib/hw/vendor.xiaomi.hardware.displayfeature@1.0-impl.so
-vendor/lib64/vendor.display.color@1.0.so;MODULE_SUFFIX=_sky;OVERRIDES=vendor.display.color@1.0
-vendor/lib64/vendor.display.color@1.1.so;MODULE_SUFFIX=_sky;OVERRIDES=vendor.display.color@1.1
-vendor/lib64/vendor.display.color@1.2.so;MODULE_SUFFIX=_sky;OVERRIDES=vendor.display.color@1.2
-vendor/lib64/vendor.display.color@1.3.so;MODULE_SUFFIX=_sky;OVERRIDES=vendor.display.color@1.3
-vendor/lib64/vendor.display.color@1.4.so;MODULE_SUFFIX=_sky;OVERRIDES=vendor.display.color@1.4
-vendor/lib64/vendor.display.color@1.5.so;MODULE_SUFFIX=_sky;OVERRIDES=vendor.display.color@1.5
-vendor/lib64/vendor.display.color@1.6.so;MODULE_SUFFIX=_sky;OVERRIDES=vendor.display.color@1.6
-vendor/lib64/vendor.display.color@1.7.so;MODULE_SUFFIX=_sky;OVERRIDES=vendor.display.color@1.7
-vendor/lib64/vendor.display.postproc@1.0.so;MODULE_SUFFIX=_sky;OVERRIDES=vendor.display.postproc@1.0
 
 # Display calibration
 vendor/etc/display/qdcm_calib_data_xiaomi_m19_36_02_0a_fhd_dsc_video_dsi_panel.json
@@ -904,7 +894,6 @@ vendor/bin/vendor.qti.qspmhal@1.0-service
 vendor/etc/init/vendor.qti.qspmhal@1.0-service.rc
 vendor/etc/seccomp_policy/qspm.policy
 vendor/lib64/vendor.qti.qspmhal@1.0-impl.so
-vendor/lib64/vendor.qti.qspmhal@1.0.so;MODULE_SUFFIX=_sky;OVERRIDES=vendor.qti.qspmhal@1.0
 
 # QTEE
 vendor/bin/hw/vendor.qti.hardware.qteeconnector@1.0-service
