@@ -567,13 +567,6 @@ vendor/etc/init/vendor.qti.diag.rc
 vendor/etc/vintf/manifest/vendor.qti.diag.hal.service.xml
 vendor/lib64/vendor.qti.diaghal@1.0.so;MODULE_SUFFIX=_vendor
 
-# Display
-vendor/bin/hw/vendor.qti.hardware.display.composer-service;MODULE_SUFFIX=_sky;OVERRIDES=vendor.qti.hardware.display.composer-service
-vendor/lib64/libdisplayconfig.qti.so
-vendor/lib64/libsdedrm.so
-vendor/lib64/libsdmcore.so
-vendor/lib64/libsdmutils.so
-
 # Displayfeature
 vendor/bin/displayfeature
 vendor/etc/init/vendor.xiaomi.hardware.displayfeature@1.0-service.rc

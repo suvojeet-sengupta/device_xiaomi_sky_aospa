@@ -83,9 +83,6 @@ blob_fixups: blob_fixups_user_type = {
         'vendor/lib64/libqtikeymint.so',
     ): blob_fixup()
         .add_needed('android.hardware.security.rkp-V3-ndk.so'),
-    'vendor/bin/hw/vendor.qti.hardware.display.composer-service': blob_fixup()
-        .replace_needed('android.hardware.common-V2-ndk_platform.so', 'android.hardware.common-V2-ndk.so')
-        .replace_needed('vendor.qti.hardware.display.config-V5-ndk_platform.so', 'vendor.qti.hardware.display.config-V5-ndk.so'),
     'vendor/lib64/libcamximageformatutils.so': blob_fixup()
         .replace_needed('vendor.qti.hardware.display.config-V2-ndk_platform.so', 'vendor.qti.hardware.display.config-V2-ndk.so'),
     'vendor/lib64/libhme.so': blob_fixup()
