@@ -789,7 +789,6 @@ vendor/lib64/vendor.xiaomi.hardware.mtdservice@1.0.so;MODULE_SUFFIX=_vendor
 
 # NFC
 vendor/etc/init/init_nfc_sn1xxx.rc
-vendor/etc/init/vendor.nxp.hardware.nfc@2.0-service.rc
 vendor/etc/libnfc-SN220.conf
 vendor/etc/libnfc-mtp-SN100.conf
 vendor/etc/libnfc-mtp-SN100_38_4MHZ.conf

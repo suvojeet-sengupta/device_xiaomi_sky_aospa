@@ -13,8 +13,21 @@ on early-boot
 on early-init
     start vendor.audioadsprpcd_audiopd
 
+on early-init && property:ro.boot.boardid=S88019BP1
+    setprop persist.vendor.nfc.config_file_name libnfc-qrd-SN100_CN.conf
+
+on early-init && property:ro.boot.boardid=S88018PA1
+    setprop persist.vendor.nfc.config_file_name libnfc-qrd-SN100_GLB.conf
+
+on early-init && property:ro.boot.boardid=S88029JA1
+    setprop persist.vendor.nfc.config_file_name libnfc-qrd-SN100_JP.conf
+
+on early-init && property:ro.boot.boardid=S88029EA1
+    setprop persist.vendor.nfc.config_file_name libnfc-qrd-SN100_JP.conf
+
 on early-init && property:ro.boot.boardid=S88029AA1
     setprop ro.boot.product.hardware.sku river
+    setprop persist.vendor.nfc.config_file_name libnfc-qrd-SN100_GLB.conf
     setprop ro.vendor.se.type HCE,UICC
     setprop persist.vendor.nfc.factory.fwstatus unknown
     setprop ro.vendor.nfc.repair 1
@@ -123,13 +136,6 @@ service qrtr-lookup /vendor/bin/qrtr-lookup
 on property:sys.boot_completed=1
     start qrtr-lookup
 
-service nqnfc_2_0_hal_service /vendor/bin/hw/vendor.nxp.hardware.nfc@2.0-service
-    class early_hal
-    user nfc
-    group nfc
-    override
-    disabled
-
 service secureelement-hal_1_2 /vendor/bin/hw/vendor.qti.secure_element@1.2-service
     class early_hal
     user system
@@ -146,7 +152,6 @@ service qti_esepowermanager_service_1_1 /vendor/bin/hw/vendor.qti.esepowermanage
 
 # Do not enable NFC on skyin
 on property:ro.boot.product.hardware.sku=sky
-    enable nqnfc_2_0_hal_service
     enable secureelement-hal_1_2
     enable qti_esepowermanager_service_1_1
 
