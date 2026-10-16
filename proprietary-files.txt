@@ -1,4 +1,4 @@
-# Device proprietary files - from sky HyperOS1.0.6.0.UMWINXM package, unless pinned
+# Device proprietary files - from sky OS2.0.210.0.VMWMIXM package, unless pinned
 
 # ACDB
 vendor/etc/acdbdata/IDP_UPD/IDP_UPD_acdb_cal.acdb
@@ -455,10 +455,10 @@ vendor/etc/camera/xiaomiSceneDetection.xml
 
 # Camera features
 vendor/lib64/com.qti.feature2.anchorsync.so
-vendor/lib64/com.qti.feature2.demux.so     
-vendor/lib64/com.qti.feature2.derivedoffline.so  
-vendor/lib64/com.qti.feature2.frameselect.so 
-vendor/lib64/com.qti.feature2.fusion.so 
+vendor/lib64/com.qti.feature2.demux.so
+vendor/lib64/com.qti.feature2.derivedoffline.so
+vendor/lib64/com.qti.feature2.frameselect.so
+vendor/lib64/com.qti.feature2.fusion.so
 vendor/lib64/com.qti.feature2.generic.so
 vendor/lib64/com.qti.feature2.gs.netrani.so
 vendor/lib64/com.qti.feature2.hdr.so
@@ -707,8 +707,8 @@ vendor/lib64/liblocationservice_glue.so
 vendor/lib64/liblocationservice.so
 vendor/lib64/libloc_base_util.so
 vendor/lib64/libloc_core.so
-vendor/lib64/liblocdiagiface.so              
-vendor/lib64/libloc_eng_hub.so               
+vendor/lib64/liblocdiagiface.so
+vendor/lib64/libloc_eng_hub.so
 vendor/lib64/libloc_mq_client.so
 vendor/lib64/libloc_socket.so
 vendor/lib64/libloc_util.so
@@ -742,9 +742,6 @@ vendor/lib64/libxtwifi_server_protocol.so
 vendor/lib64/libxtwifi_server_protocol_uri_v3.so
 vendor/lib64/libgnsspps.so
 vendor/lib64/vendor.qti.gnss-V3-ndk_platform.so
-
-# IR
-vendor/lib64/hw/consumerir.default.so
 
 # Keymaster
 vendor/bin/hw/android.hardware.keymaster@4.1-service-qti
