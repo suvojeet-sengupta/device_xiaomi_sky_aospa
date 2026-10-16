@@ -85,10 +85,6 @@ lib_fixups: lib_fixups_user_type = {
 }
 
 blob_fixups: blob_fixups_user_type = {
-    'vendor/bin/hw/vendor.qti.secure_element@1.2-service': blob_fixup()
-        .replace_needed('jcos_nq_client-v1.so', 'jcos_nq_client.so')
-        .replace_needed('ls_nq_client-v1.so', 'ls_nq_client.so')
-        .replace_needed('se_nq_extn_client-v1.so', 'se_nq_extn_client.so'),
     (
         'vendor/bin/hw/android.hardware.security.keymint-service-qti',
         'vendor/lib64/libqtikeymint.so',
@@ -98,19 +94,8 @@ blob_fixups: blob_fixups_user_type = {
         .replace_needed('libstdc++.so', 'libstdc++_vendor.so'),
     'vendor/bin/qcc-trd': blob_fixup()
         .replace_needed('libgrpc++_unsecure.so', 'libgrpc++_unsecure_prebuilt.so'),
-    'vendor/etc/qcril_database/upgrade/config/6.0_config.sql': blob_fixup()
-        .regex_replace('(persist.vendor.radio.redir_party_num.*)true', r'\1false'),
     'vendor/lib64/vendor.libdpmframework.so': blob_fixup()
         .add_needed('libhidlbase_shim.so'),
-    (
-        'vendor/etc/seccomp_policy/atfwd@2.0.policy',
-        'vendor/etc/seccomp_policy/modemManager.policy',
-        'vendor/etc/seccomp_policy/qwesd@2.0.policy',
-        'vendor/etc/seccomp_policy/wfdhdcphalservice.policy',
-    ): blob_fixup()
-        .add_line_if_missing('gettid: 1'),
-    'vendor/etc/seccomp_policy/c2audio.vendor.ext-arm64.policy': blob_fixup()
-        .add_line_if_missing('setsockopt: 1'),
 }  # fmt: skip
 
 module = ExtractUtilsModule(
