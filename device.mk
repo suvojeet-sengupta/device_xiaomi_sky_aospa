@@ -191,10 +191,6 @@ PRODUCT_PACKAGES += \
     android.hidl.allocator@1.0 \
     android.hidl.allocator@1.0.vendor
 
-# Identity
-PRODUCT_PACKAGES += \
-    android.hardware.identity-V3-ndk_platform.vendor
-
 # Incremental FS
 PRODUCT_VENDOR_PROPERTIES += \
     ro.incremental.enable=1
