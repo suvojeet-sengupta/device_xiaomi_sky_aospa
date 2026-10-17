@@ -45,4 +45,11 @@
             <instance>default</instance>
         </interface>
     </hal>
+    <hal format="aidl" optional="true">
+        <name>vendor.qti.hardware.radio.qcriNvOpt</name>
+        <interface>
+            <name>IqcriNvOpt</name>
+            <regex-instance>qcrinvopt[0-9]+</regex-instance>
+        </interface>
+    </hal>
 </compatibility-matrix>

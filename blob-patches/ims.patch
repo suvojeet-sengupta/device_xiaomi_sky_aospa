@@ -1,0 +1,50 @@
+--- a/smali/org/codeaurora/ims/ImsServiceStateReceiver.smali
++++ b/smali/org/codeaurora/ims/ImsServiceStateReceiver.smali
+@@ -780,9 +780,7 @@
+     .locals 3
+ 
+     .line 69
+-    invoke-static {}, Landroid/telephony/TelephonyBaseUtilsStub;->isMiuiRom()Z
+-
+-    move-result v0
++    const/4 v0, 0x0
+ 
+     if-eqz v0, :cond_0
+ 
+--- a/smali/org/codeaurora/ims/ImsServiceSub.smali
++++ b/smali/org/codeaurora/ims/ImsServiceSub.smali
+@@ -7926,9 +7926,7 @@
+     if-ne p1, v1, :cond_6
+ 
+     .line 528
+-    invoke-static {}, Landroid/telephony/TelephonyBaseUtilsStub;->isMiuiRom()Z
+-
+-    move-result p2
++    const/4 p2, 0x0
+ 
+     if-nez p2, :cond_5
+ 
+--- a/smali/org/codeaurora/ims/ImsSubController.smali
++++ b/smali/org/codeaurora/ims/ImsSubController.smali
+@@ -911,9 +911,7 @@
+     if-nez p1, :cond_2
+ 
+     .line 501
+-    invoke-static {}, Landroid/telephony/TelephonyBaseUtilsStub;->isMiuiRom()Z
+-
+-    move-result v1
++    const/4 v1, 0x0
+ 
+     if-eqz v1, :cond_2
+ 
+@@ -1563,9 +1561,7 @@
+     if-eqz v1, :cond_7
+ 
+     .line 545
+-    invoke-static {}, Landroid/telephony/TelephonyBaseUtilsStub;->isMiuiRom()Z
+-
+-    move-result v1
++    const/4 v1, 0x0
+ 
+     if-eqz v1, :cond_7
+ 
