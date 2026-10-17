@@ -154,3 +154,70 @@ CONFIG_ACS := true
 SOONG_CONFIG_NAMESPACES += XIAOMI_VIBRATOR
 SOONG_CONFIG_XIAOMI_VIBRATOR := USE_EFFECT_STREAM
 SOONG_CONFIG_XIAOMI_VIBRATOR_USE_EFFECT_STREAM := true
+
+# Audio (sm8450-6.6 HAL)
+AUDIO_FEATURE_ENABLED_DLKM := true
+AUDIO_FEATURE_ENABLED_EXTENDED_COMPRESS_FORMAT := true
+AUDIO_FEATURE_ENABLED_GKI := true
+AUDIO_FEATURE_ENABLED_INSTANCE_ID := true
+AUDIO_FEATURE_ENABLED_MCS := true
+AUDIO_FEATURE_ENABLED_SVA_MULTI_STAGE := true
+BOARD_SUPPORTS_OPENSOURCE_STHAL := true
+BOARD_SUPPORTS_SOUND_TRIGGER := true
+BOARD_USES_ALSA_AUDIO := true
+TARGET_PROVIDES_AUDIO_HAL := true
+TARGET_PROVIDES_LIBAGM := true
+TARGET_PROVIDES_LIBAR_PAL := true
+
+$(call soong_config_set,qtiaudio,feature_extended_compress_format,true)
+$(call soong_config_set,qtiaudio,feature_gki,true)
+$(call soong_config_set,qtiaudio,feature_instance_id,true)
+$(call soong_config_set,qtiaudio,feature_mcs,true)
+$(call soong_config_set,qtiaudio,feature_sound_trigger,true)
+$(call soong_config_set,qtiaudio,feature_sva_multi_stage,true)
+
+# Display (sm8450-6.6 HAL)
+SOONG_CONFIG_NAMESPACES += qtidisplay
+SOONG_CONFIG_qtidisplay += \
+    composer_version drmpp headless llvmsa gralloc4 displayconfig_enabled udfps \
+    default master_side_cp shift_horizontal shift_vertical smmu_proxy var1 var2 \
+    var3 hwasan hw_fence_disabled hy11 hy22 hy33 llvmcov mapper_ext \
+    ubwcp_headers wide_color target_kernel_version target_no_camera_custom_format \
+    target_no_raw10_custom_format target_uses_aligned_ycbcr_height \
+    target_uses_aligned_ycrcb_height target_uses_unaligned_nv21_zsl \
+    target_uses_unaligned_ycrcb target_uses_ycrcb_camera_preview \
+    target_uses_ycrcb_venus_camera_preview
+
+SOONG_CONFIG_qtidisplay_composer_version := v3_3
+SOONG_CONFIG_qtidisplay_drmpp := true
+SOONG_CONFIG_qtidisplay_headless := false
+SOONG_CONFIG_qtidisplay_llvmsa := false
+SOONG_CONFIG_qtidisplay_gralloc4 := true
+SOONG_CONFIG_qtidisplay_displayconfig_enabled := false
+SOONG_CONFIG_qtidisplay_udfps := false
+SOONG_CONFIG_qtidisplay_default := true
+SOONG_CONFIG_qtidisplay_master_side_cp := false
+SOONG_CONFIG_qtidisplay_shift_horizontal := 0
+SOONG_CONFIG_qtidisplay_shift_vertical := 0
+SOONG_CONFIG_qtidisplay_smmu_proxy := false
+SOONG_CONFIG_qtidisplay_var1 := false
+SOONG_CONFIG_qtidisplay_var2 := false
+SOONG_CONFIG_qtidisplay_var3 := false
+SOONG_CONFIG_qtidisplay_hwasan := false
+SOONG_CONFIG_qtidisplay_hw_fence_disabled := false
+SOONG_CONFIG_qtidisplay_hy11 := false
+SOONG_CONFIG_qtidisplay_hy22 := false
+SOONG_CONFIG_qtidisplay_hy33 := false
+SOONG_CONFIG_qtidisplay_llvmcov := false
+SOONG_CONFIG_qtidisplay_mapper_ext := true
+SOONG_CONFIG_qtidisplay_ubwcp_headers := false
+SOONG_CONFIG_qtidisplay_wide_color := false
+SOONG_CONFIG_qtidisplay_target_kernel_version := 6.6
+SOONG_CONFIG_qtidisplay_target_no_camera_custom_format := false
+SOONG_CONFIG_qtidisplay_target_no_raw10_custom_format := false
+SOONG_CONFIG_qtidisplay_target_uses_aligned_ycbcr_height := false
+SOONG_CONFIG_qtidisplay_target_uses_aligned_ycrcb_height := false
+SOONG_CONFIG_qtidisplay_target_uses_unaligned_nv21_zsl := false
+SOONG_CONFIG_qtidisplay_target_uses_unaligned_ycrcb := false
+SOONG_CONFIG_qtidisplay_target_uses_ycrcb_camera_preview := false
+SOONG_CONFIG_qtidisplay_target_uses_ycrcb_venus_camera_preview := false

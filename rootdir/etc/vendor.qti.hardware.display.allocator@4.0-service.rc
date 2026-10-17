@@ -1,0 +1,5 @@
+service vendor.qti.hardware.display.allocator-hidl /vendor/bin/hw/vendor.qti.hardware.display.allocator@4.0-service
+    class hal animation
+    user system
+    group graphics drmrpc
+    capabilities SYS_NICE
