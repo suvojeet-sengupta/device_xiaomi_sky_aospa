@@ -19,3 +19,6 @@ Layout: forks of xiaomi-ravelin cloned into `~/work/k66/kernel/xiaomi/{sm4450,sm
 4. `assemble66.sh`: Image, dtbs, dtbo.img, kernel-headers, module dirs from ravelin's module lists.
 5. `curate_headers.py`: keep only vendor UAPI headers, plus 5.10-only ones.
 6. `closure.py`: add every module dependency to each load list.
+
+## publish.sh
+Copy into the root of the AOSPA tree. After `./rom-build.sh sky -z`, run `./publish.sh` to copy the newest fastboot (`-image.zip`) and recovery zips into the ServerHive web folder and print their download links. `./publish.sh fastboot` or `./publish.sh recovery` publishes one kind, `--keep N` deletes all but the N newest published zips of each kind, and `--dry-run` only shows what would be published.
