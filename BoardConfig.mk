@@ -89,7 +89,6 @@ $(foreach p, $(call to-upper, $(BOARD_QTI_DYNAMIC_PARTITIONS_PARTITION_LIST)), \
     $(eval TARGET_COPY_OUT_$(p) := $(call to-lower, $(p))))
 
 $(foreach p, SYSTEM_DLKM VENDOR_DLKM, \
-    $(eval BOARD_$(p)IMAGE_FILE_SYSTEM_TYPE := erofs) \
     $(eval BOARD_$(p)IMAGE_PARTITION_RESERVED_SIZE :=))
 
 BOARD_SYSTEM_KERNEL_MODULES := $(wildcard device/xiaomi/sky-kernel/gki_dlkm/*.ko)
