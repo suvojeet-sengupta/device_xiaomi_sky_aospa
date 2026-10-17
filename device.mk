@@ -416,8 +416,10 @@ PRODUCT_COPY_FILES += \
 
 # Touch firmware
 PRODUCT_COPY_FILES += \
+    vendor/xiaomi/sky/proprietary/vendor/firmware/focaltech_ft8720_hx.ini:$(TARGET_COPY_OUT_VENDOR_RAMDISK)/lib/firmware/focaltech_ft8720_hx.ini \
     vendor/xiaomi/sky/proprietary/vendor/firmware/focaltech_ts_fw_.bin:$(TARGET_COPY_OUT_VENDOR_RAMDISK)/lib/firmware/focaltech_ts_fw_.bin \
-    vendor/xiaomi/sky/proprietary/vendor/firmware/novatek_ts_fw.bin:$(TARGET_COPY_OUT_VENDOR_RAMDISK)/lib/firmware/novatek_ts_fw.bin
+    vendor/xiaomi/sky/proprietary/vendor/firmware/novatek_ts_fw.bin:$(TARGET_COPY_OUT_VENDOR_RAMDISK)/lib/firmware/novatek_ts_fw.bin \
+    vendor/xiaomi/sky/proprietary/vendor/firmware/novatek_ts_mp.bin:$(TARGET_COPY_OUT_VENDOR_RAMDISK)/lib/firmware/novatek_ts_mp.bin
 
 # Perf
 PRODUCT_ODM_PROPERTIES += \
