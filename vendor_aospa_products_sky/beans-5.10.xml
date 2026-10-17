@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+     SPDX-FileCopyrightText: Paranoid Android
+     SPDX-License-Identifier: Apache-2.0
+-->
+<manifest>
+  <include name="../platforms/taro.xml" />
+
+  <project path="device/xiaomi/sky" name="suvojeet-sengupta/device_xiaomi_sky_aospa" remote="github" revision="calcite" />
+  <project path="device/xiaomi/sky-kernel" name="suvojeet-sengupta/device_xiaomi_sky-kernel" remote="github" revision="calcite" clone-depth="1" />
+  <project path="hardware/xiaomi" name="AOSPA/android_hardware_xiaomi" remote="aospa" revision="calcite" />
+  <project path="vendor/nxp/opensource/halimpl" name="AOSPA/android_vendor_nxp_opensource_halimpl" remote="aospa" revision="beryl-8450" />
+  <project path="vendor/nxp/opensource/hidlimpl" name="AOSPA/android_vendor_nxp_opensource_hidlimpl" remote="aospa" revision="beryl-8450" />
+  <project path="vendor/xiaomi/sky" name="suvojeet-sengupta/vendor_xiaomi_sky_aospa" remote="github" revision="calcite" clone-depth="1" />
+</manifest>
