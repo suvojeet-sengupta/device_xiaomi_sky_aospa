@@ -62,6 +62,7 @@ BOARD_BOOTCONFIG := \
     androidboot.init_fatal_reboot_target=recovery \
     androidboot.load_modules_parallel=true \
     androidboot.memcg=1 \
+    androidboot.serialconsole=0 \
     androidboot.usbcontroller=a600000.dwc3
 
 # Lineage Health
