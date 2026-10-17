@@ -1,1 +1,3 @@
+audio.offload.min.duration.secs=30
+media.stagefright.audio.deep=true
 ro.aospa.maintainer=Suvojeet Sengupta
