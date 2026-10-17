@@ -1,5 +1,5 @@
 #=============================================================================
-# Copyright (c) 2019-2022 Qualcomm Technologies, Inc.
+# Copyright (c) 2019-2023 Qualcomm Technologies, Inc.
 # All Rights Reserved.
 # Confidential and Proprietary - Qualcomm Technologies, Inc.
 #
@@ -42,7 +42,7 @@ function configure_zram_parameters() {
 	if [ $RamSizeGB -le 2 ]; then
 		let zRamSizeMB="( $RamSizeGB * 1024 ) * 3 / 4"
 	else
-		let zRamSizeMB="( $RamSizeGB * 1024 ) / 2"
+		let zRamSizeMB="( $RamSizeGB * 1024 ) * 3 / 4"
 	fi
 
 	if [ $zRamSizeMB -gt 4096 ]; then
@@ -51,9 +51,7 @@ function configure_zram_parameters() {
 
 	# And enable lz4 zram compression for Go targets.
 	low_ram=`getprop ro.config.low_ram`
-	if [ "$low_ram" == "true" ]; then
-		echo lz4 > /sys/block/zram0/comp_algorithm
-	fi
+	echo lz4 > /sys/block/zram0/comp_algorithm
 
 	if [ -f /sys/block/zram0/disksize ]; then
 		if [ -f /sys/block/zram0/use_dedup ]; then
@@ -75,6 +73,21 @@ function configure_zram_parameters() {
 	fi
 }
 
+verify_pasr_support()
+{
+	ddr_type=`od -An -tx /proc/device-tree/memory/ddr_device_type`
+	ddr_type5="08"
+
+	if [ -d /sys/kernel/mem-offline ]; then
+		#only LPDDR5 supports PAAR
+		if [ ${ddr_type:4:2} != $ddr_type5 ]; then
+			setprop vendor.pasr.activemode.enabled false
+		fi
+
+		setprop vendor.pasr.enabled true
+	fi
+}
+
 function configure_read_ahead_kb_values() {
 	MemTotalStr=`cat /proc/meminfo | grep MemTotal`
 	MemTotal=${MemTotalStr:16:8}
@@ -92,9 +105,7 @@ function configure_read_ahead_kb_values() {
 		ra_kb=512
 	fi
 	for dm in $dmpts; do
-		if [ `cat $(dirname $dm)/../removable` -eq 0 ]; then
-			echo $ra_kb > $dm
-		fi
+		echo $ra_kb > $dm
 	done
 	if [ -f /sys/block/mmcblk0/bdi/read_ahead_kb ]; then
 		echo $ra_kb > /sys/block/mmcblk0/bdi/read_ahead_kb
@@ -107,13 +118,39 @@ function configure_read_ahead_kb_values() {
 function configure_memory_parameters() {
 	configure_zram_parameters
 	configure_read_ahead_kb_values
-        ProductName=`getprop ro.product.name`
 
-	echo 100 > /proc/sys/vm/swappiness
+	# O19 ExtM
+	ProductName=`getprop ro.product.name`
+	if [ "$ProductName" == "mist" ]; then
+		echo 150 > /proc/sys/vm/swappiness
+	else
+		echo 100 > /proc/sys/vm/swappiness
+	fi
 
 	# Disable periodic kcompactd wakeups. We do not use THP, so having many
 	# huge pages is not as necessary.
 	echo 0 > /proc/sys/vm/compaction_proactiveness
+
+	## Goal is to allow all allocations to use THP whilst minimizing allocaiton delays
+	# Allow all eligibe page faults to use THP
+	echo always > /sys/kernel/mm/transparent_hugepage/enabled
+	# Prevent page faults on THP-elgible VMAs from causing reclaim or compaction
+	echo never > /sys/kernel/mm/transparent_hugepage/defrag
+
+	## Goal is to make khugepaged as inert as possible using the below settings
+	# Prevent khugepaged from doing reclaim or compaction
+	echo 0 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag
+	# Minimize the number of pages that khugepaged will scan
+	echo 1 > /sys/kernel/mm/transparent_hugepage/khugepaged/pages_to_scan
+	# Maximize the amount of time that khugepaged is asleep for
+	echo 4294967295 > /sys/kernel/mm/transparent_hugepage/khugepaged/scan_sleep_millisecs
+	echo 4294967295 > /sys/kernel/mm/transparent_hugepage/khugepaged/alloc_sleep_millisecs
+	# Restrict khugepaged promotions as much as possible. Only allow khugepaged to promote
+	# if all pages in a VMA are (1) not invalid PTEs, (2) not swapped out PTEs, (3) not
+	# shared PTEs.
+	echo 0 > /sys/kernel/mm/transparent_hugepage/khugepaged/max_ptes_none
+	echo 0 > /sys/kernel/mm/transparent_hugepage/khugepaged/max_ptes_swap
+	echo 0 > /sys/kernel/mm/transparent_hugepage/khugepaged/max_ptes_shared
 
 	MemTotalStr=`cat /proc/meminfo | grep MemTotal`
 	MemTotal=${MemTotalStr:16:8}
@@ -131,39 +168,42 @@ function configure_memory_parameters() {
 	fi
 	# Disable wsf for all targets beacause we are using efk.
 	# wsf Range : 1..1000 So set to bare minimum value 1.
-	echo 1 > /proc/sys/vm/watermark_scale_factor
+	echo 60 > /proc/sys/vm/watermark_scale_factor
 
 	#Set per-app max kgsl reclaim limit and per shrinker call limit
 	if [ -f /sys/class/kgsl/kgsl/page_reclaim_per_call ]; then
 		echo 38400 > /sys/class/kgsl/kgsl/page_reclaim_per_call
+
 	fi
 	if [ -f /sys/class/kgsl/kgsl/max_reclaim_limit ]; then
 		echo 25600 > /sys/class/kgsl/kgsl/max_reclaim_limit
 	fi
+
+	verify_pasr_support
 }
 
 # Set Memory parameters.
 configure_memory_parameters
 
-if [ -f /sys/devices/soc0/soc_id ]; then
-	platformid=`cat /sys/devices/soc0/soc_id`
+if [ -f /sys/devices/soc0/chip_family ]; then
+  chipfamily=`cat /sys/devices/soc0/chip_family`
 fi
 
-case "$platformid" in
-	"537" | "583" | "613")
-		/vendor/bin/sh /vendor/bin/init.kernel.post_boot-parrot.sh
-		;;
-	"568" | "602" | "581" | "582")
-		/vendor/bin/sh /vendor/bin/init.kernel.post_boot-ravelin.sh
-		;;
-	*)
-		echo "***WARNING***: Invalid SoC ID\n\t No postboot settings applied!!\n"
-		;;
+case "$chipfamily" in
+  "0x84")
+          /vendor/bin/sh /vendor/bin/init.kernel.post_boot-parrot.sh
+          ;;
+  "0x8d")
+          /vendor/bin/sh /vendor/bin/init.kernel.post_boot-ravelin.sh
+          ;;
+  *)
+          echo "***WARNING***: Invalid chip family\n\t No postboot settings applied!!\n"
+          ;;
 esac
 
-ProductName=`getprop ro.product.name`
-if [ "$ProductName" == "sky" ] || [ "$ProductName" == "river" ] ; then
-	echo 160 > /proc/sys/vm/swappiness
+
+DeviceName=`getprop ro.product.device`
+if [ "$DeviceName" == "mist" ] ; then
 	sleep 600
 	echo 60 > /proc/sys/vm/watermark_scale_factor
 fi
