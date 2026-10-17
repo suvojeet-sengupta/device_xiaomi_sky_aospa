@@ -24,9 +24,9 @@ vendor/lib64/libloadalgo_stub.so
 vendor/lib/rfsa/adsp/libdsp_streamer_binning.so
 
 # Audio
-odm/etc/audio_policy_engine_configuration_mi.xml:vendor/etc/audio_policy_engine_configuration_mi.xml
-odm/etc/audio_policy_engine_default_stream_volumes.xml:vendor/etc/audio_policy_engine_default_stream_volumes.xml
-odm/etc/audio_policy_engine_product_strategies.xml:vendor/etc/audio_policy_engine_product_strategies.xml
+vendor/etc/audio_policy_engine_configuration_mi.xml
+vendor/etc/audio_policy_engine_default_stream_volumes.xml
+vendor/etc/audio_policy_engine_product_strategies.xml
 vendor/etc/models/acd/event.eai
 vendor/etc/models/acd/music.eai
 vendor/etc/models/acd/speech.eai
@@ -1245,7 +1245,7 @@ vendor/lib64/libmmcamera_pdpc.so;DISABLE_DEPS
 vendor/lib64/libmpbase.so;DISABLE_DEPS
 vendor/lib64/libopencv.so;DISABLE_DEPS
 vendor/lib64/libopencv3a.so;DISABLE_DEPS
-vendor/lib64/libsnsapi.so:vendor/lib64/libsnsapi_camx.so;DISABLE_DEPS
+vendor/lib64/libsnsapi_camx.so;DISABLE_DEPS
 vendor/lib64/libswregistrationalgo.so;DISABLE_DEPS
 vendor/lib64/libsynx.so;DISABLE_DEPS
 vendor/lib64/libtfestriping.so;DISABLE_DEPS
@@ -1358,9 +1358,9 @@ vendor/bin/rmt_storage
 vendor/etc/init/vendor.qti.rmt_storage.rc
 
 # Sensors
-vendor/lib64/libsnsdiaglog.so:vendor/lib64/libsnsdiaglog_sky.so;DISABLE_DEPS
-vendor/lib64/libssc.so:vendor/lib64/libssc_sky.so;DISABLE_DEPS
-vendor/lib64/sensors.ssc.so:vendor/lib64/sensors.ssc_sky.so;DISABLE_DEPS
+vendor/lib64/libsnsdiaglog_sky.so;DISABLE_DEPS
+vendor/lib64/libssc_sky.so;DISABLE_DEPS
+vendor/lib64/sensors.ssc_sky.so;DISABLE_DEPS
 vendor/lib64/sensors.touch.so;DISABLE_DEPS
 
 # Sensors config
