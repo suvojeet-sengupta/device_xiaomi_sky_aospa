@@ -2,6 +2,5 @@
 // SPDX-FileCopyrightText: The LineageOS Project
 // SPDX-License-Identifier: Apache-2.0
 //
-
-soong_namespace {
-}
+// hardware/qcom-caf/sm8450-6.6 is built without a namespace on AOSPA, the
+// way hardware/qcom/display is, since QTI common blobs link its libraries.

@@ -366,7 +366,6 @@ PRODUCT_VENDOR_PROPERTIES += \
 # Namespaces
 PRODUCT_SOONG_NAMESPACES += \
     $(LOCAL_PATH) \
-    hardware/qcom-caf/sm8450-6.6 \
     hardware/xiaomi
 
 # NDK
