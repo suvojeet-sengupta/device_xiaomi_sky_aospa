@@ -4,7 +4,7 @@ Files that live outside the device, vendor and kernel repos.
 
 ## vendor_aospa_products_sky
 Copy into `vendor/aospa/products/sky/` of an AOSPA calcite tree.
-- `beans-5.10.xml` / `beans-6.6.xml`: copy the one you want to `beans.xml`, then run lunch or barista.
+- `beans-5.10.xml` / `beans-6.6.xml` / `beans-6.6-hals.xml`: copy the one you want to `beans.xml`, then run lunch or barista. The -hals variant replaces the AOSPA 8450 display and audio HALs with the LineageOS sm8450-6.6 ones.
 - `aospa_sky.mk`: uses the calcite DeviceProduct/SystemName overrides.
 
 ## kernel-6.6
