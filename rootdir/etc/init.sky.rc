@@ -99,6 +99,8 @@ on post-fs
     #chown/chmod input_suspend node
     chown system system /sys/class/qcom-battery/input_suspend
     chmod 0666 /sys/class/qcom-battery/input_suspend
+    chown system system /sys/class/qcom-battery/charging_enabled
+    chmod 0660 /sys/class/qcom-battery/charging_enabled
 
 on post-fs-data
     # Camera
