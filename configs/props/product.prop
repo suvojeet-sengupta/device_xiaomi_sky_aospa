@@ -1,0 +1,2 @@
+audio.offload.min.duration.secs=30
+media.stagefright.audio.deep=true

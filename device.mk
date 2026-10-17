@@ -113,8 +113,8 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/audio/resourcemanager_ravelin_qrd.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio/sku_ravelin/resourcemanager_ravelin_qrd.xml
 
 PRODUCT_ODM_PROPERTIES += \
-    aaudio.mmap_policy=1 \
-    vendor.audio.offload.buffer.size.kb=256
+    aaudio.mmap_policy=2 \
+    vendor.audio.offload.buffer.size.kb=32
 
 PRODUCT_VENDOR_PROPERTIES += \
     persist.vendor.audio.auto.scenario=true \
@@ -204,15 +204,15 @@ PRODUCT_COPY_FILES += \
 
 PRODUCT_ODM_PROPERTIES += \
     persist.sys.sf.color_mode=0 \
-    vendor.display.disable_3d_adaptive_tm=0 \
+    vendor.display.disable_3d_adaptive_tm=1 \
     vendor.display.enable_rounded_corner=0
 
 PRODUCT_VENDOR_PROPERTIES += \
     debug.sf.defer_refresh_rate_when_off=1 \
     debug.sf.disable_backpressure=1 \
-    debug.sf.frame_rate_multiple_threshold=90 \
+    debug.sf.frame_rate_multiple_threshold=120 \
     persist.sys.sf.native_mode=258 \
-    ro.gfx.driver.1=com.qualcomm.qti.gpudrivers.taro.api32 \
+    ro.gfx.driver.1=com.qualcomm.qti.gpudrivers.parrot.api34 \
     ro.surface_flinger.set_idle_timer_ms=1000 \
     ro.vendor.display.ai_disp.enable=true \
     ro.vendor.display.framework_thermal_dimming=true \

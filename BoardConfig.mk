@@ -95,6 +95,11 @@ BOARD_SYSTEM_KERNEL_MODULES := $(wildcard device/xiaomi/sky-kernel/gki_dlkm/*.ko
 BOARD_SYSTEM_KERNEL_MODULES_LOAD := $(strip $(shell cat device/xiaomi/sky-kernel/gki_dlkm/modules.load))
 BOARD_SYSTEM_KERNEL_MODULES_BLOCKLIST_FILE := device/xiaomi/sky-kernel/vendor_dlkm/system_dlkm.modules.blocklist
 
+# Properties
+TARGET_PRODUCT_PROP += $(DEVICE_PATH)/configs/props/product.prop
+TARGET_SYSTEM_EXT_PROP += $(DEVICE_PATH)/configs/props/system_ext.prop
+TARGET_VENDOR_PROP += $(DEVICE_PATH)/configs/props/vendor.prop
+
 # Power
 TARGET_POWER_FEATURE_EXT_LIB := //$(DEVICE_PATH):libpowerfeature_ext_sky
 
