@@ -62,23 +62,17 @@ vendor/lib/rfsa/adsp/misound_res_headphone.bin
 vendor/lib/rfsa/adsp/misound_res_spk.bin
 
 # Audio
-vendor/bin/hw/vendor.qti.hardware.AGMIPC@1.0-service
-vendor/etc/init/vendor.qti.hardware.AGMIPC@1.0-service.rc
 vendor/lib64/libadm.so
 vendor/lib64/libagmmixer.so
 vendor/lib64/libmisight.so
-vendor/lib64/libkaraokepal.so;DISABLE_CHECKELF
 vendor/lib64/libmcs.so
 vendor/lib64/libpal_net_if.so
 vendor/lib64/libqtigefar.so;DISABLE_CHECKELF
 vendor/lib64/soundfx/libasphere.so
 vendor/lib64/soundfx/libmisoundfx.so
 vendor/lib64/soundfx/libshoebox.so
-vendor/lib64/vendor.qti.hardware.AGMIPC@1.0-impl.so;DISABLE_CHECKELF
-vendor/lib64/vendor.qti.hardware.pal@1.0-impl.so
 
 # Audio HAL
-vendor/lib64/hw/audio.primary.parrot.so;MODULE_SUFFIX=_sky;OVERRIDES=audio.primary.parrot
 vendor/lib64/libaudio_log_utils.so
 
 # Audio configs
