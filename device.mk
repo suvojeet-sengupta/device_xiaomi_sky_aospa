@@ -159,6 +159,14 @@ PRODUCT_VENDOR_PROPERTIES += \
 # Camera
 $(call inherit-product-if-exists, vendor/xiaomi/camera/miuicamera.mk)
 
+PRODUCT_PACKAGES += \
+    framework_compatibility_matrix.camx_hidl.xml \
+    libprotobuf-cpp-full-3.9.1-vendorcompat \
+    libprotobuf-cpp-lite-3.9.1-vendorcompat \
+    libqti_vndfwk_detect.vendor \
+    manifest_camx_hidl.xml \
+    vendor.qti.hardware.camera.postproc@1.0.vendor
+
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.camera.flash-autofocus.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.camera.flash-autofocus.xml \
     frameworks/native/data/etc/android.hardware.camera.front.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.camera.front.xml \
@@ -277,8 +285,9 @@ PRODUCT_SYSTEM_PROPERTIES += \
 # FM
 BOARD_HAVE_QCOM_FM := true
 
+# GNSS
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/configs/gps.conf:$(TARGET_COPY_OUT_VENDOR)/etc/gps.conf
+    frameworks/native/data/etc/android.hardware.location.gps.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.location.gps.xml
 
 # Health
 PRODUCT_PACKAGES += \
@@ -314,7 +323,7 @@ KERNEL_PREBUILT_DIR := $(LOCAL_PATH)-kernel
 
 # Keymaster
 PRODUCT_PACKAGES += \
-    android.hardware.hardware_keystore.xml
+    android.hardware.hardware_keystore_V3.xml
 
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.keystore.app_attest_key.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.keystore.app_attest_key.xml
@@ -428,15 +437,11 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/emulated_storage.mk)
 
 # QC common
 TARGET_COMMON_QTI_COMPONENTS := \
-    adreno \
     alarm \
     av \
     bt \
-    gps \
     init \
-    media \
     overlay \
-    perf \
     telephony \
     wfd \
     wlan \

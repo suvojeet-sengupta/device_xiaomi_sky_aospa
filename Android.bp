@@ -22,3 +22,24 @@ install_symlink {
     symlink_target: "/vendor/etc/wifi/adrastea/WCNSS_qcom_cfg.ini",
     vendor: true,
 }
+
+vintf_fragment {
+    name: "manifest_camx_hidl.xml",
+    src: "configs/vintf/manifest_camx_hidl.xml",
+    vendor: true,
+}
+
+vintf_compatibility_matrix {
+    name: "framework_compatibility_matrix.camx_hidl.xml",
+    stem: "compatibility_matrix.camx_hidl.xml",
+    srcs: ["configs/vintf/framework_compatibility_matrix_camx_hidl.xml"],
+    product_specific: true,
+}
+
+install_symlink {
+    name: "CneApp.libvndfwk_detect_jni.qti_vendor_symlink",
+    vendor: true,
+    installed_location: "app/CneApp/lib/arm64/libvndfwk_detect_jni.qti_vendor.so",
+    symlink_target: "/vendor/lib64/libvndfwk_detect_jni.qti_vendor.so",
+    required: ["libvndfwk_detect_jni.qti_vendor"],
+}
