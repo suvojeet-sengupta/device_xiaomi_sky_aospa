@@ -51,6 +51,7 @@ BOARD_MKBOOTIMG_ARGS := --header_version $(BOARD_BOOT_HEADER_VERSION)
 
 BOARD_KERNEL_CMDLINE := \
     disable_dma32=on \
+    firmware_class.path=/vendor/firmware \
     mtdoops.fingerprint=$(AOSPA_VERSION) \
     swinfo.fingerprint=$(AOSPA_VERSION)
 
