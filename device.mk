@@ -414,6 +414,11 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/rootdir/etc/fstab.qcom:$(TARGET_COPY_OUT_VENDOR)/etc/fstab.qcom \
     $(LOCAL_PATH)/rootdir/etc/fstab.qcom:$(TARGET_COPY_OUT_VENDOR_RAMDISK)/first_stage_ramdisk/fstab.qcom
 
+# Touch firmware
+PRODUCT_COPY_FILES += \
+    vendor/xiaomi/sky/proprietary/vendor/firmware/focaltech_ts_fw_.bin:$(TARGET_COPY_OUT_VENDOR_RAMDISK)/lib/firmware/focaltech_ts_fw_.bin \
+    vendor/xiaomi/sky/proprietary/vendor/firmware/novatek_ts_fw.bin:$(TARGET_COPY_OUT_VENDOR_RAMDISK)/lib/firmware/novatek_ts_fw.bin
+
 # Perf
 PRODUCT_ODM_PROPERTIES += \
     vendor.pasr.activemode.enabled=false \
