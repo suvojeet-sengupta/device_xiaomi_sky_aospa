@@ -57,6 +57,7 @@ BOARD_KERNEL_CMDLINE := \
     swinfo.fingerprint=$(AOSPA_VERSION)
 
 BOARD_BOOTCONFIG := \
+    androidboot.boot_devices=soc/1d84000.ufshc \
     androidboot.hardware=qcom \
     androidboot.init_fatal_reboot_target=recovery \
     androidboot.load_modules_parallel=true \
