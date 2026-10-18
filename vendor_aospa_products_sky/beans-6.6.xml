@@ -24,4 +24,5 @@
   <project path="hardware/qcom-caf/sm8450-6.6/display/core" name="LineageOS/android_vendor_qcom_opensource_display-core" remote="github" revision="lineage-24.0-caf-sm8450-6.6" />
   <project path="hardware/qcom-caf/sm8450-6.6/display/hal" name="suvojeet-sengupta/android_hardware_qcom_display" remote="github" revision="lineage-24.0-caf-sm8450-6.6" />
   <project path="hardware/qcom-caf/sm8450-6.6/display/intf" name="LineageOS/android_vendor_qcom_opensource_display-intf" remote="github" revision="lineage-24.0-caf-sm8450-6.6" />
+  <project path="vendor/qcom/opensource/audio-hal/st-hal-ar" name="LineageOS/android_vendor_qcom_opensource_audio-hal_st-hal-ar" remote="github" revision="lineage-24.0" />
 </manifest>
