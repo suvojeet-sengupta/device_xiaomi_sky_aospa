@@ -1,0 +1,119 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Tue, 6 Oct 2026 15:19:13 +0000
+Subject: [PATCH] Settings: Show the maintainer in device info
+
+Add a Maintainer row under the Android version in About phone and to the
+Android version page, read from ro.aospa.maintainer and hidden when it
+is unset.
+
+Change-Id: I98d081c6f489237763668d96b22424764b845d52
+---
+ res/values/maintainer_strings.xml             | 10 ++++++
+ res/xml/firmware_version.xml                  |  9 +++++
+ res/xml/my_device_info.xml                    | 10 ++++++
+ .../MaintainerPreferenceController.java       | 34 +++++++++++++++++++
+ 4 files changed, 63 insertions(+)
+ create mode 100644 res/values/maintainer_strings.xml
+ create mode 100644 src/com/android/settings/deviceinfo/MaintainerPreferenceController.java
+
+diff --git a/res/values/maintainer_strings.xml b/res/values/maintainer_strings.xml
+new file mode 100644
+index 0000000..7465cb3
+--- /dev/null
++++ b/res/values/maintainer_strings.xml
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!--
++     Copyright (C) 2026 Paranoid Android
++
++     SPDX-License-Identifier: Apache-2.0
++-->
++<resources>
++    <!-- About phone and Android version: who maintains this build -->
++    <string name="maintainer_title">Maintainer</string>
++</resources>
+diff --git a/res/xml/firmware_version.xml b/res/xml/firmware_version.xml
+index d673dc1..f4a6aae 100644
+--- a/res/xml/firmware_version.xml
++++ b/res/xml/firmware_version.xml
+@@ -38,6 +38,15 @@
+         settings:enableCopying="true"
+         settings:searchable="false"/>
+ 
++    <!-- Maintainer -->
++    <Preference
++        android:key="firmware_maintainer"
++        android:title="@string/maintainer_title"
++        android:summary="@string/summary_placeholder"
++        settings:enableCopying="true"
++        settings:searchable="false"
++        settings:controller="com.android.settings.deviceinfo.MaintainerPreferenceController"/>
++
+     <!-- Security patch -->
+     <Preference
+         android:key="security_key"
+diff --git a/res/xml/my_device_info.xml b/res/xml/my_device_info.xml
+index e3856e2..4a3097a 100644
+--- a/res/xml/my_device_info.xml
++++ b/res/xml/my_device_info.xml
+@@ -50,6 +50,16 @@
+             android:fragment="com.android.settings.deviceinfo.firmwareversion.FirmwareVersionSettings"
+             settings:controller="com.android.settings.deviceinfo.firmwareversion.FirmwareVersionPreferenceController"/>
+ 
++        <!-- Maintainer -->
++        <Preference
++            android:key="maintainer"
++            android:order="3"
++            android:title="@string/maintainer_title"
++            android:summary="@string/summary_placeholder"
++            android:selectable="false"
++            settings:enableCopying="true"
++            settings:controller="com.android.settings.deviceinfo.MaintainerPreferenceController"/>
++
+         <!-- Account name -->
+         <Preference
+             android:key="branded_account"
+diff --git a/src/com/android/settings/deviceinfo/MaintainerPreferenceController.java b/src/com/android/settings/deviceinfo/MaintainerPreferenceController.java
+new file mode 100644
+index 0000000..e967ded
+--- /dev/null
++++ b/src/com/android/settings/deviceinfo/MaintainerPreferenceController.java
+@@ -0,0 +1,34 @@
++/*
++ * Copyright (C) 2026 Paranoid Android
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++package com.android.settings.deviceinfo;
++
++import android.content.Context;
++import android.os.SystemProperties;
++import android.text.TextUtils;
++
++import com.android.settings.core.BasePreferenceController;
++
++/** Shows the build's maintainer, from ro.aospa.maintainer. */
++public class MaintainerPreferenceController extends BasePreferenceController {
++
++    private static final String PROPERTY_MAINTAINER = "ro.aospa.maintainer";
++
++    public MaintainerPreferenceController(Context context, String key) {
++        super(context, key);
++    }
++
++    @Override
++    public int getAvailabilityStatus() {
++        return TextUtils.isEmpty(SystemProperties.get(PROPERTY_MAINTAINER))
++                ? UNSUPPORTED_ON_DEVICE : AVAILABLE;
++    }
++
++    @Override
++    public CharSequence getSummary() {
++        return SystemProperties.get(PROPERTY_MAINTAINER);
++    }
++}
+-- 
+2.55.0
+
