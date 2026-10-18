@@ -1,2 +1,5 @@
 get_prop({ appdomain -isolated_app }, vendor_fp_prop)
 get_prop({ appdomain -isolated_app }, vendor_mlipay_prop)
+
+# Apps probe the perf HAL through libqti-perfd-client, which is optional for them
+dontaudit priv_app vendor_hal_perf2_service:service_manager find;
