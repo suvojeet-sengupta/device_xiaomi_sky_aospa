@@ -2,7 +2,8 @@
      SPDX-FileCopyrightText: The LineageOS Project
      SPDX-License-Identifier: Apache-2.0
 -->
-<manifest version="1.0" type="device" target-level="202404">
+<manifest version="1.0" type="device" target-level="8">
+    <kernel target-level="202404"/>
     <hal format="aidl" optional="true">
         <name>vendor.qti.hardware.wifidisplaysession_aidl</name>
         <version>1</version>
