@@ -397,7 +397,8 @@ PRODUCT_VENDOR_PROPERTIES += \
 # Namespaces
 PRODUCT_SOONG_NAMESPACES += \
     $(LOCAL_PATH) \
-    hardware/xiaomi
+    hardware/xiaomi \
+    vendor/qcom/opensource/audio-hal/st-hal-ar
 
 # NDK
 NEED_AIDL_NDK_PLATFORM_BACKEND := true

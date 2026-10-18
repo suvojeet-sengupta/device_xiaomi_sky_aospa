@@ -186,6 +186,8 @@ $(call soong_config_set,qtiaudio,feature_instance_id,true)
 $(call soong_config_set,qtiaudio,feature_mcs,true)
 $(call soong_config_set,qtiaudio,feature_sound_trigger,true)
 $(call soong_config_set,qtiaudio,feature_sva_multi_stage,true)
+$(call soong_config_set,qtiaudio,headers_namespace,hardware/qcom-caf/sm8450-6.6/audio/pal)
+$(call soong_config_set,qtiaudio,libarpal_namespace,hardware/qcom-caf/sm8450-6.6/audio/pal)
 
 # Display (sm8450-6.6 HAL)
 SOONG_CONFIG_NAMESPACES += qtidisplay
