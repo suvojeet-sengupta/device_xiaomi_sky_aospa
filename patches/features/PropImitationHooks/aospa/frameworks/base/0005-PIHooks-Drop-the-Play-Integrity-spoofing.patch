@@ -1,0 +1,537 @@
+From 5a9566bb65d27fbdfd65a2a9278e4736b233611c Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Sun, 18 Oct 2026 06:29:06 +0000
+Subject: [PATCH] PIHooks: Drop the Play Integrity spoofing
+
+Keep the Google Photos, Pixel feature, ARCore and Netflix props, but stop spoofing a certified build to Play Services and the Play Store, blocking their key attestation, fetching certified props with AttestationService and letting GMS skip the task permission checks.
+
+Change-Id: Ia5dc6918731a72c3c373a2a1d652015300a14302
+---
+ .../internal/util/PropImitationHooks.java     | 198 +-----------------
+ .../keystore2/AndroidKeyStoreSpi.java         |   3 -
+ .../server/custom/AttestationService.java     | 182 ----------------
+ .../server/wm/ActivityTaskManagerService.java |   9 +-
+ .../java/com/android/server/SystemServer.java |   5 -
+ 5 files changed, 5 insertions(+), 392 deletions(-)
+ delete mode 100644 services/core/java/com/android/server/custom/AttestationService.java
+
+diff --git a/core/java/com/android/internal/util/PropImitationHooks.java b/core/java/com/android/internal/util/PropImitationHooks.java
+index 4bec2463a2b9..93832b28afad 100644
+--- a/core/java/com/android/internal/util/PropImitationHooks.java
++++ b/core/java/com/android/internal/util/PropImitationHooks.java
+@@ -203,31 +203,13 @@ public class PropImitationHooks {
+         }
+     }
+ 
+-    // Read these when they're used: zygote preloads this class and can't read
+-    // them, so a cached value would always be false.
+-    private static boolean isGmsPropsDisabled() {
+-        return SystemProperties.getBoolean("persist.sys.pihooks.disable.gms_props", false);
+-    }
+-
+-    // Blocking key attestation keeps Tricky Store and the like from passing
+-    // device and strong integrity, and basic integrity passes without it, so
+-    // it's off unless the property is set to false.
+-    private static boolean isKeyAttestationBlockDisabled() {
+-        return SystemProperties.getBoolean(
+-                "persist.sys.pihooks.disable.gms_key_attestation_block", true);
+-    }
+-    private static final String DATA_FILE = "gms_certified_props.json";
+ 
+     private static final String PACKAGE_ARCORE = "com.google.ar.core";
+-    private static final String PACKAGE_FINSKY = "com.android.vending";
+     private static final String PACKAGE_GMS = "com.google.android.gms";
+     private static final String PROCESS_GMS_UNSTABLE = PACKAGE_GMS + ".unstable";
+     private static final String PACKAGE_NETFLIX = "com.netflix.mediaclient";
+     private static final String PACKAGE_GPHOTOS = "com.google.android.apps.photos";
+ 
+-    private static final ComponentName GMS_ADD_ACCOUNT_ACTIVITY = ComponentName.unflattenFromString(
+-            "com.google.android.gms/.auth.uiflows.minutemaid.MinuteMaidActivity");
+-
+     private static final String FEATURE_NEXUS_PRELOAD =
+             "com.google.android.apps.photos.NEXUS_PRELOAD";
+ 
+@@ -295,11 +277,10 @@ public class PropImitationHooks {
+         "com.google.pixel.livewallpaper"
+     );
+ 
+-    private static volatile List<String> sCertifiedProps = new ArrayList<>();
+     private static volatile String sStockFp, sNetflixModel;
+ 
+     private static volatile String sProcessName;
+-    private static volatile boolean sIsGms, sIsFinsky, sIsPhotos, sIsRecentPixel;
++    private static volatile boolean sIsGms, sIsPhotos, sIsRecentPixel;
+     private static volatile boolean sForceTensor, sGphotosSpoof;
+ 
+     public static void setProps(Context context) {
+@@ -322,7 +303,6 @@ public class PropImitationHooks {
+ 
+         sProcessName = processName;
+         sIsGms = packageName.equals(PACKAGE_GMS) && processName.equals(PROCESS_GMS_UNSTABLE);
+-        sIsFinsky = packageName.equals(PACKAGE_FINSKY);
+         sIsPhotos = packageName.equals(PACKAGE_GPHOTOS);
+         sIsRecentPixel = sRecentPixelPackages.contains(packageName);
+ 
+@@ -340,19 +320,12 @@ public class PropImitationHooks {
+             sGphotosSpoof = true;
+         }
+ 
+-        /* Set Certified Properties for GMSCore
+-         * Set Stock Fingerprint for ARCore
++        /* Set Stock Fingerprint for ARCore
+          * Set custom model for Netflix
+          * Set Pixel XL for Google Photos
+          * Set Recent Pixel for Tensor spoofing
+          */
+-        if (sIsGms || sIsFinsky) {
+-            if (!android.os.Process.isIsolated()) {
+-                setPlayIntegrityProps(context);
+-            } else {
+-                dlog("Not setting Play Integrity props in isolated process");
+-            }
+-        } else if (!sStockFp.isEmpty() && packageName.equals(PACKAGE_ARCORE)) {
++        if (!sStockFp.isEmpty() && packageName.equals(PACKAGE_ARCORE)) {
+             dlog("Setting stock fingerprint for: " + packageName);
+             setPropValue("FINGERPRINT", sStockFp);
+             mapSystemProp("FINGERPRINT", sStockFp);
+@@ -378,171 +351,6 @@ public class PropImitationHooks {
+             sSpoofPropsForProcess = true;
+         }
+     }
+-
+-    private static void setPlayIntegrityProps(Context context) {
+-        if (SystemProperties.getBoolean("persist.sys.pihooks.disable.gms_props", false)) {
+-            dlog("GMS prop imitation is disabled by user");
+-            return;
+-        }
+-
+-        // Guard: isolated processes cannot access content providers (Settings.*).
+-        if (android.os.Process.isIsolated()) {
+-            dlog("Skipping setPlayIntegrityProps in isolated process");
+-            return;
+-        }
+-
+-        String savedProps = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.PIF_DATA);
+-        if (savedProps == null || TextUtils.isEmpty(savedProps)) {
+-            savedProps = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.FETCHED_PIF);
+-        }
+-
+-        List<String> props = new ArrayList<>();
+-        if (savedProps == null || TextUtils.isEmpty(savedProps)) {
+-            dlog("Parsing props locally - fetched pif / user provided pif unavailable");
+-            props.addAll(Arrays.asList(context.getResources().getStringArray(R.array.config_certifiedBuildProperties)));
+-        } else {
+-            dlog("Parsing props fetched / provided by user");
+-            try {
+-                JSONObject parsedProps = new JSONObject(savedProps);
+-                if (parsedProps.has("props") && parsedProps.opt("props") instanceof JSONObject) {
+-                    parsedProps = parsedProps.getJSONObject("props");
+-                }
+-                Iterator<String> keys = parsedProps.keys();
+-                while (keys.hasNext()) {
+-                    String key = keys.next();
+-                    Object val = parsedProps.get(key);
+-                    props.add(key + ":" + (val != null ? val.toString() : ""));
+-                }
+-            } catch (JSONException e) {
+-                Log.e(TAG, "Error parsing JSON data", e);
+-                dlog("Parsing props locally as fallback");
+-                props.clear();
+-                props.addAll(Arrays.asList(context.getResources().getStringArray(R.array.config_certifiedBuildProperties)));
+-            }
+-        }
+-        sCertifiedProps = props;
+-
+-        if (sCertifiedProps.isEmpty()) {
+-            dlog("Certified props are not set");
+-            return;
+-        }
+-
+-        final boolean was = isGmsAddAccountActivityOnTop();
+-        final TaskStackListener taskStackListener = new TaskStackListener() {
+-            @Override
+-            public void onTaskStackChanged() {
+-                final boolean is = isGmsAddAccountActivityOnTop();
+-                if (is ^ was) {
+-                    dlog("GmsAddAccountActivityOnTop is:" + is + " was:" + was +
+-                            ", killing myself!"); // process will restart automatically later
+-                    Process.killProcess(Process.myPid());
+-                }
+-            }
+-        };
+-
+-        if (!was) {
+-            dlog("Spoofing build for GMS / Finsky");
+-            sSpoofPropsForProcess = true;
+-            setCertifiedProps();
+-        } else {
+-            dlog("Skip spoofing build for GMS / Finsky, because GmsAddAccountActivityOnTop");
+-            sSpoofPropsForProcess = false;
+-        }
+-
+-        try {
+-            ActivityTaskManager.getService().registerTaskStackListener(taskStackListener);
+-        } catch (Exception e) {
+-            Log.e(TAG, "Failed to register task stack listener!", e);
+-        }
+-    }
+-
+-    private static void setCertifiedProps() {
+-        for (String entry : sCertifiedProps) {
+-            // Each entry must be of the format FIELD:value
+-            final String[] fieldAndProp = entry.split(":", 2);
+-            if (fieldAndProp.length != 2) {
+-                Log.e(TAG, "Invalid entry in certified props: " + entry);
+-                continue;
+-            }
+-            setPropValue(fieldAndProp[0], fieldAndProp[1]);
+-            mapSystemProp(fieldAndProp[0], fieldAndProp[1]);
+-        }
+-    }
+-
+-    private static String readFromFile(File file) {
+-        StringBuilder content = new StringBuilder();
+-
+-        if (file.exists()) {
+-            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+-                String line;
+-
+-                while ((line = reader.readLine()) != null) {
+-                    content.append(line);
+-                }
+-            } catch (IOException e) {
+-                Log.e(TAG, "Error reading from file", e);
+-            }
+-        }
+-        return content.toString();
+-    }
+-
+-    private static boolean isGmsAddAccountActivityOnTop() {
+-        try {
+-            final ActivityTaskManager.RootTaskInfo focusedTask =
+-                    ActivityTaskManager.getService().getFocusedRootTaskInfo();
+-            return focusedTask != null && focusedTask.topActivity != null
+-                    && focusedTask.topActivity.equals(GMS_ADD_ACCOUNT_ACTIVITY);
+-        } catch (Exception e) {
+-            Log.e(TAG, "Unable to get top activity!", e);
+-        }
+-        return false;
+-    }
+-
+-    public static boolean shouldBypassTaskPermission(Context context) {
+-        if (isGmsPropsDisabled()) {
+-            return false;
+-        }
+-
+-        // GMS doesn't have MANAGE_ACTIVITY_TASKS permission
+-        final int callingUid = Binder.getCallingUid();
+-        final int gmsUid;
+-        try {
+-            gmsUid = context.getPackageManager().getApplicationInfo(PACKAGE_GMS, 0).uid;
+-            dlog("shouldBypassTaskPermission: gmsUid:" + gmsUid + " callingUid:" + callingUid);
+-        } catch (Exception e) {
+-            Log.e(TAG, "shouldBypassTaskPermission: unable to get gms uid", e);
+-            return false;
+-        }
+-        return gmsUid == callingUid;
+-    }
+-
+-    private static boolean isCallerSafetyNet() {
+-        return sIsGms && Arrays.stream(Thread.currentThread().getStackTrace())
+-                .anyMatch(elem -> elem.getClassName().contains("DroidGuard"));
+-    }
+-    private static boolean isAttestationCompatActive() {
+-        return SystemProperties.getBoolean("sys.keystore_compat.active", false)
+-                || SystemProperties.getBoolean("sys.tee_simulator.active", false);
+-    }
+-
+-    public static void onEngineGetCertificateChain() {
+-        if (isKeyAttestationBlockDisabled()) {
+-            dlog("Key attestation blocking is disabled by user");
+-            return;
+-        }
+-
+-        if (isAttestationCompatActive()) {
+-            dlog("Attestation compat is active, allowing key attestation for Strong Integrity");
+-            return;
+-        }
+-
+-        // Check stack for SafetyNet or Play Integrity
+-        if (isCallerSafetyNet() || sIsFinsky) {
+-            dlog("Blocked key attestation sIsGms=" + sIsGms + " sIsFinsky=" + sIsFinsky);
+-            throw new UnsupportedOperationException();
+-        }
+-    }
+-
+     public static boolean hasSystemFeature(String name, boolean has) {
+         if (sIsPhotos) {
+             if (has && (sPixelFeatures.stream().anyMatch(name::contains)
+diff --git a/keystore/java/android/security/keystore2/AndroidKeyStoreSpi.java b/keystore/java/android/security/keystore2/AndroidKeyStoreSpi.java
+index ccafc95b473c..3694e59b034a 100644
+--- a/keystore/java/android/security/keystore2/AndroidKeyStoreSpi.java
++++ b/keystore/java/android/security/keystore2/AndroidKeyStoreSpi.java
+@@ -48,7 +48,6 @@ import android.system.keystore2.ResponseCode;
+ import android.util.Log;
+ 
+ import com.android.internal.annotations.VisibleForTesting;
+-import com.android.internal.util.PropImitationHooks;
+ 
+ import java.io.ByteArrayInputStream;
+ import java.io.IOException;
+@@ -182,8 +181,6 @@ public class AndroidKeyStoreSpi extends KeyStoreSpi {
+ 
+     @Override
+     public Certificate[] engineGetCertificateChain(String alias) {
+-        PropImitationHooks.onEngineGetCertificateChain();
+-
+         KeyEntryResponse response = getKeyMetadata(alias);
+ 
+         if (response == null || response.metadata.certificate == null) {
+diff --git a/services/core/java/com/android/server/custom/AttestationService.java b/services/core/java/com/android/server/custom/AttestationService.java
+deleted file mode 100644
+index d3a4606393b2..000000000000
+--- a/services/core/java/com/android/server/custom/AttestationService.java
++++ /dev/null
+@@ -1,182 +0,0 @@
+-/*
+- * Copyright (C) 2024 The LeafOS Project
+- *
+- * SPDX-License-Identifier: Apache-2.0
+- *
+- */
+-
+-package com.android.server.custom;
+-
+-import android.content.Context;
+-import android.content.pm.PackageManager;
+-import android.content.res.Resources;
+-import android.net.ConnectivityManager;
+-import android.net.Network;
+-import android.net.NetworkCapabilities;
+-import android.os.Environment;
+-import android.os.SystemProperties;
+-import android.provider.Settings;
+-import android.util.Log;
+-
+-import com.android.server.SystemService;
+-
+-import java.io.BufferedReader;
+-import java.io.File;
+-import java.io.FileReader;
+-import java.io.FileWriter;
+-import java.io.IOException;
+-import java.io.InputStreamReader;
+-import android.content.BroadcastReceiver;
+-import android.content.Intent;
+-import android.content.IntentFilter;
+-import java.net.HttpURLConnection;
+-import java.net.URI;
+-import java.net.URL;
+-import java.util.concurrent.Executors;
+-import java.util.concurrent.ScheduledExecutorService;
+-import java.util.concurrent.TimeUnit;
+-
+-public final class AttestationService extends SystemService {
+-    private static final String TAG = AttestationService.class.getSimpleName();
+-    public static final String ACTION_FETCH_PIF = "com.android.server.action.FETCH_PIF";
+-
+-    private static final String API =
+-            Resources.getSystem().getString(com.android.internal.R.string.config_pifUpdateUrl);
+-
+-    private static final String DATA_FILE = "gms_certified_props.json";
+-
+-    private static final long INITIAL_DELAY = 0;
+-    private static final long INTERVAL = 24;
+-
+-    private static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
+-    private static final Boolean sDisableGmsProps =
+-            SystemProperties.getBoolean("persist.sys.pihooks.disable.gms_props", false);
+-
+-    private final Context mContext;
+-    private final ScheduledExecutorService mScheduler;
+-
+-    public AttestationService(Context context) {
+-        super(context);
+-        mContext = context;
+-        mScheduler = Executors.newSingleThreadScheduledExecutor();
+-    }
+-
+-    @Override
+-    public void onStart() {}
+-
+-    private boolean isAutoUpdateEnabled() {
+-        return Settings.Secure.getInt(
+-                mContext.getContentResolver(), Settings.Secure.AUTO_UPDATE_PIF, 0) == 1;
+-    }
+-
+-    private boolean isPackageInstalled(String packageName) {
+-        try {
+-            mContext.getPackageManager().getPackageInfo(packageName, 0);
+-            return true;
+-        } catch (PackageManager.NameNotFoundException e) {
+-            return false;
+-        }
+-    }
+-
+-    @Override
+-    public void onBootPhase(int phase) {
+-        if (!sDisableGmsProps && isPackageInstalled("com.google.android.gms")
+-                && phase == PHASE_BOOT_COMPLETED) {
+-            // Register receiver to allow manual fetch trigger from Settings or CLI
+-            IntentFilter filter = new IntentFilter(ACTION_FETCH_PIF);
+-            mContext.registerReceiver(new BroadcastReceiver() {
+-                @Override
+-                public void onReceive(Context context, Intent intent) {
+-                    Log.i(TAG, "Manual PIF fetch triggered");
+-                    mScheduler.execute(new FetchGmsCertifiedProps());
+-                }
+-            }, filter, Context.RECEIVER_EXPORTED);
+-
+-            // Never fetch automatically unless explicitly enabled
+-            if (isAutoUpdateEnabled()) {
+-                Log.i(TAG, "Scheduling periodic PIF update service");
+-                mScheduler.scheduleAtFixedRate(
+-                        new FetchGmsCertifiedProps(), INITIAL_DELAY, INTERVAL, TimeUnit.HOURS);
+-            } else {
+-                Log.i(TAG, "Auto update PIF is disabled");
+-            }
+-        }
+-    }
+-
+-    private String fetchProps() {
+-        try {
+-            URL url = new URI(API).toURL();
+-            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+-
+-            try {
+-                urlConnection.setConnectTimeout(10000);
+-                urlConnection.setReadTimeout(10000);
+-
+-                try (BufferedReader reader = new BufferedReader(
+-                             new InputStreamReader(urlConnection.getInputStream()))) {
+-                    StringBuilder response = new StringBuilder();
+-                    String line;
+-
+-                    while ((line = reader.readLine()) != null) {
+-                        response.append(line);
+-                    }
+-
+-                    return response.toString();
+-                }
+-            } finally {
+-                urlConnection.disconnect();
+-            }
+-        } catch (Exception e) {
+-            Log.e(TAG, "Error making an API request", e);
+-            return null;
+-        }
+-    }
+-
+-    private boolean isInternetConnected() {
+-        ConnectivityManager cm =
+-                (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+-        Network nw = cm.getActiveNetwork();
+-        if (nw == null)
+-            return false;
+-        NetworkCapabilities actNw = cm.getNetworkCapabilities(nw);
+-        return actNw != null
+-                && (actNw.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+-                        || actNw.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
+-                        || actNw.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
+-                        || actNw.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH));
+-    }
+-
+-    private void dlog(String message) {
+-        if (DEBUG)
+-            Log.d(TAG, message);
+-    }
+-
+-    private class FetchGmsCertifiedProps implements Runnable {
+-        @Override
+-        public void run() {
+-            try {
+-                dlog("FetchGmsCertifiedProps started");
+-
+-                if (!isInternetConnected()) {
+-                    Log.e(TAG, "Internet unavailable");
+-                    return;
+-                }
+-
+-                String savedProps = Settings.Secure.getString(
+-                        mContext.getContentResolver(), Settings.Secure.FETCHED_PIF);
+-                String props = fetchProps();
+-
+-                if (props != null && !props.equals(savedProps)) {
+-                    dlog("Found new props");
+-                    Settings.Secure.putString(
+-                            mContext.getContentResolver(), Settings.Secure.FETCHED_PIF, props);
+-                    dlog("FetchGmsCertifiedProps completed");
+-                } else {
+-                    dlog("No change in props");
+-                }
+-            } catch (Exception e) {
+-                Log.e(TAG, "Error in FetchGmsCertifiedProps", e);
+-            }
+-        }
+-    }
+-}
+diff --git a/services/core/java/com/android/server/wm/ActivityTaskManagerService.java b/services/core/java/com/android/server/wm/ActivityTaskManagerService.java
+index dc16bedb7edd..8b2279e9db61 100644
+--- a/services/core/java/com/android/server/wm/ActivityTaskManagerService.java
++++ b/services/core/java/com/android/server/wm/ActivityTaskManagerService.java
+@@ -279,7 +279,6 @@ import com.android.internal.protolog.ProtoLog;
+ import com.android.internal.util.ArrayUtils;
+ import com.android.internal.util.FastPrintWriter;
+ import com.android.internal.util.FrameworkStatsLog;
+-import com.android.internal.util.PropImitationHooks;
+ import com.android.internal.util.function.pooled.PooledLambda;
+ import com.android.server.LocalManagerRegistry;
+ import com.android.server.LocalServices;
+@@ -2167,9 +2166,7 @@ public class ActivityTaskManagerService extends IActivityTaskManager.Stub {
+ 
+     @Override
+     public RootTaskInfo getFocusedRootTaskInfo() throws RemoteException {
+-        if (!PropImitationHooks.shouldBypassTaskPermission(mContext)) {
+-            enforceTaskPermission("getFocusedRootTaskInfo()");
+-        }
++        enforceTaskPermission("getFocusedRootTaskInfo()");
+         final long ident = Binder.clearCallingIdentity();
+         try {
+             synchronized (mGlobalLock) {
+@@ -3524,9 +3521,7 @@ public class ActivityTaskManagerService extends IActivityTaskManager.Stub {
+     /** Sets the task stack listener that gets callbacks when a task stack changes. */
+     @Override
+     public void registerTaskStackListener(ITaskStackListener listener) {
+-        if (!PropImitationHooks.shouldBypassTaskPermission(mContext)) {
+-            enforceTaskPermission("registerTaskStackListener()");
+-        }
++        enforceTaskPermission("registerTaskStackListener()");
+         mTaskChangeNotificationController.registerTaskStackListener(listener);
+     }
+ 
+diff --git a/services/java/com/android/server/SystemServer.java b/services/java/com/android/server/SystemServer.java
+index 0dbb4e0d02fc..307af5d267c5 100644
+--- a/services/java/com/android/server/SystemServer.java
++++ b/services/java/com/android/server/SystemServer.java
+@@ -225,7 +225,6 @@ import com.android.server.os.SchedulingPolicyService;
+ import com.android.server.os.instrumentation.DynamicInstrumentationManagerService;
+ import com.android.server.pdb.PersistentDataBlockService;
+ import com.android.server.people.PeopleService;
+-import com.android.server.custom.AttestationService;
+ import com.android.server.permission.access.AccessCheckingService;
+ import com.android.server.personalcontext.PersonalContextManagerService;
+ import com.android.server.pinner.PinnerService;
+@@ -3015,10 +3014,6 @@ public final class SystemServer implements Dumpable {
+             t.traceBegin("StartHealthService");
+             mSystemServiceManager.startService(HealthInterfaceService.class);
+             t.traceEnd();
+-
+-            t.traceBegin("AttestationService");
+-            mSystemServiceManager.startService(AttestationService.class);
+-            t.traceEnd();
+         }
+ 
+         t.traceBegin("StartMediaProjectionManager");
+-- 
+2.43.0
+
