@@ -1,0 +1,104 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Tue, 6 Oct 2026 15:22:36 +0000
+Subject: [PATCH] Settings: Add a switch to ignore secure windows
+
+Add it to More security settings, backed by
+Settings.Global.WINDOW_IGNORE_SECURE.
+
+Change-Id: Id74eec5c561e1fe0d3b704146ab7a04b340630d5
+---
+ res/values/ignore_secure_strings.xml          | 11 +++++
+ res/xml/security_advanced_settings.xml        |  7 +++
+ ...gnoreSecureWindowPreferenceController.java | 43 +++++++++++++++++++
+ 3 files changed, 61 insertions(+)
+ create mode 100644 res/values/ignore_secure_strings.xml
+ create mode 100644 src/com/android/settings/security/IgnoreSecureWindowPreferenceController.java
+
+diff --git a/res/values/ignore_secure_strings.xml b/res/values/ignore_secure_strings.xml
+new file mode 100644
+index 0000000..752c80a
+--- /dev/null
++++ b/res/values/ignore_secure_strings.xml
+@@ -0,0 +1,11 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!--
++     Copyright (C) 2026 Paranoid Android
++
++     SPDX-License-Identifier: Apache-2.0
++-->
++<resources>
++    <!-- Security > More security settings: capture windows that block screenshots -->
++    <string name="ignore_window_secure_title">Ignore secure windows</string>
++    <string name="ignore_window_secure_summary">Allow screenshots and screen recording of apps that block them</string>
++</resources>
+diff --git a/res/xml/security_advanced_settings.xml b/res/xml/security_advanced_settings.xml
+index 2c0c0bb..dfcd936 100644
+--- a/res/xml/security_advanced_settings.xml
++++ b/res/xml/security_advanced_settings.xml
+@@ -123,6 +123,13 @@
+         settings:controller="com.android.settings.security.MemtagPagePreferenceController" />
+ 
+     <!-- work profile security section -->
++    <SwitchPreferenceCompat
++        android:order="305"
++        android:key="window_ignore_secure"
++        android:title="@string/ignore_window_secure_title"
++        android:summary="@string/ignore_window_secure_summary"
++        settings:controller="com.android.settings.security.IgnoreSecureWindowPreferenceController"/>
++
+     <PreferenceCategory
+         android:order="310"
+         android:key="work_profile_category"
+diff --git a/src/com/android/settings/security/IgnoreSecureWindowPreferenceController.java b/src/com/android/settings/security/IgnoreSecureWindowPreferenceController.java
+new file mode 100644
+index 0000000..23cc716
+--- /dev/null
++++ b/src/com/android/settings/security/IgnoreSecureWindowPreferenceController.java
+@@ -0,0 +1,43 @@
++/*
++ * Copyright (C) 2026 Paranoid Android
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++package com.android.settings.security;
++
++import android.content.Context;
++import android.provider.Settings;
++
++import com.android.settings.R;
++import com.android.settings.core.TogglePreferenceController;
++
++/** Lets screenshots and screen recording capture windows marked FLAG_SECURE. */
++public class IgnoreSecureWindowPreferenceController extends TogglePreferenceController {
++
++    public IgnoreSecureWindowPreferenceController(Context context, String key) {
++        super(context, key);
++    }
++
++    @Override
++    public int getAvailabilityStatus() {
++        return AVAILABLE;
++    }
++
++    @Override
++    public boolean isChecked() {
++        return Settings.Global.getInt(mContext.getContentResolver(),
++                Settings.Global.WINDOW_IGNORE_SECURE, 0) == 1;
++    }
++
++    @Override
++    public boolean setChecked(boolean isChecked) {
++        return Settings.Global.putInt(mContext.getContentResolver(),
++                Settings.Global.WINDOW_IGNORE_SECURE, isChecked ? 1 : 0);
++    }
++
++    @Override
++    public int getSliceHighlightMenuRes() {
++        return R.string.menu_key_security;
++    }
++}
+-- 
+2.55.0
+

@@ -1,0 +1,95 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: rmp22 <195054967+rmp22@users.noreply.github.com>
+Date: Fri, 22 Aug 2025 08:59:03 +0800
+Subject: [PATCH] fix ignore secure window flags
+
+Change-Id: Ibae64428fcbb44fb774d04dbe828b179d8a71234
+Signed-off-by: rmp22 <195054967+rmp22@users.noreply.github.com>
+---
+ core/java/android/view/SurfaceView.java         |  5 ++++-
+ core/java/android/view/WindowManagerGlobal.java | 17 +++++++++++++++++
+ .../android/server/wm/WindowManagerService.java |  3 ++-
+ 3 files changed, 23 insertions(+), 2 deletions(-)
+
+diff --git a/core/java/android/view/SurfaceView.java b/core/java/android/view/SurfaceView.java
+index 160e7fa4..be246350 100644
+--- a/core/java/android/view/SurfaceView.java
++++ b/core/java/android/view/SurfaceView.java
+@@ -53,6 +53,7 @@ import android.os.IBinder;
+ import android.os.Looper;
+ import android.os.RemoteException;
+ import android.os.SystemClock;
++import android.provider.Settings;
+ import android.text.TextUtils;
+ import android.util.ArraySet;
+ import android.util.AttributeSet;
+@@ -1077,7 +1078,9 @@ public class SurfaceView extends View implements ViewRootImpl.SurfaceChangedCall
+      * @param isSecure True if the surface view is secure.
+      */
+     public void setSecure(boolean isSecure) {
+-        if (isSecure) {
++        boolean ignoreSecure = Settings.Global.getInt(getContext().getContentResolver(),
++                Settings.Global.WINDOW_IGNORE_SECURE, 0) == 1;
++        if (isSecure && !ignoreSecure) {
+             mSurfaceFlags |= SurfaceControl.SECURE;
+         } else {
+             mSurfaceFlags &= ~SurfaceControl.SECURE;
+diff --git a/core/java/android/view/WindowManagerGlobal.java b/core/java/android/view/WindowManagerGlobal.java
+index 95d176d2..539ca72c 100644
+--- a/core/java/android/view/WindowManagerGlobal.java
++++ b/core/java/android/view/WindowManagerGlobal.java
+@@ -41,6 +41,7 @@ import android.os.Looper;
+ import android.os.RemoteException;
+ import android.os.ServiceManager;
+ import android.os.SystemProperties;
++import android.provider.Settings;
+ import android.util.AndroidRuntimeException;
+ import android.util.ArrayMap;
+ import android.util.ArraySet;
+@@ -538,6 +539,14 @@ public final class WindowManagerGlobal {
+                         windowlessSession, new WindowlessWindowLayout());
+             }
+ 
++            boolean ignoreSecure = Settings.Global.getInt(
++                    view.getContext().getContentResolver(),
++                    Settings.Global.WINDOW_IGNORE_SECURE, 0) == 1;
++
++            if (ignoreSecure) {
++                wparams.flags &= ~WindowManager.LayoutParams.FLAG_SECURE;
++            }
++
+             view.setLayoutParams(wparams);
+ 
+ // QTI_BEGIN: 2023-02-15: Core: perf: recover the pre-rendering feature in the U
+@@ -583,6 +592,14 @@ public final class WindowManagerGlobal {
+             throw new IllegalArgumentException("Params must be WindowManager.LayoutParams");
+         }
+ 
++        boolean ignoreSecure = Settings.Global.getInt(
++                view.getContext().getContentResolver(),
++                Settings.Global.WINDOW_IGNORE_SECURE, 0) == 1;
++
++        if (ignoreSecure) {
++            wparams.flags &= ~WindowManager.LayoutParams.FLAG_SECURE;
++        }
++
+         view.setLayoutParams(wparams);
+ 
+         synchronized (mLock) {
+diff --git a/services/core/java/com/android/server/wm/WindowManagerService.java b/services/core/java/com/android/server/wm/WindowManagerService.java
+index 3ef42258..7bd6cea0 100644
+--- a/services/core/java/com/android/server/wm/WindowManagerService.java
++++ b/services/core/java/com/android/server/wm/WindowManagerService.java
+@@ -11507,7 +11507,8 @@ public class WindowManagerService extends IWindowManager.Stub
+     }
+ 
+     boolean getDisableSecureWindows() {
+-        return mDisableSecureWindows;
++        return Settings.Global.getInt(mContext.getContentResolver(),
++                Settings.Global.WINDOW_IGNORE_SECURE, 0) == 1 || mDisableSecureWindows;
+     }
+ 
+     /**
+-- 
+2.55.0
+

@@ -1,0 +1,32 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Tue, 6 Oct 2026 15:29:25 +0000
+Subject: [PATCH] Settings: Link the hide applist settings [2/2]
+
+Add Hide app list under Hide developer status in Developer options.
+
+Change-Id: I390691a0461606e311fd637df3770f867c6badde
+---
+ res/xml/development_settings.xml | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/res/xml/development_settings.xml b/res/xml/development_settings.xml
+index ea214d6..0af950c 100644
+--- a/res/xml/development_settings.xml
++++ b/res/xml/development_settings.xml
+@@ -25,6 +25,12 @@
+         android:summary="@string/hide_developer_status_summary"
+         android:fragment="co.aospa.settings.development.HideDeveloperStatusSettings" />
+ 
++    <Preference
++        android:key="hide_applist_settings"
++        android:title="@string/hide_applist_title"
++        android:summary="@string/hide_applist_summary"
++        android:fragment="co.aospa.settings.development.HideAppListSettings" />
++
+     <PreferenceCategory
+         android:key="debug_misc_category"
+         android:order="100">
+-- 
+2.55.0
+

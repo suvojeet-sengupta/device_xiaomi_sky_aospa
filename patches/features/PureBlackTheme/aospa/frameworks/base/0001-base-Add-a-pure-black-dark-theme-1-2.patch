@@ -1,0 +1,103 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Mon, 12 Oct 2026 17:35:37 +0000
+Subject: [PATCH] base: Add a pure black dark theme [1/2]
+
+When Settings.Secure.SYSTEM_BLACK_THEME is on, the Monet overlay gives
+the dark background, surface and lower surface container colors pure
+black. The higher containers keep their grey, so cards and sheets still
+stand out. The overlay is rebuilt as soon as the setting changes.
+
+Change-Id: Ia51e82ea931b715910bb5b22b342b3a58dc84d23
+---
+ core/java/android/provider/Settings.java      |  6 ++++
+ .../theme/ThemeOverlayController.java         | 28 +++++++++++++++++--
+ 2 files changed, 32 insertions(+), 2 deletions(-)
+
+diff --git a/core/java/android/provider/Settings.java b/core/java/android/provider/Settings.java
+index 572a7916..68c48fe4 100644
+--- a/core/java/android/provider/Settings.java
++++ b/core/java/android/provider/Settings.java
+@@ -13413,6 +13413,12 @@ public final class Settings {
+         public static final String THEME_CUSTOMIZATION_OVERLAY_PACKAGES =
+                 "theme_customization_overlay_packages";
+ 
++        /**
++         * Whether the dark theme uses pure black backgrounds.
++         * @hide
++         */
++        public static final String SYSTEM_BLACK_THEME = "system_black_theme";
++
+         /**
+          * Indicates whether the nav bar is forced to always be visible, even in immersive mode.
+          * <p>Type: int (0 for false, 1 for true)
+diff --git a/packages/SystemUI/src/com/android/systemui/theme/ThemeOverlayController.java b/packages/SystemUI/src/com/android/systemui/theme/ThemeOverlayController.java
+index 626a60bf..bac17369 100644
+--- a/packages/SystemUI/src/com/android/systemui/theme/ThemeOverlayController.java
++++ b/packages/SystemUI/src/com/android/systemui/theme/ThemeOverlayController.java
+@@ -154,6 +154,12 @@ public class ThemeOverlayController implements CoreStartable, Dumpable {
+     protected ColorScheme mColorScheme;
+     // If fabricated overlays were already created for the current theme.
+     private boolean mNeedsOverlayCreation;
++    // Dark theme colors that turn pure black with Settings.Secure.SYSTEM_BLACK_THEME. The higher
++    // surface containers stay grey, so cards still stand out from the background.
++    private static final Set<String> BLACK_THEME_COLORS = Set.of("background", "surface",
++            "surface_dim", "surface_container_lowest", "surface_container_low",
++            "surface_container");
++    private boolean mBlackTheme;
+     // Dominant color extracted from wallpaper, NOT the color used on the overlay
+     protected int mMainWallpaperColor = Color.TRANSPARENT;
+     // UI contrast as reported by UiModeManager
+@@ -519,6 +525,20 @@ public class ThemeOverlayController implements CoreStartable, Dumpable {
+                     }
+                 },
+                 UserHandle.USER_ALL);
++        mSecureSettings.registerContentObserverForUserSync(
++                Settings.Secure.SYSTEM_BLACK_THEME,
++                false,
++                new ContentObserver(mBgHandler) {
++                    @Override
++                    public void onChange(boolean selfChange, Collection<Uri> collection, int flags,
++                            int userId) {
++                        if (mUserTracker.getUserId() != userId) {
++                            return;
++                        }
++                        reevaluateSystemTheme(true /* forceReload */);
++                    }
++                },
++                UserHandle.USER_ALL);
+         int userId = mUserTracker.getUserId();
+         UiModeManager uiModeManager = mUiModeManagerProvider.forUser(UserHandle.of(userId));
+         uiModeManager.addContrastChangeListener(mMainExecutor, mContrastChangeListener);
+@@ -686,6 +706,8 @@ public class ThemeOverlayController implements CoreStartable, Dumpable {
+     }
+ 
+     private void createOverlays(int color) {
++        mBlackTheme = "1".equals(mSecureSettings.getStringForUser(
++                Settings.Secure.SYSTEM_BLACK_THEME, mUserTracker.getUserId()));
+         mDarkColorScheme = new ColorScheme(color, true /* isDark */, mThemeStyle, mContrast);
+         mLightColorScheme = new ColorScheme(color, false /* isDark */, mThemeStyle, mContrast);
+         mColorScheme = isNightMode() ? mDarkColorScheme : mLightColorScheme;
+@@ -712,8 +734,9 @@ public class ThemeOverlayController implements CoreStartable, Dumpable {
+ 
+             overlay.setResourceValue(prefix + "_light", TYPE_INT_COLOR_ARGB8,
+                     p.second.getArgb(mLightColorScheme.getMaterialScheme()), null);
+-            overlay.setResourceValue(prefix + "_dark", TYPE_INT_COLOR_ARGB8,
+-                    p.second.getArgb(mDarkColorScheme.getMaterialScheme()), null);
++            final int dark = mBlackTheme && BLACK_THEME_COLORS.contains(p.first)
++                    ? Color.BLACK : p.second.getArgb(mDarkColorScheme.getMaterialScheme());
++            overlay.setResourceValue(prefix + "_dark", TYPE_INT_COLOR_ARGB8, dark, null);
+         });
+     }
+ 
+@@ -990,6 +1013,7 @@ public class ThemeOverlayController implements CoreStartable, Dumpable {
+         pw.println("mIsMonetEnabled=" + mIsMonetEnabled);
+         pw.println("mColorScheme=" + mColorScheme);
+         pw.println("mNeedsOverlayCreation=" + mNeedsOverlayCreation);
++        pw.println("mBlackTheme=" + mBlackTheme);
+         pw.println("mAcceptColorEvents=" + mAcceptColorEvents);
+         pw.println("mDeferredThemeEvaluation=" + mDeferredThemeEvaluation);
+         pw.println("mThemeStyle=" + mThemeStyle);
+-- 
+2.55.0
+

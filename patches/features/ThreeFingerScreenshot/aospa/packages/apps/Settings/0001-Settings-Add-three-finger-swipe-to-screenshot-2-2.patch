@@ -1,0 +1,100 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Tue, 6 Oct 2026 23:13:02 +0000
+Subject: [PATCH] Settings: Add three finger swipe to screenshot [2/2]
+
+A switch in System > Gestures for Settings.System.THREE_FINGER_GESTURE.
+
+Change-Id: I9c7d6b7d6f1dd634247332a3ab538caebe54fee8
+---
+ res/values/three_finger_strings.xml           | 10 +++++
+ res/xml/gestures.xml                          |  6 +++
+ ...eFingerScreenshotPreferenceController.java | 42 +++++++++++++++++++
+ 3 files changed, 58 insertions(+)
+ create mode 100644 res/values/three_finger_strings.xml
+ create mode 100644 src/com/android/settings/gestures/ThreeFingerScreenshotPreferenceController.java
+
+diff --git a/res/values/three_finger_strings.xml b/res/values/three_finger_strings.xml
+new file mode 100644
+index 0000000..627c22b
+--- /dev/null
++++ b/res/values/three_finger_strings.xml
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!--
++     SPDX-FileCopyrightText: 2026 Paranoid Android
++     SPDX-License-Identifier: Apache-2.0
++-->
++<resources>
++    <!-- System > Gestures: take a screenshot by swiping down with three fingers -->
++    <string name="three_finger_gesture_title">Swipe to screenshot</string>
++    <string name="three_finger_gesture_summary">Swipe down with three fingers to take a screenshot</string>
++</resources>
+diff --git a/res/xml/gestures.xml b/res/xml/gestures.xml
+index 07e313e..2405074 100644
+--- a/res/xml/gestures.xml
++++ b/res/xml/gestures.xml
+@@ -82,6 +82,12 @@
+         android:fragment="com.android.settings.gestures.PowerMenuSettings"
+         settings:controller="com.android.settings.gestures.PowerMenuPreferenceController" />
+ 
++    <SwitchPreferenceCompat
++        android:key="three_finger_gesture"
++        android:title="@string/three_finger_gesture_title"
++        android:summary="@string/three_finger_gesture_summary"
++        settings:controller="com.android.settings.gestures.ThreeFingerScreenshotPreferenceController" />
++
+     <Preference
+         android:key="power_button_torch_summary"
+         android:title="@string/power_button_torch_title"
+diff --git a/src/com/android/settings/gestures/ThreeFingerScreenshotPreferenceController.java b/src/com/android/settings/gestures/ThreeFingerScreenshotPreferenceController.java
+new file mode 100644
+index 0000000..cf66e64
+--- /dev/null
++++ b/src/com/android/settings/gestures/ThreeFingerScreenshotPreferenceController.java
+@@ -0,0 +1,42 @@
++/*
++ * SPDX-FileCopyrightText: 2026 Paranoid Android
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++package com.android.settings.gestures;
++
++import android.content.Context;
++import android.provider.Settings;
++
++import com.android.settings.R;
++import com.android.settings.core.TogglePreferenceController;
++
++/** Takes a screenshot when three fingers swipe down, in Settings.System.THREE_FINGER_GESTURE. */
++public class ThreeFingerScreenshotPreferenceController extends TogglePreferenceController {
++
++    public ThreeFingerScreenshotPreferenceController(Context context, String key) {
++        super(context, key);
++    }
++
++    @Override
++    public int getAvailabilityStatus() {
++        return AVAILABLE;
++    }
++
++    @Override
++    public boolean isChecked() {
++        return Settings.System.getInt(mContext.getContentResolver(),
++                Settings.System.THREE_FINGER_GESTURE, 0) == 1;
++    }
++
++    @Override
++    public boolean setChecked(boolean isChecked) {
++        return Settings.System.putInt(mContext.getContentResolver(),
++                Settings.System.THREE_FINGER_GESTURE, isChecked ? 1 : 0);
++    }
++
++    @Override
++    public int getSliceHighlightMenuRes() {
++        return R.string.menu_key_system;
++    }
++}
+-- 
+2.55.0
+

@@ -1,0 +1,61 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Oliver Scott <olivercscott@gmail.com>
+Date: Mon, 10 Apr 2023 12:35:40 -0400
+Subject: [PATCH] Hide hidden apps from all apps except system
+
+Only generate package info for MATCH_UNINSTALLED_PACKAGES if
+calling UID is a system application.
+
+Also includes squashed change:
+
+Author: Wang Han <wanghan1995315@gmail.com>
+Date:   Tue Aug 29 15:21:14 2023 +0000
+
+    fixup! Hide hidden apps from all apps except system
+
+     * getSettingBase() actually calls getSettingLPr(), which returns null
+       for ROOT_UID. So if an application is using root permission when
+       calling package manager api such as getInstalledPackages(), a
+       crash will occur. Fix this by exposing hidden apps to caller with
+       root uid, as hiding everything to root is meaningless.
+
+    Fixes: https://review.calyxos.org/c/CalyxOS/platform_frameworks_base/+/16571
+    Change-Id: Ifd7c28cd987b3388de2063fa9bc07824cf01da2b
+
+Issue: calyxos#1107
+Change-Id: I8caa9030f4ff44babda5a778d0e0d6849e1e4d1b
+Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
+---
+ .../java/com/android/server/pm/ComputerEngine.java | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/services/core/java/com/android/server/pm/ComputerEngine.java b/services/core/java/com/android/server/pm/ComputerEngine.java
+index 4ce3cabd..2c857004 100644
+--- a/services/core/java/com/android/server/pm/ComputerEngine.java
++++ b/services/core/java/com/android/server/pm/ComputerEngine.java
+@@ -1499,12 +1499,18 @@ public class ComputerEngine implements Computer {
+             return null;
+         }
+ 
+-        if ((flags & MATCH_UNINSTALLED_PACKAGES) != 0
+-                && ps.isSystem()) {
+-            flags |= MATCH_ANY_USER;
++        final PackageUserStateInternal state = ps.getUserStateOrDefault(userId);
++        if ((flags & MATCH_UNINSTALLED_PACKAGES) != 0) {
++            final SettingBase callingSetting =
++                    mSettings.getSettingBase(UserHandle.getAppId(callingUid));
++            if (state.isHidden() && callingSetting != null && (callingSetting.getFlags() &
++                    ApplicationInfo.FLAG_SYSTEM) != ApplicationInfo.FLAG_SYSTEM) {
++                return null;
++            } else if (ps.isSystem()) {
++                flags |= MATCH_ANY_USER;
++            }
+         }
+ 
+-        final PackageUserStateInternal state = ps.getUserStateOrDefault(userId);
+         AndroidPackage p = ps.getPkg();
+         if (p != null) {
+             // Compute GIDs only if requested
+-- 
+2.55.0
+

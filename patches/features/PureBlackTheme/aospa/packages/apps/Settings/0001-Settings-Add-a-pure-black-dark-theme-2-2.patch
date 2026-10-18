@@ -1,0 +1,100 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Mon, 12 Oct 2026 17:35:40 +0000
+Subject: [PATCH] Settings: Add a pure black dark theme [2/2]
+
+A switch in Display, under Dark theme, for Settings.Secure.SYSTEM_BLACK_THEME.
+
+Change-Id: Idde3cb81482cf38eb054f4f535d037f61446cb24
+---
+ res/values/black_theme_strings.xml            | 10 +++++
+ res/xml/display_settings.xml                  |  6 +++
+ .../BlackThemePreferenceController.java       | 42 +++++++++++++++++++
+ 3 files changed, 58 insertions(+)
+ create mode 100644 res/values/black_theme_strings.xml
+ create mode 100644 src/com/android/settings/display/BlackThemePreferenceController.java
+
+diff --git a/res/values/black_theme_strings.xml b/res/values/black_theme_strings.xml
+new file mode 100644
+index 0000000..6a607f2
+--- /dev/null
++++ b/res/values/black_theme_strings.xml
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!--
++     SPDX-FileCopyrightText: 2026 Paranoid Android
++     SPDX-License-Identifier: Apache-2.0
++-->
++<resources>
++    <!-- Display: use pure black backgrounds in the dark theme -->
++    <string name="black_theme_title">Pure black dark theme</string>
++    <string name="black_theme_summary">Use pure black backgrounds when dark theme is on</string>
++</resources>
+diff --git a/res/xml/display_settings.xml b/res/xml/display_settings.xml
+index 29a49be..1be553c 100644
+--- a/res/xml/display_settings.xml
++++ b/res/xml/display_settings.xml
+@@ -107,6 +107,12 @@
+             settings:controller="com.android.settings.display.DarkUIPreferenceController"
+             settings:keywords="@string/keywords_dark_ui_mode"/>
+ 
++        <SwitchPreferenceCompat
++            android:key="system_black_theme"
++            android:title="@string/black_theme_title"
++            android:summary="@string/black_theme_summary"
++            settings:controller="com.android.settings.display.BlackThemePreferenceController" />
++
+         <Preference
+             android:fragment="com.android.settings.accessibility.TextReadingPreferenceFragment"
+             android:key="text_reading_options"
+diff --git a/src/com/android/settings/display/BlackThemePreferenceController.java b/src/com/android/settings/display/BlackThemePreferenceController.java
+new file mode 100644
+index 0000000..edacd53
+--- /dev/null
++++ b/src/com/android/settings/display/BlackThemePreferenceController.java
+@@ -0,0 +1,42 @@
++/*
++ * SPDX-FileCopyrightText: 2026 Paranoid Android
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++package com.android.settings.display;
++
++import android.content.Context;
++import android.provider.Settings;
++
++import com.android.settings.R;
++import com.android.settings.core.TogglePreferenceController;
++
++/** Pure black dark theme backgrounds, in Settings.Secure.SYSTEM_BLACK_THEME. */
++public class BlackThemePreferenceController extends TogglePreferenceController {
++
++    public BlackThemePreferenceController(Context context, String key) {
++        super(context, key);
++    }
++
++    @Override
++    public int getAvailabilityStatus() {
++        return AVAILABLE;
++    }
++
++    @Override
++    public boolean isChecked() {
++        return Settings.Secure.getInt(mContext.getContentResolver(),
++                Settings.Secure.SYSTEM_BLACK_THEME, 0) == 1;
++    }
++
++    @Override
++    public boolean setChecked(boolean isChecked) {
++        return Settings.Secure.putInt(mContext.getContentResolver(),
++                Settings.Secure.SYSTEM_BLACK_THEME, isChecked ? 1 : 0);
++    }
++
++    @Override
++    public int getSliceHighlightMenuRes() {
++        return R.string.menu_key_display;
++    }
++}
+-- 
+2.55.0
+

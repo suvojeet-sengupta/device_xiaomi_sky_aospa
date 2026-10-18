@@ -1,0 +1,64 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Tue, 6 Oct 2026 22:37:12 +0000
+Subject: [PATCH] PIHooks: Read the disable properties when they're used
+
+Zygote preloads PropImitationHooks and isn't allowed to read the
+pihooks disable properties, so the cached values were always false and
+setting persist.sys.pihooks.disable.gms_key_attestation_block did
+nothing. With a keybox from Tricky Store, Play Store still got its key
+attestation blocked and every integrity verdict failed.
+
+Read them when they're used, in the app process, which can read them.
+
+Change-Id: I9409da87afba8382c02c00bfa2eb9f4f6f05f40c
+---
+ .../internal/util/PropImitationHooks.java       | 17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
+
+diff --git a/core/java/com/android/internal/util/PropImitationHooks.java b/core/java/com/android/internal/util/PropImitationHooks.java
+index 0673783f..b0e867cb 100644
+--- a/core/java/com/android/internal/util/PropImitationHooks.java
++++ b/core/java/com/android/internal/util/PropImitationHooks.java
+@@ -203,11 +203,16 @@ public class PropImitationHooks {
+         }
+     }
+ 
+-    private static final Boolean sDisableGmsProps = SystemProperties.getBoolean(
+-            "persist.sys.pihooks.disable.gms_props", false);
++    // Read these when they're used: zygote preloads this class and can't read
++    // them, so a cached value would always be false.
++    private static boolean isGmsPropsDisabled() {
++        return SystemProperties.getBoolean("persist.sys.pihooks.disable.gms_props", false);
++    }
+ 
+-    private static final Boolean sDisableKeyAttestationBlock = SystemProperties.getBoolean(
+-            "persist.sys.pihooks.disable.gms_key_attestation_block", false);
++    private static boolean isKeyAttestationBlockDisabled() {
++        return SystemProperties.getBoolean(
++                "persist.sys.pihooks.disable.gms_key_attestation_block", false);
++    }
+     private static final String DATA_FILE = "gms_certified_props.json";
+ 
+     private static final String PACKAGE_ARCORE = "com.google.ar.core";
+@@ -491,7 +496,7 @@ public class PropImitationHooks {
+     }
+ 
+     public static boolean shouldBypassTaskPermission(Context context) {
+-        if (sDisableGmsProps) {
++        if (isGmsPropsDisabled()) {
+             return false;
+         }
+ 
+@@ -518,7 +523,7 @@ public class PropImitationHooks {
+     }
+ 
+     public static void onEngineGetCertificateChain() {
+-        if (sDisableKeyAttestationBlock) {
++        if (isKeyAttestationBlockDisabled()) {
+             dlog("Key attestation blocking is disabled by user");
+             return;
+         }
+-- 
+2.55.0
+

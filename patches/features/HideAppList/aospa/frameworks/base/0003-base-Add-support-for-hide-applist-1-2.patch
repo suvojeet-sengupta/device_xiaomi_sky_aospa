@@ -1,0 +1,189 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: someone5678 <59456192+someone5678@users.noreply.github.com>
+Date: Sat, 7 Dec 2024 10:14:03 +0900
+Subject: [PATCH] base: Add support for hide applist [1/2]
+
+Hide the apps listed in Settings.Secure.HIDE_APPLIST from other user
+apps. Ported from HertzifyOS, hooked into shouldFilterApplication since
+AOSPA has no shouldFilterApplicationCustom.
+
+Change-Id: If19d4724cfd7e9213b0ef3c98eaa10852fb1cf43
+---
+ core/java/android/provider/Settings.java      |   7 ++
+ .../util/hertzify/HideAppListUtils.java       | 115 ++++++++++++++++++
+ .../validators/SecureSettingsValidators.java  |   1 +
+ .../com/android/server/pm/ComputerEngine.java |   7 ++
+ 4 files changed, 130 insertions(+)
+ create mode 100644 core/java/com/android/internal/util/hertzify/HideAppListUtils.java
+
+diff --git a/core/java/android/provider/Settings.java b/core/java/android/provider/Settings.java
+index b7c75f7d..a1b0c126 100644
+--- a/core/java/android/provider/Settings.java
++++ b/core/java/android/provider/Settings.java
+@@ -13972,6 +13972,13 @@ public final class Settings {
+         @Readable
+         public static final String HIDE_DEVELOPER_STATUS = "hide_developer_status";
+ 
++        /**
++         * Control which apps to hide from other user apps.
++         * @hide
++         */
++        @Readable
++        public static final String HIDE_APPLIST = "hide_applist";
++
+         /**
+          * Keys we no longer back up under the current schema, but want to continue to
+          * process when restoring historical backup datasets.
+diff --git a/core/java/com/android/internal/util/hertzify/HideAppListUtils.java b/core/java/com/android/internal/util/hertzify/HideAppListUtils.java
+new file mode 100644
+index 00000000..e57ecb6f
+--- /dev/null
++++ b/core/java/com/android/internal/util/hertzify/HideAppListUtils.java
+@@ -0,0 +1,115 @@
++package com.android.internal.util.hertzify;
++
++import android.content.ContentResolver;
++import android.content.Context;
++import android.os.SystemProperties;
++import android.provider.Settings;
++
++import java.util.Arrays;
++import java.util.HashSet;
++import java.util.Set;
++
++public class HideAppListUtils {
++    enum Action {
++        ADD,
++        REMOVE,
++        SET
++    }
++
++    private static boolean isBootCompleted() {
++        return SystemProperties.getBoolean("sys.boot_completed", false);
++    }
++
++    public static boolean shouldHideAppList(Context context, String packageName) {
++        return shouldHideAppList(context.getContentResolver(), packageName);
++    }
++
++    public static boolean shouldHideAppList(ContentResolver cr, String packageName) {
++        if (cr == null || packageName == null || !isBootCompleted()) {
++            return false;
++        }
++
++        Set<String> apps = getApps(cr);
++        if (apps.isEmpty()) {
++            return false;
++        }
++
++        return apps.contains(packageName);
++    }
++
++    public static Set<String> getApps(Context context) {
++        if (context == null) {
++            return new HashSet<>();
++        }
++
++        return getApps(context.getContentResolver());
++    }
++
++    public static Set<String> getApps(ContentResolver cr) {
++        if (cr == null) {
++            return new HashSet<>();
++        }
++
++        String apps = "";
++        try {
++            apps = Settings.Secure.getString(cr, Settings.Secure.HIDE_APPLIST);
++        } catch (IllegalStateException e) {
++            return new HashSet<>();
++        }
++        if (apps != null && !apps.isEmpty() && !apps.equals(",")) {
++            return new HashSet<>(Arrays.asList(apps.split(",")));
++        }
++
++        return new HashSet<>();
++    }
++
++    private static void putAppsForUser(
++            Context context, String packageName, int userId, Action action) {
++        if (context == null || userId < 0) {
++            return;
++        }
++
++        final Set<String> apps = getApps(context);
++        switch (action) {
++            case ADD:
++                apps.add(packageName);
++                break;
++            case REMOVE:
++                apps.remove(packageName);
++                break;
++            case SET:
++                // Don't change
++                break;
++        }
++
++        Settings.Secure.putStringForUser(
++                context.getContentResolver(),
++                Settings.Secure.HIDE_APPLIST,
++                String.join(",", apps),
++                userId);
++    }
++
++    public void addApp(Context mContext, String packageName, int userId) {
++        if (mContext == null || packageName == null || userId < 0) {
++            return;
++        }
++
++        putAppsForUser(mContext, packageName, userId, Action.ADD);
++    }
++
++    public void removeApp(Context mContext, String packageName, int userId) {
++        if (mContext == null || packageName == null || userId < 0) {
++            return;
++        }
++
++        putAppsForUser(mContext, packageName, userId, Action.REMOVE);
++    }
++
++    public void setApps(Context mContext, int userId) {
++        if (mContext == null || userId < 0) {
++            return;
++        }
++
++        putAppsForUser(mContext, null, userId, Action.SET);
++    }
++}
+diff --git a/packages/SettingsProvider/src/android/provider/settings/validators/SecureSettingsValidators.java b/packages/SettingsProvider/src/android/provider/settings/validators/SecureSettingsValidators.java
+index 61330efa..290b64e2 100644
+--- a/packages/SettingsProvider/src/android/provider/settings/validators/SecureSettingsValidators.java
++++ b/packages/SettingsProvider/src/android/provider/settings/validators/SecureSettingsValidators.java
+@@ -561,5 +561,6 @@ public class SecureSettingsValidators {
+         VALIDATORS.put(Secure.DISPLAY_COLOR_TEMPERATURE, new InclusiveIntegerRangeValidator(3000, 9000));
+         VALIDATORS.put(Secure.DISPLAY_COLOR_SATURATION, new InclusiveIntegerRangeValidator(0, 200));
+         VALIDATORS.put(Secure.HIDE_DEVELOPER_STATUS, ANY_STRING_VALIDATOR);
++        VALIDATORS.put(Secure.HIDE_APPLIST, ANY_STRING_VALIDATOR);
+     }
+ }
+diff --git a/services/core/java/com/android/server/pm/ComputerEngine.java b/services/core/java/com/android/server/pm/ComputerEngine.java
+index 2c857004..a7014de3 100644
+--- a/services/core/java/com/android/server/pm/ComputerEngine.java
++++ b/services/core/java/com/android/server/pm/ComputerEngine.java
+@@ -2591,6 +2591,13 @@ public class ComputerEngine implements Computer {
+         if (isCallerSameApp(ps.getPackageName(), callingUid)) {
+             return false;
+         }
++        // hide the apps in Settings.Secure.HIDE_APPLIST from other user apps
++        if (!isSystemOrRootOrShell(callingUid)
++                && UserHandle.getAppId(callingUid) >= Process.FIRST_APPLICATION_UID
++                && com.android.internal.util.hertzify.HideAppListUtils.shouldHideAppList(
++                        mContext, ps.getPackageName())) {
++            return true;
++        }
+         if (callerIsInstantApp) {
+             // both caller and target are both instant, but, different applications, filter
+             if (ps.getUserStateOrDefault(userId).isInstantApp()) {
+-- 
+2.55.0
+

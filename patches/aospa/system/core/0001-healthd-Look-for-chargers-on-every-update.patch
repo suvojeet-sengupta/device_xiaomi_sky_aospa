@@ -1,0 +1,42 @@
+From 7891d629f86cf78cb34fe1bad25a848fbe61d023 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Wed, 7 Oct 2026 05:48:58 +0000
+Subject: [PATCH] healthd: Look for chargers on every update
+
+Chargers were only discovered when the health HAL started. On redwood the
+USB power supply isn't a USB type yet at that point, so it was never added
+and plugging in a charger left chargerUsbOnline false: no charging
+indicator, LED or notification, until the HAL was restarted. Power supply
+uevents only schedule an update, so check for chargers there.
+
+Change-Id: Id1107967a34c908b5d6deecaa56e8cd6c6dab852
+---
+ healthd/BatteryMonitor.cpp | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/healthd/BatteryMonitor.cpp b/healthd/BatteryMonitor.cpp
+index e506940fa..26d8a1313 100644
+--- a/healthd/BatteryMonitor.cpp
++++ b/healthd/BatteryMonitor.cpp
+@@ -433,6 +433,18 @@ static BatteryHealthData* ensureBatteryHealthData(HealthInfo* info) {
+ void BatteryMonitor::updateValues(void) {
+     initHealthInfo(mHealthInfo.get());
+ 
++    // A charger can register, or start reporting a known type, after init, and
++    // power supply uevents only trigger an update. Look for chargers on every
++    // update so they aren't missed until the HAL restarts.
++    std::unique_ptr<DIR, decltype(&closedir)> dir(opendir(POWER_SUPPLY_SYSFS_PATH), closedir);
++    if (dir != NULL) {
++        struct dirent* entry;
++        while ((entry = readdir(dir.get()))) {
++            if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) continue;
++            updateChargerPresence(entry->d_name);
++        }
++    }
++
+     if (!mHealthdConfig->batteryPresentPath.empty())
+         mHealthInfo->batteryPresent = getBooleanField(mHealthdConfig->batteryPresentPath);
+     else
+-- 
+2.43.0
+

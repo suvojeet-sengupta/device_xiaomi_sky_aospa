@@ -1,0 +1,191 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Mon, 12 Oct 2026 17:12:45 +0000
+Subject: [PATCH] base: Stop the app scrolling under the three finger swipe
+
+The three finger swipe only watched the touches, so the app under
+the fingers still got them and scrolled along while the screenshot
+was being taken. Watch the touches with a gesture monitor instead,
+and pilfer the pointers once all three fingers have moved down past
+the touch slop, which sends the app a cancel. The monitor only runs
+while the gesture is turned on.
+
+Change-Id: I00cbe8cc66846025bed332e1ab2bc5912beb884a
+---
+ .../server/policy/PhoneWindowManager.java     | 13 ++-
+ .../policy/SwipeToScreenshotListener.java     | 80 ++++++++++++++++---
+ 2 files changed, 82 insertions(+), 11 deletions(-)
+
+diff --git a/services/core/java/com/android/server/policy/PhoneWindowManager.java b/services/core/java/com/android/server/policy/PhoneWindowManager.java
+index 9be8eccf..923a982c 100644
+--- a/services/core/java/com/android/server/policy/PhoneWindowManager.java
++++ b/services/core/java/com/android/server/policy/PhoneWindowManager.java
+@@ -518,6 +518,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+ 
+     private volatile boolean mThreeFingerGestureEnabled;
+     private ScreenshotHelper mScreenshotHelper;
++    private SwipeToScreenshotListener mSwipeToScreenshot;
+ 
+     // FIXME This state is shared between the input reader and handler thread.
+     // Technically it's broken and buggy but it has been like this for many years
+@@ -3104,6 +3105,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+             mThreeFingerGestureEnabled = Settings.System.getIntForUser(resolver,
+                     Settings.System.THREE_FINGER_GESTURE,
+                     0, UserHandle.USER_CURRENT) == 1;
++            mHandler.post(this::updateSwipeToScreenshot);
+             mRingerToggleChord = Settings.Secure.getIntForUser(resolver,
+                     Settings.Secure.VOLUME_HUSH_GESTURE, VOLUME_HUSH_OFF,
+                     UserHandle.USER_CURRENT);
+@@ -6258,6 +6260,12 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+                 WindowManager.ScreenshotSource.SCREENSHOT_OTHER).build(), mHandler, null);
+     }
+ 
++    private void updateSwipeToScreenshot() {
++        if (mSwipeToScreenshot != null) {
++            mSwipeToScreenshot.setEnabled(mThreeFingerGestureEnabled);
++        }
++    }
++
+     /** {@inheritDoc} */
+     @Override
+     public void systemReady() {
+@@ -6270,8 +6278,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+         mPocketLock = new PocketLock(mContext);
+ 
+         mScreenshotHelper = new ScreenshotHelper(mContext);
+-        mWindowManagerFuncs.registerPointerEventListener(new SwipeToScreenshotListener(mContext,
+-                () -> mHandler.post(this::takeThreeFingerScreenshot)), DEFAULT_DISPLAY);
++        mSwipeToScreenshot = new SwipeToScreenshotListener(mContext, mInputManager,
++                mHandler.getLooper(), this::takeThreeFingerScreenshot);
++        mHandler.post(this::updateSwipeToScreenshot);
+ 
+         mVrManagerInternal = LocalServices.getService(VrManagerInternal.class);
+         if (mVrManagerInternal != null) {
+diff --git a/services/core/java/com/android/server/policy/SwipeToScreenshotListener.java b/services/core/java/com/android/server/policy/SwipeToScreenshotListener.java
+index d915f3d3..250e017c 100644
+--- a/services/core/java/com/android/server/policy/SwipeToScreenshotListener.java
++++ b/services/core/java/com/android/server/policy/SwipeToScreenshotListener.java
+@@ -5,34 +5,83 @@
+ 
+ package com.android.server.policy;
+ 
++import static android.view.Display.DEFAULT_DISPLAY;
++
+ import android.content.Context;
++import android.hardware.input.InputManager;
++import android.os.Looper;
++import android.view.InputEvent;
++import android.view.InputEventReceiver;
++import android.view.InputMonitor;
+ import android.view.MotionEvent;
+-import android.view.WindowManagerPolicyConstants.PointerEventListener;
+ 
+-/** Calls back when three fingers swipe down together. */
+-class SwipeToScreenshotListener implements PointerEventListener {
++/**
++ * Calls back when three fingers swipe down together. As soon as all three fingers have
++ * started moving down, the touch is taken away from the windows below, so the app under
++ * the fingers stops scrolling along with the swipe.
++ */
++class SwipeToScreenshotListener {
+ 
++    private static final String TAG = "SwipeToScreenshot";
+     private static final int POINTER_COUNT = 3;
+     private static final long MAX_SWIPE_TIME_MS = 500;
+     private static final float SWIPE_DISTANCE_DP = 100;
+ 
++    private final InputManager mInputManager;
++    private final Looper mLooper;
+     private final Runnable mCallback;
+     private final float mSwipeDistance;
++    private final float mTouchSlop;
+     private final int[] mPointerIds = new int[POINTER_COUNT];
+     private final float[] mStartY = new float[POINTER_COUNT];
++    private InputMonitor mInputMonitor;
++    private InputEventReceiver mInputEventReceiver;
+     private boolean mTracking;
++    private boolean mPilfered;
+     private long mStartTime;
+ 
+-    SwipeToScreenshotListener(Context context, Runnable callback) {
++    /** The callback runs on {@code looper}, which is also where the touches are read. */
++    SwipeToScreenshotListener(Context context, InputManager inputManager, Looper looper,
++            Runnable callback) {
++        mInputManager = inputManager;
++        mLooper = looper;
+         mCallback = callback;
+         mSwipeDistance = SWIPE_DISTANCE_DP * context.getResources().getDisplayMetrics().density;
++        mTouchSlop = context.getResources().getDimensionPixelSize(
++                com.android.internal.R.dimen.config_viewConfigurationTouchSlop);
++    }
++
++    /** Starts or stops watching the touches. Must be called on the looper. */
++    void setEnabled(boolean enabled) {
++        if (enabled == (mInputMonitor != null)) {
++            return;
++        }
++        if (enabled) {
++            mInputMonitor = mInputManager.monitorGestureInput(TAG, DEFAULT_DISPLAY);
++            mInputEventReceiver = new InputEventReceiver(mInputMonitor.getInputChannel(),
++                    mLooper) {
++                @Override
++                public void onInputEvent(InputEvent event) {
++                    if (event instanceof MotionEvent) {
++                        onMotionEvent((MotionEvent) event);
++                    }
++                    finishInputEvent(event, false);
++                }
++            };
++        } else {
++            mInputEventReceiver.dispose();
++            mInputEventReceiver = null;
++            mInputMonitor.dispose();
++            mInputMonitor = null;
++            mTracking = false;
++        }
+     }
+ 
+-    @Override
+-    public void onPointerEvent(MotionEvent event) {
++    private void onMotionEvent(MotionEvent event) {
+         switch (event.getActionMasked()) {
+             case MotionEvent.ACTION_POINTER_DOWN:
+                 mTracking = event.getPointerCount() == POINTER_COUNT;
++                mPilfered = false;
+                 if (mTracking) {
+                     for (int i = 0; i < POINTER_COUNT; i++) {
+                         mPointerIds[i] = event.getPointerId(i);
+@@ -50,14 +99,27 @@ class SwipeToScreenshotListener implements PointerEventListener {
+                     mTracking = false;
+                     break;
+                 }
++                boolean pastSlop = true;
++                boolean pastDistance = true;
+                 for (int i = 0; i < POINTER_COUNT; i++) {
+                     final int index = event.findPointerIndex(mPointerIds[i]);
+-                    if (index < 0 || event.getY(index) - mStartY[i] < mSwipeDistance) {
++                    if (index < 0) {
+                         return;
+                     }
++                    final float dy = event.getY(index) - mStartY[i];
++                    pastSlop &= dy >= mTouchSlop;
++                    pastDistance &= dy >= mSwipeDistance;
++                }
++                if (pastSlop && !mPilfered) {
++                    // All three fingers are going down, so this is the screenshot swipe.
++                    // Cancel the touch for the app so it stops scrolling.
++                    mInputMonitor.pilferPointers();
++                    mPilfered = true;
++                }
++                if (pastDistance) {
++                    mTracking = false;
++                    mCallback.run();
+                 }
+-                mTracking = false;
+-                mCallback.run();
+                 break;
+             case MotionEvent.ACTION_DOWN:
+             case MotionEvent.ACTION_POINTER_UP:
+-- 
+2.55.0
+

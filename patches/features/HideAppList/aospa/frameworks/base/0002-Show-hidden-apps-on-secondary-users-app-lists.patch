@@ -1,0 +1,42 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Oliver Scott <olivercscott@gmail.com>
+Date: Fri, 13 Oct 2023 16:12:10 -0400
+Subject: [PATCH] Show hidden apps on secondary users' app lists
+
+* Do not show apps that are "not installed for this user"
+
+Change-Id: I0ff770f20f720ff19f9c2bc787de3a9c2f503397
+Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
+---
+ .../spaprivileged/model/app/AppListRepository.kt      | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/packages/SettingsLib/SpaPrivileged/src/com/android/settingslib/spaprivileged/model/app/AppListRepository.kt b/packages/SettingsLib/SpaPrivileged/src/com/android/settingslib/spaprivileged/model/app/AppListRepository.kt
+index 9ccc90c8..072aa33a 100644
+--- a/packages/SettingsLib/SpaPrivileged/src/com/android/settingslib/spaprivileged/model/app/AppListRepository.kt
++++ b/packages/SettingsLib/SpaPrivileged/src/com/android/settingslib/spaprivileged/model/app/AppListRepository.kt
+@@ -109,15 +109,16 @@ internal class AppListRepositoryImplHelper(private val context: Context) {
+         userId: Int,
+         matchAnyUserForAdmin: Boolean,
+     ): List<ApplicationInfo> {
+-        val disabledComponentsFlag =
+-            (PackageManager.MATCH_DISABLED_COMPONENTS or
+-                    PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS)
+-                .toLong()
++        val disabledComponentsFlag = (PackageManager.MATCH_DISABLED_COMPONENTS or
++            PackageManager.MATCH_DISABLED_UNTIL_USED_COMPONENTS or
++            PackageManager.MATCH_UNINSTALLED_PACKAGES).toLong()
+         val archivedPackagesFlag: Long =
+             if (isArchivingEnabled()) PackageManager.MATCH_ARCHIVED_PACKAGES else 0L
+         val regularFlags = ApplicationInfoFlags.of(disabledComponentsFlag or archivedPackagesFlag)
+         return if (!matchAnyUserForAdmin || !userManager.getUserInfo(userId).isAdmin) {
+-            packageManager.getInstalledApplicationsAsUser(regularFlags, userId)
++            packageManager.getInstalledApplicationsAsUser(regularFlags, userId).filter {
++                it.installed
++            }
+         } else {
+             coroutineScope {
+                 val deferredPackageNamesInChildProfiles =
+-- 
+2.55.0
+

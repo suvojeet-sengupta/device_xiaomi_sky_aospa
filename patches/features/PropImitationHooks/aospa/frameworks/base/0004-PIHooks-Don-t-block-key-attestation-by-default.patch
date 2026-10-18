@@ -1,0 +1,38 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Wed, 7 Oct 2026 01:42:22 +0000
+Subject: [PATCH] PIHooks: Don't block key attestation by default
+
+With Play Integrity Fix and a Tricky Store keybox, the attestation block
+kept Play Store from getting the keybox attestation, so every verdict
+failed. Basic integrity passes without it: with the spoofed certified
+props and the device's own attestation, Play Integrity still gives
+MEETS_BASIC_INTEGRITY. Turn the block off unless
+persist.sys.pihooks.disable.gms_key_attestation_block is set to false.
+
+Change-Id: Ibc8a06287b846f5ae0197db2a4dbde8b9d5cb575
+---
+ core/java/com/android/internal/util/PropImitationHooks.java | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/core/java/com/android/internal/util/PropImitationHooks.java b/core/java/com/android/internal/util/PropImitationHooks.java
+index b0e867cb..4bec2463 100644
+--- a/core/java/com/android/internal/util/PropImitationHooks.java
++++ b/core/java/com/android/internal/util/PropImitationHooks.java
+@@ -209,9 +209,12 @@ public class PropImitationHooks {
+         return SystemProperties.getBoolean("persist.sys.pihooks.disable.gms_props", false);
+     }
+ 
++    // Blocking key attestation keeps Tricky Store and the like from passing
++    // device and strong integrity, and basic integrity passes without it, so
++    // it's off unless the property is set to false.
+     private static boolean isKeyAttestationBlockDisabled() {
+         return SystemProperties.getBoolean(
+-                "persist.sys.pihooks.disable.gms_key_attestation_block", false);
++                "persist.sys.pihooks.disable.gms_key_attestation_block", true);
+     }
+     private static final String DATA_FILE = "gms_certified_props.json";
+ 
+-- 
+2.55.0
+

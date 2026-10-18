@@ -1,0 +1,31 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Tue, 6 Oct 2026 10:41:46 +0000
+Subject: [PATCH] PIHooks: Keep the device fingerprint for Google Photos
+
+Unlimited storage only needs Photos to see a Pixel XL and the Nexus
+preload feature. Leave the build fingerprint and ID alone so Photos
+still sees the device's own.
+
+---
+ core/java/com/android/internal/util/PropImitationHooks.java | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/core/java/com/android/internal/util/PropImitationHooks.java b/core/java/com/android/internal/util/PropImitationHooks.java
+index c9315b4b..0673783f 100644
+--- a/core/java/com/android/internal/util/PropImitationHooks.java
++++ b/core/java/com/android/internal/util/PropImitationHooks.java
+@@ -229,9 +229,7 @@ public class PropImitationHooks {
+         "MANUFACTURER", "Google",
+         "BRAND", "google",
+         "HARDWARE", "marlin",
+-        "MODEL", "Pixel XL",
+-        "ID", "QP1A.191005.007.A3",
+-        "FINGERPRINT", "google/marlin/marlin:10/QP1A.191005.007.A3/5972272:user/release-keys"
++        "MODEL", "Pixel XL"
+     );
+ 
+     private static final Set<String> sPixelFeatures = Set.of(
+-- 
+2.55.0
+

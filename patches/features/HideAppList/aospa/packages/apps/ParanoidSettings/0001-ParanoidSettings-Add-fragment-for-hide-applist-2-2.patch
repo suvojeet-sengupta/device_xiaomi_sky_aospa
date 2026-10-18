@@ -1,0 +1,69 @@
+From 60b6dd983f14167884cbe5c4439db18a561c175f Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Tue, 6 Oct 2026 15:29:25 +0000
+Subject: [PATCH] ParanoidSettings: Add fragment for hide applist [2/2]
+
+Pick the apps hidden from other user apps, kept in
+Settings.Secure.HIDE_APPLIST.
+
+Change-Id: I764bbac01728e16070a62fab4347cba107b8e662
+---
+ res/values/aospa_strings.xml                  |  4 +++
+ .../development/HideAppListSettings.kt        | 30 +++++++++++++++++++
+ 2 files changed, 34 insertions(+)
+ create mode 100644 src/co/aospa/settings/development/HideAppListSettings.kt
+
+diff --git a/res/values/aospa_strings.xml b/res/values/aospa_strings.xml
+index 590be03..d5b6375 100644
+--- a/res/values/aospa_strings.xml
++++ b/res/values/aospa_strings.xml
+@@ -202,6 +202,10 @@
+     <string name="hide_developer_status_title">Hide developer status</string>
+     <string name="hide_developer_status_summary">Hide developer status to selected apps</string>
+ 
++    <!-- Hide app list -->
++    <string name="hide_applist_title">Hide app list</string>
++    <string name="hide_applist_summary">Hide selected apps from other apps</string>
++
+     <!-- Radio Info -->
+     <string name="radio_info_title">Radio info</string>
+ 
+diff --git a/src/co/aospa/settings/development/HideAppListSettings.kt b/src/co/aospa/settings/development/HideAppListSettings.kt
+new file mode 100644
+index 0000000..4a3a65a
+--- /dev/null
++++ b/src/co/aospa/settings/development/HideAppListSettings.kt
+@@ -0,0 +1,30 @@
++/*
++ * SPDX-FileCopyrightText: 2026 Paranoid Android
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++package co.aospa.settings.development
++
++import android.provider.Settings
++import co.aospa.settings.core.BaseAppListSettingsFragment
++import com.android.internal.util.hertzify.HideAppListUtils
++import com.android.settings.R
++
++/** Picks the apps hidden from other user apps, kept in Settings.Secure.HIDE_APPLIST. */
++class HideAppListSettings : BaseAppListSettingsFragment() {
++
++    override fun getTitleResId() = R.string.hide_applist_title
++
++    override fun getInitialCheckedList() =
++        HideAppListUtils.getApps(requireContext()).toList()
++
++    override fun onListUpdate(packageName: String, isChecked: Boolean) {
++        val apps = HideAppListUtils.getApps(requireContext())
++        if (isChecked) apps.add(packageName) else apps.remove(packageName)
++        Settings.Secure.putString(
++            requireContext().contentResolver,
++            Settings.Secure.HIDE_APPLIST,
++            apps.joinToString(",")
++        )
++    }
++}
+-- 
+2.43.0
+

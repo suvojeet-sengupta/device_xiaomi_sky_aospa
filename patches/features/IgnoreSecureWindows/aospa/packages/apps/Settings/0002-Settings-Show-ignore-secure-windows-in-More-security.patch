@@ -1,0 +1,35 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Tue, 6 Oct 2026 23:13:02 +0000
+Subject: [PATCH] Settings: Show ignore secure windows in More security &
+ privacy
+
+With Safety Center, Security & privacy opens More security & privacy
+instead of the advanced security page that had the switch.
+
+Change-Id: I829a5b8af809246dc14bd35696d4db542c9329a1
+---
+ res/xml/more_security_privacy_settings.xml | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/res/xml/more_security_privacy_settings.xml b/res/xml/more_security_privacy_settings.xml
+index 1018e7a..e3b09eb 100644
+--- a/res/xml/more_security_privacy_settings.xml
++++ b/res/xml/more_security_privacy_settings.xml
+@@ -229,6 +229,13 @@
+         settings:keywords="@string/keywords_app_pinning"
+         settings:controller="com.android.settings.security.ScreenPinningPreferenceController" />
+ 
++    <SwitchPreferenceCompat
++        android:order="290"
++        android:key="more_security_window_ignore_secure"
++        android:title="@string/ignore_window_secure_title"
++        android:summary="@string/ignore_window_secure_summary"
++        settings:controller="com.android.settings.security.IgnoreSecureWindowPreferenceController"/>
++
+     <com.android.settingslib.RestrictedPreference
+         android:order="300"
+         android:id="@+id/memtag_page"
+-- 
+2.55.0
+
