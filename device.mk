@@ -326,6 +326,13 @@ PRODUCT_COPY_FILES += \
 
 # Kernel
 KERNEL_PREBUILT_DIR := $(LOCAL_PATH)-kernel
+TARGET_KERNEL_VERSION := 6.6
+TARGET_USES_KERNEL_PLATFORM := false
+
+PRODUCT_COPY_FILES += \
+    $(KERNEL_PREBUILT_DIR)/Image:kernel \
+    $(KERNEL_PREBUILT_DIR)/System.map:kernel_obj/System.map \
+    $(KERNEL_PREBUILT_DIR)/vendor_dlkm/system_dlkm.modules.blocklist:$(TARGET_COPY_OUT_VENDOR_DLKM)/lib/modules/system_dlkm.modules.blocklist
 
 # Keymaster
 PRODUCT_PACKAGES += \

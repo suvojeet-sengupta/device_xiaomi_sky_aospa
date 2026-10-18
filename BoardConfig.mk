@@ -14,6 +14,7 @@ AB_OTA_PARTITIONS += \
     product \
     recovery \
     system \
+    system_dlkm \
     system_ext \
     vbmeta \
     vbmeta_system \
@@ -48,6 +49,24 @@ BOARD_RAMDISK_USE_LZ4 := true
 BOARD_USES_GENERIC_KERNEL_IMAGE := true
 TARGET_HAS_GENERIC_KERNEL_HEADERS := true
 
+KERNEL_PATH := $(DEVICE_PATH)-kernel
+TARGET_PREBUILT_KERNEL := $(KERNEL_PATH)/Image
+TARGET_BOARD_KERNEL_HEADERS := $(KERNEL_PATH)/kernel-headers
+BOARD_PREBUILT_DTBIMAGE_DIR := $(KERNEL_PATH)/dtbs
+BOARD_PREBUILT_DTBOIMAGE := $(KERNEL_PATH)/dtbs/dtbo.img
+
+BOARD_VENDOR_RAMDISK_KERNEL_MODULES := $(wildcard $(KERNEL_PATH)/vendor_ramdisk/*.ko)
+BOARD_VENDOR_RAMDISK_KERNEL_MODULES_LOAD := $(strip $(shell cat $(KERNEL_PATH)/vendor_ramdisk/modules.load))
+BOARD_VENDOR_RAMDISK_RECOVERY_KERNEL_MODULES_LOAD := $(strip $(shell cat $(KERNEL_PATH)/vendor_ramdisk/modules.load.recovery))
+BOARD_VENDOR_RAMDISK_KERNEL_MODULES_BLOCKLIST_FILE := $(KERNEL_PATH)/vendor_ramdisk/modules.blocklist
+
+BOARD_VENDOR_KERNEL_MODULES := $(wildcard $(KERNEL_PATH)/vendor_dlkm/*.ko)
+BOARD_VENDOR_KERNEL_MODULES_LOAD := $(strip $(shell cat $(KERNEL_PATH)/vendor_dlkm/modules.load))
+BOARD_VENDOR_KERNEL_MODULES_BLOCKLIST_FILE := $(KERNEL_PATH)/vendor_dlkm/modules.blocklist
+
+BOARD_SYSTEM_KERNEL_MODULES := $(wildcard $(KERNEL_PATH)/system_dlkm/*.ko)
+BOARD_SYSTEM_KERNEL_MODULES_LOAD := $(strip $(shell cat $(KERNEL_PATH)/system_dlkm/modules.load))
+
 BOARD_BOOT_HEADER_VERSION := 4
 BOARD_MKBOOTIMG_ARGS := --header_version $(BOARD_BOOT_HEADER_VERSION)
 
@@ -61,14 +80,15 @@ BOARD_BOOTCONFIG := \
     androidboot.boot_devices=soc/1d84000.ufshc \
     androidboot.hardware=qcom \
     androidboot.init_fatal_reboot_target=recovery \
+    androidboot.load_modules_parallel=true \
     androidboot.memcg=1 \
     androidboot.serialconsole=0 \
     androidboot.usbcontroller=a600000.dwc3
 
 # Lineage Health
-$(call soong_config_set,lineage_health,charging_control_charging_path,/sys/class/qcom-battery/charging_enabled)
-$(call soong_config_set,lineage_health,charging_control_charging_enabled,1)
-$(call soong_config_set,lineage_health,charging_control_charging_disabled,0)
+$(call soong_config_set,lineage_health,charging_control_charging_path,/sys/class/qcom-battery/input_suspend)
+$(call soong_config_set,lineage_health,charging_control_charging_enabled,0)
+$(call soong_config_set,lineage_health,charging_control_charging_disabled,1)
 $(call soong_config_set_bool,lineage_health,charging_control_supports_bypass,false)
 
 # Partitions
@@ -78,17 +98,21 @@ BOARD_VENDOR_BOOTIMAGE_PARTITION_SIZE := 100663296
 BOARD_DTBOIMG_PARTITION_SIZE := 0x1700000
 BOARD_RECOVERYIMAGE_PARTITION_SIZE := 0x06400000
 BOARD_USES_METADATA_PARTITION := true
+BOARD_USES_SYSTEM_DLKMIMAGE := true
 BOARD_USES_VENDOR_DLKMIMAGE := true
 
 BOARD_SUPER_PARTITION_SIZE := 6979321856
 BOARD_SUPER_PARTITION_GROUPS := qti_dynamic_partitions
-BOARD_QTI_DYNAMIC_PARTITIONS_PARTITION_LIST := odm product system system_ext vendor vendor_dlkm
+BOARD_QTI_DYNAMIC_PARTITIONS_PARTITION_LIST := odm product system system_dlkm system_ext vendor vendor_dlkm
 BOARD_QTI_DYNAMIC_PARTITIONS_SIZE := 6975127552 # (BOARD_SUPER_PARTITION_SIZE - 4MB overhead)
 
 $(foreach p, $(call to-upper, $(BOARD_QTI_DYNAMIC_PARTITIONS_PARTITION_LIST)), \
     $(eval BOARD_$(p)IMAGE_FILE_SYSTEM_TYPE := ext4) \
     $(eval BOARD_$(p)IMAGE_PARTITION_RESERVED_SIZE := 104857600) \
     $(eval TARGET_COPY_OUT_$(p) := $(call to-lower, $(p))))
+
+$(foreach p, SYSTEM_DLKM VENDOR_DLKM, \
+    $(eval BOARD_$(p)IMAGE_PARTITION_RESERVED_SIZE :=))
 
 # RmNet
 SOONG_CONFIG_rmnetctl_old_rmnet_data := false
