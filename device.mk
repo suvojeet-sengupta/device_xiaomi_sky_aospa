@@ -155,6 +155,9 @@ PRODUCT_VENDOR_PROPERTIES += \
     ro.vendor.audio.support.sound.id=true
 
 # Bluetooth
+PRODUCT_PACKAGES += \
+    android.hardware.bluetooth.audio-impl
+
 PRODUCT_SYSTEM_EXT_PROPERTIES += \
     persist.vendor.btstack.enable.lpa=true
 
