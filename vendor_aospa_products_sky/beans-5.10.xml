@@ -12,4 +12,6 @@
   <project path="vendor/nxp/opensource/halimpl" name="AOSPA/android_vendor_nxp_opensource_halimpl" remote="aospa" revision="beryl-8450" />
   <project path="vendor/nxp/opensource/hidlimpl" name="AOSPA/android_vendor_nxp_opensource_hidlimpl" remote="aospa" revision="beryl-8450" />
   <project path="vendor/xiaomi/sky" name="suvojeet-sengupta/vendor_xiaomi_sky_aospa" remote="github" revision="calcite" clone-depth="1" />
+  <project path="device/xiaomi/miuicamera-sky" name="suvojeet-sengupta/device_xiaomi_miuicamera-sky" remote="github" revision="calcite" />
+  <project path="vendor/xiaomi/miuicamera-sky" name="suvojeet-sengupta/vendor_xiaomi_miuicamera-sky" remote="github" revision="calcite" clone-depth="1" />
 </manifest>

@@ -4,21 +4,32 @@ Files that live outside the device, vendor and kernel repos.
 
 ## vendor_aospa_products_sky
 Copy into `vendor/aospa/products/sky/` of an AOSPA calcite tree.
-- `beans-5.10.xml` / `beans-6.6.xml`: copy the one you want to `beans.xml`, then run lunch or barista. The 6.6 one uses the LineageOS sm8450-6.6 display and audio HALs instead of the AOSPA 8450 ones.
+- `beans-5.10.xml` / `beans-6.6.xml`: copy the one you want to `beans.xml`, then run lunch or barista. The 6.6 one uses the LineageOS sm8450-6.6 display and audio HALs instead of the AOSPA 8450 ones. Both include MIUI Camera.
 - `aospa_sky.mk`: uses the calcite DeviceProduct/SystemName overrides.
 
 ## kernel-6.6
-How the `calcite-6.6` prebuilt of device_xiaomi_sky-kernel was made.
+How the `calcite-6.6` prebuilt of device_xiaomi_sky-kernel is made.
 
-Layout: forks of xiaomi-ravelin cloned into `~/work/k66/kernel/xiaomi/{sm4450,sm4450-modules,sm4450-devicetrees}` (lineage-24.0).
+The kernel is the xiaomi-ravelin sm4450 kernel, modules and devicetrees
+(lineage-24.0), built by a LineageOS tree for sky so that the module sets and
+load lists are exactly what that build installs.
 
-1. `. env.sh`, then `gki_defconfig` + `merge_config.sh vendor/parrot_perf.config`, disable `UAPI_HEADER_TEST`, `make Image modules dtbs`.
-2. `build-ext66.sh`: external modules, in ravelin's order, passing each module's Module.symvers on.
-3. dtbs: move `vendor/*/*.dtb{,o}` to a base dir and run `merge_dtbs.py --base <base> --techpack <dts vendor copy> --out <out>`.
-   Needs fdtget, fdtput, fdtoverlay, fdtoverlaymerge from LineageOS android_external_dtc (gcc, with `version_gen.h` from tools-src) and ufdt_apply_overlay from system/libufdt.
-4. `assemble66.sh`: Image, dtbs, dtbo.img, kernel-headers, module dirs from ravelin's module lists.
-5. `curate_headers.py`: keep only vendor UAPI headers, plus 5.10-only ones.
-6. `closure.py`: add every module dependency to each load list.
+1. From the LineageOS build, copy `kernel` to `Image`, `dtb.img` to
+   `dtbs/sky.dtb`, `dtbo.img` to `dtbs/`, and `System.map` and
+   `Module.symvers` from `obj/KERNEL_OBJ`.
+2. Copy every module of `vendor_ramdisk`, `vendor_dlkm` and `system_dlkm`
+   (`lib/modules`) into the folder of the same name, with its `modules.load`
+   (and `modules.load.recovery` for the ramdisk) written as `name.ko` lines,
+   plus `modules.blocklist` and `system_dlkm.modules.blocklist`.
+3. `ramoops_dtb.py dtbs/sky.dtb <out>`: split the ramoops region of every dtb
+   into 1 MiB console and 1 MiB pmsg, so a failed boot keeps its kernel log.
+4. `modcheck.py <prebuilt dir>`: checks vermagic, symbols, modversion CRCs and
+   dependencies of every module for first stage, recovery, second stage and
+   on-demand loading.
+
+The DT wires the partitions up itself (`TARGET_USES_KERNEL_PLATFORM := false`)
+because the QTI kernel platform makefile only installs vendor_dlkm modules that
+are in modules.load.
 
 ## publish.sh
 Copy into the root of the AOSPA tree. After `./rom-build.sh sky -z`, run `./publish.sh` to copy the newest fastboot (`-image.zip`) and recovery zips into the ServerHive web folder and print their download links. `./publish.sh fastboot` or `./publish.sh recovery` publishes one kind, `--keep N` deletes all but the N newest published zips of each kind, and `--dry-run` only shows what would be published.
