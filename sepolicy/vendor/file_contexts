@@ -25,6 +25,7 @@
 /data/vendor_de/[0-9]+/goodix(/.*)?					  u:object_r:vendor_fingerprint_data_file:s0
 /mnt/vendor/persist/goodix(/.*)?				          u:object_r:vendor_fingerprint_data_file:s0
 /vendor/bin/hw/android\.hardware\.biometrics\.fingerprint@2\.3-service\.xiaomi u:object_r:hal_fingerprint_default_exec:s0
+/vendor/bin/hw/vendor\.qti\.hardware\.display\.allocator@4\.0-service    u:object_r:hal_graphics_allocator_default_exec:s0
 
 # Health
 
