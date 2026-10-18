@@ -393,7 +393,6 @@ vendor/lib64/libwifiobserver.so
 vendor/lib64/libxtadapter.so
 vendor/lib64/vendor.qti.gnss-V7-ndk.so
 vendor/lib64/vendor.qti.gnss-service.so
-vendor/lib64/vendor.qti.gnss-service.so
 
 # Graphics (Adreno)
 vendor/lib64/egl/eglSubDriverAndroid.so
