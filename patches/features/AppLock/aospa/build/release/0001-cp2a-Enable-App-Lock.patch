@@ -1,0 +1,82 @@
+From defb41d54f2865cbf95f9bf70711b2034e80d7f3 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Sun, 18 Oct 2026 08:40:19 +0000
+Subject: [PATCH] cp2a: Enable App Lock
+
+Turn on the App Lock core and PackageManager APIs, the Launcher long press shortcut that locks an app, and the removal of shortcuts and widgets of locked apps.
+---
+ .../app_lock_widget_removal_flag_values.textproto           | 6 ++++++
+ .../app_lock_shortcut_removal_flag_values.textproto         | 6 ++++++
+ .../android.security/app_lock_apis_flag_values.textproto    | 6 ++++++
+ .../android.security/app_lock_core_flag_values.textproto    | 6 ++++++
+ .../enable_app_lock_shortcut_flag_values.textproto          | 6 ++++++
+ 5 files changed, 30 insertions(+)
+ create mode 100644 aconfig/cp2a/android.appwidget.flags/app_lock_widget_removal_flag_values.textproto
+ create mode 100644 aconfig/cp2a/android.content.pm/app_lock_shortcut_removal_flag_values.textproto
+ create mode 100644 aconfig/cp2a/android.security/app_lock_apis_flag_values.textproto
+ create mode 100644 aconfig/cp2a/android.security/app_lock_core_flag_values.textproto
+ create mode 100644 aconfig/cp2a/com.android.launcher3/enable_app_lock_shortcut_flag_values.textproto
+
+diff --git a/aconfig/cp2a/android.appwidget.flags/app_lock_widget_removal_flag_values.textproto b/aconfig/cp2a/android.appwidget.flags/app_lock_widget_removal_flag_values.textproto
+new file mode 100644
+index 000000000..ea9853a0b
+--- /dev/null
++++ b/aconfig/cp2a/android.appwidget.flags/app_lock_widget_removal_flag_values.textproto
+@@ -0,0 +1,6 @@
++flag_value {
++  package: "android.appwidget.flags"
++  name: "app_lock_widget_removal"
++  state: ENABLED
++  permission: READ_WRITE
++}
+diff --git a/aconfig/cp2a/android.content.pm/app_lock_shortcut_removal_flag_values.textproto b/aconfig/cp2a/android.content.pm/app_lock_shortcut_removal_flag_values.textproto
+new file mode 100644
+index 000000000..52929e3d7
+--- /dev/null
++++ b/aconfig/cp2a/android.content.pm/app_lock_shortcut_removal_flag_values.textproto
+@@ -0,0 +1,6 @@
++flag_value {
++  package: "android.content.pm"
++  name: "app_lock_shortcut_removal"
++  state: ENABLED
++  permission: READ_WRITE
++}
+diff --git a/aconfig/cp2a/android.security/app_lock_apis_flag_values.textproto b/aconfig/cp2a/android.security/app_lock_apis_flag_values.textproto
+new file mode 100644
+index 000000000..7b2a59f12
+--- /dev/null
++++ b/aconfig/cp2a/android.security/app_lock_apis_flag_values.textproto
+@@ -0,0 +1,6 @@
++flag_value {
++  package: "android.security"
++  name: "app_lock_apis"
++  state: ENABLED
++  permission: READ_WRITE
++}
+diff --git a/aconfig/cp2a/android.security/app_lock_core_flag_values.textproto b/aconfig/cp2a/android.security/app_lock_core_flag_values.textproto
+new file mode 100644
+index 000000000..9be2c1808
+--- /dev/null
++++ b/aconfig/cp2a/android.security/app_lock_core_flag_values.textproto
+@@ -0,0 +1,6 @@
++flag_value {
++  package: "android.security"
++  name: "app_lock_core"
++  state: ENABLED
++  permission: READ_WRITE
++}
+diff --git a/aconfig/cp2a/com.android.launcher3/enable_app_lock_shortcut_flag_values.textproto b/aconfig/cp2a/com.android.launcher3/enable_app_lock_shortcut_flag_values.textproto
+new file mode 100644
+index 000000000..28fc6fa5c
+--- /dev/null
++++ b/aconfig/cp2a/com.android.launcher3/enable_app_lock_shortcut_flag_values.textproto
+@@ -0,0 +1,6 @@
++flag_value {
++  package: "com.android.launcher3"
++  name: "enable_app_lock_shortcut"
++  state: ENABLED
++  permission: READ_WRITE
++}
+-- 
+2.43.0
+
