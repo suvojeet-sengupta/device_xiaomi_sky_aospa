@@ -58,6 +58,7 @@ PRODUCT_PACKAGES += \
     libaudiocorehal.default \
     libaudiocorehal.qti \
     libaudioeffecthal.qti \
+    libaudiohalvendorextn \
     libbatterylistener \
     libfmpal \
     libhfp_pal \
@@ -67,8 +68,7 @@ PRODUCT_PACKAGES += \
     libqcomvoiceprocessing \
     libsndcardparser \
     libsoundtriggerhal.qti \
-    libvolumelistener \
-    qtiaudiohalvendorextn
+    libvolumelistener
 
 PRODUCT_PACKAGES += \
     android.hardware.audio.common-V1-ndk.vendor \
