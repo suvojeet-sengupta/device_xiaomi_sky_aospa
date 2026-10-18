@@ -69,10 +69,20 @@ PRODUCT_PACKAGES += \
 
 PRODUCT_PACKAGES += \
     android.hardware.audio.common-V1-ndk.vendor \
+    android.hardware.audio.common-V3-ndk.vendor \
     android.hardware.audio.core-V2-ndk.vendor \
     android.hardware.audio.core.sounddose-V1-ndk.vendor \
+    android.hardware.audio.core.sounddose-V2-ndk.vendor \
+    android.hardware.audio.effect-V2-ndk.vendor \
+    android.hardware.bluetooth.audio-V4-ndk.vendor \
+    android.media.audio.common.types-V3-ndk.vendor \
     libalsautilsv2.vendor \
     libaudioaidlcommon.vendor \
+    libaudioroute.vendor \
+    libmedia_helper.vendor \
+    libnbaio_mono.vendor \
+    libstagefright_foundation.vendor \
+    libtinycompress.vendor \
     libaudioutils_shim \
     libbundleaidl \
     libdownmixaidl \
