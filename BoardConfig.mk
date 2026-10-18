@@ -38,6 +38,7 @@ BUILD_BROKEN_VENDOR_PROPERTY_NAMESPACE := true
 # HIDL
 DEVICE_FRAMEWORK_COMPATIBILITY_MATRIX_FILE += $(DEVICE_PATH)/configs/hidl/device_framework_compatibility_matrix.xml
 DEVICE_MANIFEST_FILE += $(DEVICE_PATH)/configs/hidl/manifest.xml
+DEVICE_MANIFEST_FILE += hardware/qcom-caf/sm8450-6.6/audio/primary-hal/configs/parrot/manifest_audio_qti_services.xml
 ODM_MANIFEST_SKUS += river
 ODM_MANIFEST_RIVER_FILES := $(DEVICE_PATH)/configs/hidl/manifest_nfc.xml
 
