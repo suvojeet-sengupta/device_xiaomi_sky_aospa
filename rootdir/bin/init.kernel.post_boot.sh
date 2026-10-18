@@ -119,6 +119,11 @@ function configure_memory_parameters() {
 	configure_zram_parameters
 	configure_read_ahead_kb_values
 
+	# Set mq-deadline as the I/O scheduler for UFS
+	for device in /sys/block/sd*; do
+		echo "mq-deadline" > "$device/queue/scheduler"
+	done
+
 	# O19 ExtM
 	ProductName=`getprop ro.product.name`
 	if [ "$ProductName" == "mist" ]; then
