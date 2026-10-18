@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright (C) 2026 Paranoid Android
+
+     SPDX-License-Identifier: Apache-2.0
+-->
+<config>
+    <!-- Its receivers start its service from the background on app launches and installs -->
+    <allow-in-power-save package="com.qualcomm.qti.workloadclassifier" />
+</config>

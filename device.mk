@@ -331,6 +331,14 @@ PRODUCT_ODM_PROPERTIES += \
     vendor.pasr.activemode.enabled=false \
     vendor.power.pasr.enabled=false
 
+# QSPM needs ISnapdragonServices, which this vendor doesn't serve to
+# system_server, so its ActivityTrigger handler would wait for it forever
+PRODUCT_VENDOR_PROPERTIES += \
+    ro.vendor.qspm.enable=false
+
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/configs/sysconfig/workloadclassifier.xml:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/sysconfig/workloadclassifier.xml
+
 # Platform
 TARGET_BOARD_PLATFORM := parrot
 

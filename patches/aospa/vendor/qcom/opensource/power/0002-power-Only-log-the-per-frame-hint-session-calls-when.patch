@@ -1,0 +1,49 @@
+From d0869d1c331c704f900799c56b07235bf4ca3f49 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Mon, 5 Oct 2026 21:06:32 +0000
+Subject: [PATCH 2/2] power: Only log the per frame hint session calls when
+ debugging
+
+reportActualWorkDuration, updateTargetWorkDuration and sendHint run for
+every frame of every app with a hint session and were logged at INFO,
+thousands of lines a minute. Log them only with vendor.debug.enable.adpf.
+
+Change-Id: Id5afdf791e33c0e5b2acb260759aa10a9576063b
+---
+ PowerHintSession.cpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/PowerHintSession.cpp b/PowerHintSession.cpp
+index 7e5b68b..52c21f8 100644
+--- a/PowerHintSession.cpp
++++ b/PowerHintSession.cpp
+@@ -323,7 +323,7 @@ double PowerHintSessionImpl::nextSupportedFPS(double fps) {
+ 
+ ndk::ScopedAStatus PowerHintSessionImpl::updateTargetWorkDuration(int64_t in_targetDurationNanos){
+     // TODO: top app is game check
+-    LOG(INFO) << "PowerHintSessionImpl::updateTargetWorkDuration: " << in_targetDurationNanos;
++    if (mDebug) LOG(INFO) << "PowerHintSessionImpl::updateTargetWorkDuration: " << in_targetDurationNanos;
+     if (in_targetDurationNanos <= 0) {
+         LOG(ERROR) << "Invalid target work duration";
+         return ndk::ScopedAStatus::fromExceptionCode(EX_ILLEGAL_ARGUMENT);
+@@ -340,7 +340,7 @@ ndk::ScopedAStatus PowerHintSessionImpl::updateTargetWorkDuration(int64_t in_tar
+ 
+ ndk::ScopedAStatus PowerHintSessionImpl::reportActualWorkDuration(const std::vector<::aidl::android::hardware::power::WorkDuration>& in_durations){
+     // TODO: top app is game check
+-    LOG(INFO) << "PowerHintSessionImpl::reportActualWorkDuration: ";
++    if (mDebug) LOG(INFO) << "PowerHintSessionImpl::reportActualWorkDuration: ";
+     int64_t targetWorkDurationNanos = mTargetWorkDurationNanos;
+     if (targetWorkDurationNanos == -1 || in_durations.empty()) {
+         return ndk::ScopedAStatus::ok();
+@@ -398,7 +398,7 @@ ndk::ScopedAStatus PowerHintSessionImpl::close(){
+     return ndk::ScopedAStatus::ok();
+ }
+ ndk::ScopedAStatus PowerHintSessionImpl::sendHint(aidl::android::hardware::power::SessionHint hint){
+-    LOG(INFO) << "PowerHintSessionImpl::sendHint ";
++    if (mDebug) LOG(INFO) << "PowerHintSessionImpl::sendHint ";
+     if (!isSessionActive(this))
+         return ndk::ScopedAStatus::fromExceptionCode(EX_ILLEGAL_STATE);
+     switch (hint)
+-- 
+2.43.0
+

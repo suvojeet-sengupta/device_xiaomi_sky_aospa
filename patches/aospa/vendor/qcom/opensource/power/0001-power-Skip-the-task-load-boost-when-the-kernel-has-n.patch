@@ -1,0 +1,52 @@
+From 08bb6ec075f1114d13511abcd24884ca214b882d Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Mon, 5 Oct 2026 21:04:58 +0000
+Subject: [PATCH 1/2] power: Skip the task load boost when the kernel has no
+ node for it
+
+ADPF hint sessions boost their threads through /proc/sys/walt/task_load_boost,
+which only the 5.10 and newer WALT has. On older kernels every request
+fails in the perf HAL and floods the log with errors on each frame, so
+only keep the CPU boost there.
+
+Change-Id: I007ec272760ad4d6128be0e9a90861b2089502c7
+---
+ PowerHintSession.cpp | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/PowerHintSession.cpp b/PowerHintSession.cpp
+index a8e25ca..7e5b68b 100644
+--- a/PowerHintSession.cpp
++++ b/PowerHintSession.cpp
+@@ -13,6 +13,8 @@
+ #include <cutils/properties.h>
+ #include <dlfcn.h>
+ #include <cmath>
++#include <cerrno>
++#include <unistd.h>
+ 
+ #define PERF_EXT_LIB_PROP "ro.vendor.extension_library"
+ #define MAX_PIPELINE_NUM_PROP "ro.vendor.perf.qape.max_pipeline_number"
+@@ -93,7 +95,19 @@ bool PowerHintSessionImpl::perfBoost(int boostVal, int hintType) {
+     return true;
+ }
+ 
++// task_load_boost is a WALT sysctl from the 5.10 kernels on, older kernels
++// don't have it and every request just fails in the perf HAL.
++static bool isTaskLoadBoostSupported() {
++    static const bool supported =
++            access("/proc/sys/walt/task_load_boost", F_OK) == 0 || errno != ENOENT;
++    return supported;
++}
++
+ bool PowerHintSessionImpl::taskLoadBoost(int loadType) {
++    if (!isTaskLoadBoostSupported()) {
++        return true;
++    }
++
+     int boostSum = mTLBoostSum;
+     int handle = -1;
+ 
+-- 
+2.43.0
+

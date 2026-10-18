@@ -1,0 +1,55 @@
+From 716f35ceeec21e96adff456aa7654c8469058635 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Tue, 6 Oct 2026 16:13:18 +0000
+Subject: [PATCH] power: Stop asking for the CPU boost hint once it is
+ unsupported
+
+redwood's perf config has no CPU_BOOST_HINT, so every hint session boost
+failed in the perf HAL and logged twice. Give up on it after the first
+failure.
+
+Change-Id: I2aca670b33b6185c9536557801f887d69820e720
+---
+ PowerHintSession.cpp | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/PowerHintSession.cpp b/PowerHintSession.cpp
+index 52c21f8..e3e60e6 100644
+--- a/PowerHintSession.cpp
++++ b/PowerHintSession.cpp
+@@ -3,6 +3,7 @@
+ * SPDX-License-Identifier: BSD-3-Clause-Clear
+ */
+ 
++#include <atomic>
+ #include "PowerHintSession.h"
+ #include <android-base/logging.h>
+ #include "android/binder_auto_utils.h"
+@@ -35,6 +36,7 @@
+ #define DEC_TLB_PCT -10
+ 
+ std::unordered_map<PowerHintSessionImpl*, int32_t> mPowerHintSessions;
++static std::atomic<bool> sCpuBoostUnsupported{false};
+ std::mutex mSessionLock;
+ 
+ static int validateBoost(int boostVal, int boostSum) {
+@@ -78,9 +80,15 @@ bool PowerHintSessionImpl::perfBoost(int boostVal, int hintType) {
+ 
+     tBoostSum = validateBoost(boostVal, tBoostSum);
+     if (tBoostSum != 0) {
++        // The perf HAL fails every request for a hint its config doesn't have,
++        // so stop asking once it turns this one down.
++        if (sCpuBoostUnsupported) {
++            return false;
++        }
+         mHandlePerfHint = perf_hint_enable(CPU_BOOST_HINT, tBoostSum);
+         if (mHandlePerfHint < 0) {
+-            LOG(ERROR) << "Unable to acquire Perf hint for" << CPU_BOOST_HINT;
++            sCpuBoostUnsupported = true;
++            LOG(WARNING) << "Perf hint " << CPU_BOOST_HINT << " unsupported, not boosting";
+             return false;
+         }
+     }
+-- 
+2.43.0
+

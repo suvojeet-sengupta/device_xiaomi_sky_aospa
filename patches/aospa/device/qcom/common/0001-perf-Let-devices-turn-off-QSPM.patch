@@ -1,0 +1,29 @@
+From 9e0bab3c6d32b5622e4ee32159d6f6a6e36ef601 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Mon, 5 Oct 2026 21:10:23 +0000
+Subject: [PATCH] perf: Let devices turn off QSPM
+
+ActivityTrigger's handler only reaches qspmhal through ISnapdragonServices.
+Vendors that don't have it leave the handler thread in system_server
+waiting for it forever, so make ro.vendor.qspm.enable a default a
+device can override.
+---
+ vendor/perf/qti-perf.mk | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/vendor/perf/qti-perf.mk b/vendor/perf/qti-perf.mk
+index 5fac9081..80792752 100644
+--- a/vendor/perf/qti-perf.mk
++++ b/vendor/perf/qti-perf.mk
+@@ -37,7 +37,7 @@ PRODUCT_VENDOR_PROPERTIES += \
+     ro.vendor.perf-hal.ver=3.0 \
+     ro.vendor.extension_library=libqti-perfd-client.so \
+     ro.vendor.perf.scroll_opt=true \
+-    ro.vendor.qspm.enable=true \
++    ro.vendor.qspm.enable?=true \
+     vendor.perf.framepacing.enable=1
+ 
+ ifeq (,$(filter 4.14, $(TARGET_KERNEL_VERSION)))
+-- 
+2.43.0
+
