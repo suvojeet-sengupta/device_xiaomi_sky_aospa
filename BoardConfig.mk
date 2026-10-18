@@ -42,6 +42,7 @@ ODM_MANIFEST_SKUS += river
 ODM_MANIFEST_RIVER_FILES := $(DEVICE_PATH)/configs/hidl/manifest_nfc.xml
 
 # Kernel
+BOARD_KERNEL_BASE := 0x00000000
 BOARD_KERNEL_PAGESIZE := 4096
 BOARD_INCLUDE_DTB_IN_BOOTIMG := true
 BOARD_RAMDISK_USE_LZ4 := true
@@ -69,16 +70,8 @@ BOARD_SYSTEM_KERNEL_MODULES_LOAD := $(strip $(shell cat $(KERNEL_PATH)/system_dl
 BOARD_BOOT_HEADER_VERSION := 4
 BOARD_MKBOOTIMG_ARGS := --header_version $(BOARD_BOOT_HEADER_VERSION)
 
-BOARD_KERNEL_CMDLINE := \
-    disable_dma32=on \
-    firmware_class.path=/vendor/firmware \
-    mtdoops.fingerprint=$(AOSPA_VERSION) \
-    swinfo.fingerprint=$(AOSPA_VERSION)
-
 BOARD_BOOTCONFIG := \
-    androidboot.boot_devices=soc/1d84000.ufshc \
     androidboot.hardware=qcom \
-    androidboot.init_fatal_reboot_target=recovery \
     androidboot.load_modules_parallel=true \
     androidboot.memcg=1 \
     androidboot.serialconsole=0 \
