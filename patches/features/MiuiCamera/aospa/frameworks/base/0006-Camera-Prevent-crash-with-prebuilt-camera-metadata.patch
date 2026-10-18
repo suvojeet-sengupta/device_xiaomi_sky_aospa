@@ -1,0 +1,89 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Pranav Vashi <neobuddy89@gmail.com>
+Date: Sat, 2 Apr 2022 19:02:32 +0530
+Subject: [PATCH] Camera: Prevent crash with prebuilt camera metadata
+
+* Some devices need prebuilt camera metadata along with
+  prebuilt libcameraservice for propreitary interfaces
+  implemented by OEM.
+* However, Prebuilt camera metadata of 12.0 crashed on 12.1
+  since exceptions weren't handled properly. Fix it.
+
+Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
+Signed-off-by: Dmitrii <bankersenator@gmail.com>
+---
+ .../camera2/impl/CameraMetadataNative.java    | 52 ++++++++++---------
+ 1 file changed, 28 insertions(+), 24 deletions(-)
+
+diff --git a/core/java/android/hardware/camera2/impl/CameraMetadataNative.java b/core/java/android/hardware/camera2/impl/CameraMetadataNative.java
+index ec04f73b..5ffd19c3 100644
+--- a/core/java/android/hardware/camera2/impl/CameraMetadataNative.java
++++ b/core/java/android/hardware/camera2/impl/CameraMetadataNative.java
+@@ -605,36 +605,40 @@ public class CameraMetadataNative implements Parcelable {
+     }
+ 
+     private <T> T getBase(Key<T> key) {
+-        int tag, nativeType;
+-        byte[] values = null;
+-        synchronized (this) {
+-            if (key.hasTag()) {
+-                tag = key.getTag();
+-            } else {
+-                tag = nativeGetTagFromKeyLocal(mMetadataPtr, key.getName());
+-                key.cacheTag(tag);
+-            }
+-            values = readValues(tag);
+-            if (values == null) {
+-                // If the key returns null, use the fallback key if exists.
+-                // This is to support old key names for the newly published keys.
+-                if (key.mFallbackName == null) {
+-                    return null;
++        try {
++            int tag, nativeType;
++            byte[] values = null;
++            synchronized (this) {
++                if (key.hasTag()) {
++                    tag = key.getTag();
++                } else {
++                    tag = nativeGetTagFromKeyLocal(mMetadataPtr, key.getName());
++                    key.cacheTag(tag);
+                 }
+-                tag = nativeGetTagFromKeyLocal(mMetadataPtr, key.mFallbackName);
+                 values = readValues(tag);
+                 if (values == null) {
+-                    return null;
++                    // If the key returns null, use the fallback key if exists.
++                    // This is to support old key names for the newly published keys.
++                    if (key.mFallbackName == null) {
++                        return null;
++                    }
++                    tag = nativeGetTagFromKeyLocal(mMetadataPtr, key.mFallbackName);
++                    values = readValues(tag);
++                    if (values == null) {
++                        return null;
++                    }
+                 }
+-            }
+ 
+-            nativeType = nativeGetTypeFromTagLocal(mMetadataPtr, tag);
++                nativeType = nativeGetTypeFromTagLocal(mMetadataPtr, tag);
++            }
++            // This block of code doesn't need to be synchronized since we aren't writing or reading
++            // from the metadata buffer for this instance of CameraMetadataNative.
++            Marshaler<T> marshaler = getMarshalerForKey(key, nativeType);
++            ByteBuffer buffer = ByteBuffer.wrap(values).order(ByteOrder.nativeOrder());
++            return marshaler.unmarshal(buffer);
++        } catch (Exception e) {
++                return null;
+         }
+-        // This block of code doesn't need to be synchronized since we aren't writing or reading
+-        // from the metadata buffer for this instance of CameraMetadataNative.
+-        Marshaler<T> marshaler = getMarshalerForKey(key, nativeType);
+-        ByteBuffer buffer = ByteBuffer.wrap(values).order(ByteOrder.nativeOrder());
+-        return marshaler.unmarshal(buffer);
+     }
+ 
+     // Use Command pattern here to avoid lots of expensive if/equals checks in get for overridden
+-- 
+2.55.0
+

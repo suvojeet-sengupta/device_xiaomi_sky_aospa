@@ -1,0 +1,47 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Adithya R <gh0strider.2k18.reborn@gmail.com>
+Date: Sat, 24 Dec 2022 22:03:58 +0530
+Subject: [PATCH] camera: Add backwards-compatible CaptureResultExtras
+ constructor
+
+Commit e16fed20 added readout timestamp parameters which
+changed the constructor, but is unsupported by few
+stock camera apps, such as MIUI Camera.
+
+12-24 09:58:59.536 23375 23492 W System.err: java.lang.NoSuchMethodException: android.hardware.camera2.impl.CaptureResultExtras.<init> [int, int, int, int, long, int, int, class java.lang.String]
+
+Change-Id: Ifd752bc2fa9a7bbf71586147f3c135425c1a7d63
+Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
+Signed-off-by: Dmitrii <bankersenator@gmail.com>
+---
+ .../hardware/camera2/impl/CaptureResultExtras.java | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/core/java/android/hardware/camera2/impl/CaptureResultExtras.java b/core/java/android/hardware/camera2/impl/CaptureResultExtras.java
+index d302a7a7..a1c92dd8 100644
+--- a/core/java/android/hardware/camera2/impl/CaptureResultExtras.java
++++ b/core/java/android/hardware/camera2/impl/CaptureResultExtras.java
+@@ -76,6 +76,20 @@ public class CaptureResultExtras implements Parcelable {
+         this.readoutTimestamp = readoutTimestamp;
+     }
+ 
++    // Backwards-compatible constructor
++    public CaptureResultExtras(int requestId, int subsequenceId, int afTriggerId,
++                               int precaptureTriggerId, long frameNumber,
++                               int partialResultCount, int errorStreamId,
++                               String errorPhysicalCameraId, long lastCompletedRegularFrameNumber,
++                               long lastCompletedReprocessFrameNumber,
++                               long lastCompletedZslFrameNumber) {
++        this(requestId, subsequenceId, afTriggerId, precaptureTriggerId, frameNumber,
++                partialResultCount, errorStreamId, errorPhysicalCameraId,
++                lastCompletedRegularFrameNumber, lastCompletedReprocessFrameNumber,
++                lastCompletedZslFrameNumber,
++                false /*hasReadOutTimestamp*/, 0 /*readoutTimestamp*/);
++    }
++
+     @Override
+     public int describeContents() {
+         return 0;
+-- 
+2.55.0
+

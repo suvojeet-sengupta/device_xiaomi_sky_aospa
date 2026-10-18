@@ -145,3 +145,6 @@ SOONG_CONFIG_XIAOMI_VIBRATOR_USE_EFFECT_STREAM := true
 
 # Properties
 TARGET_PRODUCT_PROP += $(DEVICE_PATH)/configs/props/product.prop
+
+# MIUI Camera
+-include device/xiaomi/miuicamera-sky/BoardConfig.mk

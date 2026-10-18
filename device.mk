@@ -90,7 +90,7 @@ PRODUCT_VENDOR_PROPERTIES += \
     ro.vendor.bluetooth.csip_qti=true
 
 # Camera
-$(call inherit-product-if-exists, vendor/xiaomi/camera/miuicamera.mk)
+$(call inherit-product-if-exists, device/xiaomi/miuicamera-sky/device.mk)
 
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.camera.flash-autofocus.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.camera.flash-autofocus.xml \

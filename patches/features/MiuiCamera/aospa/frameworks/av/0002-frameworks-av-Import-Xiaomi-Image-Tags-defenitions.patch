@@ -1,0 +1,61 @@
+From bdb0e37d68835bb156cec4faa40083b8368ef542 Mon Sep 17 00:00:00 2001
+From: johnmart19 <johnivan19999@gmail.com>
+Date: Tue, 30 May 2023 21:41:31 +0300
+Subject: [PATCH 3/3] frameworks/av: Import Xiaomi Image Tags defenitions
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Hưng Phan <phandinhhungvp2001@gmail.com>
+Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
+Signed-off-by: Dmitrii <bankersenator@gmail.com>
+---
+ .../include/img_utils/TagDefinitions.h         | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/media/img_utils/include/img_utils/TagDefinitions.h b/media/img_utils/include/img_utils/TagDefinitions.h
+index 1cc98669cb..4f481f4e94 100644
+--- a/media/img_utils/include/img_utils/TagDefinitions.h
++++ b/media/img_utils/include/img_utils/TagDefinitions.h
+@@ -181,6 +181,8 @@ enum {
+     TAG_EXPOSURETIME = 0x829Au,
+     TAG_ISOSPEEDRATINGS = 0x8827u,
+     TAG_FOCALLENGTH = 0x920Au,
++    TAG_FOCALLLENGTHIN35MMFILM = 0xA405u,
++    TAG_XIAOMI_PRODUCT = 0x9A00u,
+     TAG_FNUMBER = 0x829Du,
+     TAG_GPSINFO = 0x8825u,
+     TAG_GPSVERSIONID = 0x0u,
+@@ -280,6 +282,14 @@ const TagDefinition_t TIFF_EP_TAG_DEFINITIONS[] =  {
+         0,
+         UNDEFINED_ENDIAN
+     },
++    { // FocalLengthIn35mmFilm
++        "FocalLengthIn35mmFilm",
++        0xA405u,
++        SHORT,
++        IFD_0,
++        1,
++        UNDEFINED_ENDIAN
++    },
+     { // FNumber
+         "FNumber",
+         0x829Du,
+@@ -1396,6 +1406,14 @@ const TagDefinition_t DNG_TAG_DEFINITIONS[] = {
+         1,
+         UNDEFINED_ENDIAN
+     },
++    { // Product
++        "Product",
++        0x9A00u,
++        ASCII,
++        IFD_0,
++        0,
++        UNDEFINED_ENDIAN
++    },
+ };
+ 
+ } /*namespace img_utils*/
+-- 
+2.43.0
+

@@ -1,0 +1,123 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Pranav Vashi <neobuddy89@gmail.com>
+Date: Tue, 2 Jul 2024 00:19:27 +0530
+Subject: [PATCH] Camera: Prevent crash when unable to find tag
+
+* Some prebuilt camera apps try caching tag before setting value.
+  When tag is not found, it crashes the app.
+
+Log:
+
+time: 1719773472448
+msg: java.lang.IllegalArgumentException: Could not find tag for key 'org.codeaurora.qcamera3.saturation.use_saturation')
+stacktrace: io.reactivex.exceptions.OnErrorNotImplementedException: java.lang.IllegalArgumentException: Could not find tag for key 'org.codeaurora.qcamera3.saturation.use_saturation')
+	at io.reactivex.internal.functions.Functions$OnErrorMissingConsumer.accept(Unknown Source:2)
+	at io.reactivex.internal.functions.Functions$OnErrorMissingConsumer.accept(Unknown Source:2)
+	at io.reactivex.internal.observers.LambdaObserver.onError(Unknown Source:13)
+	at io.reactivex.internal.observers.LambdaObserver.onNext(Unknown Source:25)
+	at io.reactivex.internal.operators.observable.ObservableObserveOn$ObserveOnObserver.drainNormal(Unknown Source:47)
+	at io.reactivex.internal.operators.observable.ObservableObserveOn$ObserveOnObserver.run(Unknown Source:8)
+	at io.reactivex.internal.schedulers.ScheduledRunnable.run(Unknown Source:13)
+	at io.reactivex.internal.schedulers.ScheduledRunnable.call(Unknown Source:0)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:307)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+	at com.xiaomi.camera.rx.CameraSchedulers$2.run(Unknown Source:16)
+	at java.lang.Thread.run(Thread.java:1012)
+Caused by: java.lang.IllegalArgumentException: java.lang.IllegalArgumentException: Could not find tag for key 'org.codeaurora.qcamera3.saturation.use_saturation')
+	at com.android.camera2.vendortag.VendorTagHelper.handleException(Unknown Source:35)
+	at com.android.camera2.vendortag.VendorTagHelper.trySetValue(Unknown Source:11)
+	at com.android.camera2.vendortag.VendorTagHelper.setValue(Unknown Source:2)
+	at com.android.camera2.compat.MiCameraCompatQcomImpl.applySaturation(Unknown Source:23)
+	at com.android.camera2.compat.MiCameraCompat.applySaturation(Unknown Source:2)
+	at com.android.camera2.CaptureRequestBuilder.applySaturation(Unknown Source:10)
+	at com.android.camera2.CameraConfigManager.lambda$setSaturation$25(Unknown Source:6)
+	at com.android.camera2.CameraConfigManager.OooOo(Unknown Source:0)
+	at OooO0OO.OooO0O0.OooO0O0.o0000.accept(Unknown Source:4)
+	at java.util.Optional.ifPresent(Optional.java:178)
+	at com.android.camera2.CameraConfigManager.setSaturation(Unknown Source:39)
+	at com.android.camera.module.Camera2Module.updateSaturation(Unknown Source:49)
+	at com.android.camera.module.Camera2Module.consumePreference(Unknown Source:175)
+	at com.android.camera.features.mode.capture.CaptureModule.consumePreference(Unknown Source:0)
+	at com.android.camera.module.BaseModule$ModuleConsumer.accept(Unknown Source:125)
+	at com.android.camera.module.BaseModule$ModuleConsumer.accept(Unknown Source:2)
+	at io.reactivex.internal.observers.LambdaObserver.onNext(Unknown Source:8)
+	... 10 more
+Caused by: java.lang.IllegalArgumentException: Could not find tag for key 'org.codeaurora.qcamera3.saturation.use_saturation')
+	at android.hardware.camera2.impl.CameraMetadataNative.nativeGetTagFromKeyLocal(Native Method)
+	at android.hardware.camera2.impl.CameraMetadataNative.setBase(CameraMetadataNative.java:1919)
+	at android.hardware.camera2.impl.CameraMetadataNative.set(CameraMetadataNative.java:524)
+	at android.hardware.camera2.impl.CameraMetadataNative.set(CameraMetadataNative.java:528)
+	at android.hardware.camera2.CaptureRequest$Builder.set(CaptureRequest.java:882)
+	at com.android.camera2.vendortag.VendorTagHelper.trySetValue(Unknown Source:6)
+	... 25 more
+
+Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
+Signed-off-by: Dmitrii <bankersenator@gmail.com>
+---
+ .../camera2/impl/CameraMetadataNative.java    | 44 ++++++++++---------
+ 1 file changed, 24 insertions(+), 20 deletions(-)
+
+diff --git a/core/java/android/hardware/camera2/impl/CameraMetadataNative.java b/core/java/android/hardware/camera2/impl/CameraMetadataNative.java
+index 5da8d543..ec04f73b 100644
+--- a/core/java/android/hardware/camera2/impl/CameraMetadataNative.java
++++ b/core/java/android/hardware/camera2/impl/CameraMetadataNative.java
+@@ -1990,30 +1990,34 @@ public class CameraMetadataNative implements Parcelable {
+     // we expect the metadata's properties such as vendor id etc to
+     // stay the same and as a result the whole method should be synchronized for safety.
+     private synchronized <T> void setBase(Key<T> key, T value) {
+-        int tag, nativeType;
+-        if (key.hasTag()) {
+-            tag = key.getTag();
+-        } else {
+-            tag = nativeGetTagFromKeyLocal(mMetadataPtr, key.getName());
+-            key.cacheTag(tag);
+-        }
+-        if (value == null) {
+-            // Erase the entry
+-            writeValues(tag, /*src*/null);
+-            return;
+-        } // else update the entry to a new value
++        try {
++            int tag, nativeType;
++            if (key.hasTag()) {
++                tag = key.getTag();
++            } else {
++                tag = nativeGetTagFromKeyLocal(mMetadataPtr, key.getName());
++                key.cacheTag(tag);
++            }
++            if (value == null) {
++                // Erase the entry
++                writeValues(tag, /*src*/null);
++                return;
++            } // else update the entry to a new value
+ 
+-        nativeType = nativeGetTypeFromTagLocal(mMetadataPtr, tag);
+-        Marshaler<T> marshaler = getMarshalerForKey(key, nativeType);
+-        int size = marshaler.calculateMarshalSize(value);
++            nativeType = nativeGetTypeFromTagLocal(mMetadataPtr, tag);
++            Marshaler<T> marshaler = getMarshalerForKey(key, nativeType);
++            int size = marshaler.calculateMarshalSize(value);
+ 
+-        // TODO: Optimization. Cache the byte[] and reuse if the size is big enough.
+-        byte[] values = new byte[size];
++            // TODO: Optimization. Cache the byte[] and reuse if the size is big enough.
++            byte[] values = new byte[size];
+ 
+-        ByteBuffer buffer = ByteBuffer.wrap(values).order(ByteOrder.nativeOrder());
+-        marshaler.marshal(value, buffer);
++            ByteBuffer buffer = ByteBuffer.wrap(values).order(ByteOrder.nativeOrder());
++            marshaler.marshal(value, buffer);
+ 
+-        writeValues(tag, values);
++            writeValues(tag, values);
++        } catch (Exception e) {
++                // Do nothing
++        }
+     }
+ 
+     // Use Command pattern here to avoid lots of expensive if/equals checks in get for overridden
+-- 
+2.55.0
+

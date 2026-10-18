@@ -1,0 +1,52 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: afterallafk <shivamatiet2001@gmail.com>
+Date: Thu, 27 Jun 2024 17:48:31 +0530
+Subject: [PATCH] CameraManager: Fix NPE in getting cameraIds
+
+06-27 11:36:20.440  7870  7870 E AndroidRuntime: FATAL EXCEPTION: main
+06-27 11:36:20.440  7870  7870 E AndroidRuntime: Process: org.codeaurora.snapcam, PID: 7870
+06-27 11:36:20.440  7870  7870 E AndroidRuntime: java.lang.NullPointerException: Attempt to get length of null array
+06-27 11:36:20.440  7870  7870 E AndroidRuntime: 	at java.util.Arrays.sort(Arrays.java:1270)
+06-27 11:36:20.440  7870  7870 E AndroidRuntime: 	at android.hardware.camera2.CameraManager$CameraManagerGlobal.sortCameraIds(CameraManager.java:2173)
+06-27 11:36:20.440  7870  7870 E AndroidRuntime: 	at android.hardware.camera2.CameraManager$CameraManagerGlobal.getCameraIdList(CameraManager.java:2304)
+06-27 11:36:20.440  7870  7870 E AndroidRuntime: 	at android.hardware.camera2.CameraManager.getCameraIdList(CameraManager.java:248)
+06-27 11:36:20.440  7870  7870 E AndroidRuntime: 	at mza.e(Unknown Source:15)
+06-27 11:36:20.440  7870  7870 E AndroidRuntime: 	at mza.b(Unknown Source:0)
+06-27 11:36:20.440  7870  7870 E AndroidRuntime: 	at mzi.b(Unknown Source:2)
+06-27 11:36:20.440  7870  7870 E AndroidRuntime: 	at bjf.run(Unknown Source:9)
+06-27 11:36:20.440  7870  7870 E AndroidRuntime: 	at mbk.run(Unknown Source:2)
+06-27 11:36:20.440  7870  7870 E AndroidRuntime: 	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:487)
+06-27 11:36:20.440  7870  7870 E AndroidRuntime: 	at java.util.concurrent.FutureTask.run(FutureTask.java:264)
+06-27 11:36:20.440  7870  7870 E AndroidRuntime: 	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:307)
+06-27 11:36:20.440  7870  7870 E AndroidRuntime: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+06-27 11:36:20.440  7870  7870 E AndroidRuntime: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+06-27 11:36:20.440  7870  7870 E AndroidRuntime: 	at java.lang.Thread.run(Thread.java:1012)
+06-27 11:36:20.440  7870  7870 E AndroidRuntime: 	at maj.run(Unknown Source:5)
+
+Signed-off-by: afterallafk <shivamatiet2001@gmail.com>
+Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
+Signed-off-by: Dmitrii <bankersenator@gmail.com>
+---
+ core/java/android/hardware/camera2/CameraManager.java | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/core/java/android/hardware/camera2/CameraManager.java b/core/java/android/hardware/camera2/CameraManager.java
+index 3674398c..25368511 100644
+--- a/core/java/android/hardware/camera2/CameraManager.java
++++ b/core/java/android/hardware/camera2/CameraManager.java
+@@ -2567,6 +2567,12 @@ public final class CameraManager {
+         }
+ 
+         private static void sortCameraIds(String[] cameraIds) {
++            // Check if the cameraIds array is null to avoid NullPointerException
++            if (cameraIds == null) {
++                Log.e("CameraManagerGlobal", "Camera ID array is null");
++                return;
++            }
++
+             // The sort logic must match the logic in
+             // libcameraservice/common/CameraProviderManager.cpp::getAPI1CompatibleCameraDeviceIds
+             Arrays.sort(cameraIds, new Comparator<String>() {
+-- 
+2.55.0
+
