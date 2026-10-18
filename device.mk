@@ -55,6 +55,9 @@ PRODUCT_PACKAGES += \
     libagm_pcm_plugin \
     libagmipcservice \
     libaudiochargerlistener \
+    libaudiocorehal.default \
+    libaudiocorehal.qti \
+    libaudioeffecthal.qti \
     libbatterylistener \
     libfmpal \
     libhfp_pal \
