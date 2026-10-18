@@ -1,0 +1,72 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Sun, 18 Oct 2026 09:17:52 +0000
+Subject: [PATCH] cp2a: Make the App Lock flags read only
+
+cp2a requires every flag to be read only, so aconfig refuses to build caches for READ_WRITE values.
+---
+ .../app_lock_widget_removal_flag_values.textproto               | 2 +-
+ .../app_lock_shortcut_removal_flag_values.textproto             | 2 +-
+ .../cp2a/android.security/app_lock_apis_flag_values.textproto   | 2 +-
+ .../cp2a/android.security/app_lock_core_flag_values.textproto   | 2 +-
+ .../enable_app_lock_shortcut_flag_values.textproto              | 2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/aconfig/cp2a/android.appwidget.flags/app_lock_widget_removal_flag_values.textproto b/aconfig/cp2a/android.appwidget.flags/app_lock_widget_removal_flag_values.textproto
+index ea9853a0b..4f0bca7b4 100644
+--- a/aconfig/cp2a/android.appwidget.flags/app_lock_widget_removal_flag_values.textproto
++++ b/aconfig/cp2a/android.appwidget.flags/app_lock_widget_removal_flag_values.textproto
+@@ -2,5 +2,5 @@ flag_value {
+   package: "android.appwidget.flags"
+   name: "app_lock_widget_removal"
+   state: ENABLED
+-  permission: READ_WRITE
++  permission: READ_ONLY
+ }
+diff --git a/aconfig/cp2a/android.content.pm/app_lock_shortcut_removal_flag_values.textproto b/aconfig/cp2a/android.content.pm/app_lock_shortcut_removal_flag_values.textproto
+index 52929e3d7..c4155b54d 100644
+--- a/aconfig/cp2a/android.content.pm/app_lock_shortcut_removal_flag_values.textproto
++++ b/aconfig/cp2a/android.content.pm/app_lock_shortcut_removal_flag_values.textproto
+@@ -2,5 +2,5 @@ flag_value {
+   package: "android.content.pm"
+   name: "app_lock_shortcut_removal"
+   state: ENABLED
+-  permission: READ_WRITE
++  permission: READ_ONLY
+ }
+diff --git a/aconfig/cp2a/android.security/app_lock_apis_flag_values.textproto b/aconfig/cp2a/android.security/app_lock_apis_flag_values.textproto
+index 7b2a59f12..1c00fbc4f 100644
+--- a/aconfig/cp2a/android.security/app_lock_apis_flag_values.textproto
++++ b/aconfig/cp2a/android.security/app_lock_apis_flag_values.textproto
+@@ -2,5 +2,5 @@ flag_value {
+   package: "android.security"
+   name: "app_lock_apis"
+   state: ENABLED
+-  permission: READ_WRITE
++  permission: READ_ONLY
+ }
+diff --git a/aconfig/cp2a/android.security/app_lock_core_flag_values.textproto b/aconfig/cp2a/android.security/app_lock_core_flag_values.textproto
+index 9be2c1808..925631c25 100644
+--- a/aconfig/cp2a/android.security/app_lock_core_flag_values.textproto
++++ b/aconfig/cp2a/android.security/app_lock_core_flag_values.textproto
+@@ -2,5 +2,5 @@ flag_value {
+   package: "android.security"
+   name: "app_lock_core"
+   state: ENABLED
+-  permission: READ_WRITE
++  permission: READ_ONLY
+ }
+diff --git a/aconfig/cp2a/com.android.launcher3/enable_app_lock_shortcut_flag_values.textproto b/aconfig/cp2a/com.android.launcher3/enable_app_lock_shortcut_flag_values.textproto
+index 28fc6fa5c..59ef87826 100644
+--- a/aconfig/cp2a/com.android.launcher3/enable_app_lock_shortcut_flag_values.textproto
++++ b/aconfig/cp2a/com.android.launcher3/enable_app_lock_shortcut_flag_values.textproto
+@@ -2,5 +2,5 @@ flag_value {
+   package: "com.android.launcher3"
+   name: "enable_app_lock_shortcut"
+   state: ENABLED
+-  permission: READ_WRITE
++  permission: READ_ONLY
+ }
+-- 
+2.43.0
+
