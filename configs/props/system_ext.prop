@@ -1,2 +1,6 @@
 af.thread.throttle=0
+bluetooth.a2dp.source.lhdcv5_priority.config=-1
+media.stagefright.thumbnail.prefer_hw_codecs=true
+persist.bluetooth.leaudio.allow.multiple.context=false
 ro.audio.ihaladaptervendorextension_enabled=true
+ro.product.mod_device=sky_in_global
