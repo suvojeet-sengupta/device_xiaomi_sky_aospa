@@ -1,1 +1,2 @@
 r_dir_file(vendor_hal_perf_default, system_server)
+r_dir_file(vendor_hal_perf_default, { hal_fingerprint_default vendor_shsusrd })
