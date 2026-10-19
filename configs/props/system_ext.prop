@@ -4,3 +4,4 @@ media.stagefright.thumbnail.prefer_hw_codecs=true
 persist.bluetooth.leaudio.allow.multiple.context=false
 ro.audio.ihaladaptervendorextension_enabled=true
 ro.product.mod_device=sky_in_global
+sys.brightness.disable_gamma_conversion=true
