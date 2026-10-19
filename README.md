@@ -32,7 +32,6 @@
 | [device_xiaomi_sky_aospa](https://github.com/suvojeet-sengupta/device_xiaomi_sky_aospa) (this one) | `calcite-6.6` (6.6 kernel, default), `calcite` (5.10 kernel) | Device tree: configs, overlays, sepolicy and source patches |
 | [device_xiaomi_sky-kernel](https://github.com/suvojeet-sengupta/device_xiaomi_sky-kernel) | same as above | Prebuilt kernel and modules |
 | [vendor_xiaomi_sky_aospa](https://github.com/suvojeet-sengupta/vendor_xiaomi_sky_aospa) | same as above | Blobs from stock |
-| [device](https://github.com/suvojeet-sengupta/device_xiaomi_miuicamera-sky) and [vendor](https://github.com/suvojeet-sengupta/vendor_xiaomi_miuicamera-sky) miuicamera-sky | `calcite` | MIUI Camera |
 | this repo | [`aospa-setup`](https://github.com/suvojeet-sengupta/device_xiaomi_sky_aospa/tree/aospa-setup) | Files that go into the AOSPA tree: `aospa_sky.mk`, the beans (list of repos to sync) and `publish.sh` |
 
 `patches/` holds the changes to AOSPA source: fixes in `patches/aospa/`, extras like App Lock or advanced reboot in `patches/features/<name>/`. You never apply them by hand, they go in by themselves every time `build/envsetup.sh` is sourced. A patch that is already in is skipped.
@@ -64,7 +63,7 @@ cp ~/sky-setup/vendor_aospa_products_sky/aospa_sky.mk vendor/aospa/products/sky/
 cp ~/sky-setup/vendor_aospa_products_sky/beans-6.6.xml vendor/aospa/products/sky/beans.xml
 ```
 
-3. Pull the device, kernel, vendor and camera repos:
+3. Pull the device, kernel and vendor repos:
 ```bash
 python3 vendor/aospa/build/tools/barista.py aospa_sky
 ```
