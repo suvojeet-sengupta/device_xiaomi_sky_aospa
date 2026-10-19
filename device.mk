@@ -271,14 +271,9 @@ PRODUCT_VENDOR_PROPERTIES += \
 # Debugging
 ifneq ($(TARGET_BUILD_VARIANT),user)
 PRODUCT_SYSTEM_PROPERTIES += \
-    persist.logd.logpersistd=logcatd \
-    persist.logd.logpersistd.buffer=all \
-    persist.logd.logpersistd.rotate_kbytes=4096 \
-    persist.logd.logpersistd.size=30 \
     persist.logd.size=16M \
-    ro.adb.secure=0 \
-    ro.logd.kernel=true \
-    service.adb.root=1
+    ro.adb.secure=1 \
+    ro.logd.kernel=true
 
 PRODUCT_VENDOR_PROPERTIES += \
     persist.vendor.usb.config=mtp,adb
