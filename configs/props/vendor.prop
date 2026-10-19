@@ -48,6 +48,7 @@ persist.vendor.audio.voicecall.speaker.stereo=true
 persist.vendor.fingerprint.type=side
 persist.vendor.qcom.bluetooth.aptxadaptiver2_2_support=false
 persist.vendor.radio.ecc_cloud=true
+persist.vendor.sensors.debug.hal=e
 persist.vendor.vcb.enable=false
 ro.af.client_heap_size_kbyte=7168
 ro.audio.flinger_standbytime_ms=2000
