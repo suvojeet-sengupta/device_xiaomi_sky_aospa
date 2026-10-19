@@ -1,0 +1,163 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Mon, 19 Oct 2026 09:54:10 +0000
+Subject: [PATCH] base: Add advanced reboot to the power menu [1/2]
+
+When Settings.Secure.ADVANCED_REBOOT is on, the power menu also offers restarting to recovery and to the bootloader. They are hidden on the lock screen and before setup is done.
+
+Change-Id: I9166516be75abea27efbea65147ba676d4ed672d
+---
+ core/java/android/provider/Settings.java      |  7 +++
+ packages/SystemUI/AndroidManifest.xml         |  2 +
+ .../res/values/advanced_reboot_strings.xml    | 10 ++++
+ .../GlobalActionsDialogLite.java              | 51 +++++++++++++++++++
+ 4 files changed, 70 insertions(+)
+ create mode 100644 packages/SystemUI/res/values/advanced_reboot_strings.xml
+
+diff --git a/core/java/android/provider/Settings.java b/core/java/android/provider/Settings.java
+index 5c926f201d75..96621e18e049 100644
+--- a/core/java/android/provider/Settings.java
++++ b/core/java/android/provider/Settings.java
+@@ -8347,6 +8347,13 @@ public final class Settings {
+         @Readable
+         public static final String BUGREPORT_IN_POWER_MENU = "bugreport_in_power_menu";
+ 
++        /**
++         * Whether the power menu offers restarting to recovery and to the bootloader.
++         * @hide
++         */
++        @Readable
++        public static final String ADVANCED_REBOOT = "advanced_reboot";
++
+         /**
+          * The package name for the custom bugreport handler app. This app must be bugreport
+          * allow-listed. This is currently used only by Power Menu short press.
+diff --git a/packages/SystemUI/AndroidManifest.xml b/packages/SystemUI/AndroidManifest.xml
+index e2c2c2fa4b07..5545681f3d0d 100644
+--- a/packages/SystemUI/AndroidManifest.xml
++++ b/packages/SystemUI/AndroidManifest.xml
+@@ -90,6 +90,8 @@
+     <uses-permission android:name="android.permission.MANAGE_USB" />
+     <uses-permission android:name="android.permission.CONTROL_DISPLAY_BRIGHTNESS" />
+     <uses-permission android:name="android.permission.DEVICE_POWER" />
++    <uses-permission android:name="android.permission.REBOOT" />
++    <uses-permission android:name="android.permission.RECOVERY" />
+     <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />
+     <uses-permission android:name="android.permission.MASTER_CLEAR" />
+     <uses-permission android:name="android.permission.VIBRATE" />
+diff --git a/packages/SystemUI/res/values/advanced_reboot_strings.xml b/packages/SystemUI/res/values/advanced_reboot_strings.xml
+new file mode 100644
+index 000000000000..c5c1f5fdaff1
+--- /dev/null
++++ b/packages/SystemUI/res/values/advanced_reboot_strings.xml
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!--
++     SPDX-FileCopyrightText: 2026 Paranoid Android
++     SPDX-License-Identifier: Apache-2.0
++-->
++<resources>
++    <!-- Power menu: restart to recovery or to the bootloader -->
++    <string name="global_action_reboot_recovery">Recovery</string>
++    <string name="global_action_reboot_bootloader">Bootloader</string>
++</resources>
+diff --git a/packages/SystemUI/src/com/android/systemui/globalactions/GlobalActionsDialogLite.java b/packages/SystemUI/src/com/android/systemui/globalactions/GlobalActionsDialogLite.java
+index f434c627fef1..90ab696c64f4 100644
+--- a/packages/SystemUI/src/com/android/systemui/globalactions/GlobalActionsDialogLite.java
++++ b/packages/SystemUI/src/com/android/systemui/globalactions/GlobalActionsDialogLite.java
+@@ -190,6 +190,8 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
+     @VisibleForTesting
+     static final String GLOBAL_ACTION_KEY_FEEDBACK = "feedback";
+ 
++    private static final String REBOOT_BOOTLOADER = "bootloader";
++
+     private static final boolean DEBUG = false;
+ 
+     private static final String TAG = "GlobalActionsDialogLite";
+@@ -686,6 +688,15 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
+ 
+         ShutDownAction shutdownAction = new ShutDownAction();
+         RestartAction restartAction = new RestartAction();
++        List<Action> advancedRebootActions = new ArrayList<>();
++        if (isAdvancedRebootEnabled()) {
++            advancedRebootActions.add(new AdvancedRebootAction(
++                    com.android.systemui.res.R.string.global_action_reboot_recovery,
++                    PowerManager.REBOOT_RECOVERY));
++            advancedRebootActions.add(new AdvancedRebootAction(
++                    com.android.systemui.res.R.string.global_action_reboot_bootloader,
++                    REBOOT_BOOTLOADER));
++        }
+         List<Action> tempActions = new ArrayList<>();
+         CurrentUserProvider currentUser = new CurrentUserProvider();
+         final UserInfo currentUserInfo = currentUser.get();
+@@ -746,6 +757,9 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
+                     break;
+                 case RESTART:
+                     addIfShouldShowAction(tempActions, restartAction);
++                    for (Action action : advancedRebootActions) {
++                        addIfShouldShowAction(tempActions, action);
++                    }
+                     break;
+                 case SCREENSHOT:
+                     addIfShouldShowAction(tempActions, new ScreenshotAction());
+@@ -786,6 +800,11 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
+             tempActions.remove(restartAction);
+             mPowerItems.add(shutdownAction);
+             mPowerItems.add(restartAction);
++            for (Action action : advancedRebootActions) {
++                if (tempActions.remove(action)) {
++                    mPowerItems.add(action);
++                }
++            }
+ 
+             // add the PowerOptionsAction after Emergency, if present
+             tempActions.add(powerOptionsIndex, new PowerOptionsAction());
+@@ -889,6 +908,11 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
+         return mHasTelephonyCalling;
+     }
+ 
++    private boolean isAdvancedRebootEnabled() {
++        return mSecureSettings.getIntForUser(Settings.Secure.ADVANCED_REBOOT, 0,
++                mUserTracker.getUserId()) != 0;
++    }
++
+     private boolean shouldDisplayBugReport(@Nullable UserInfo user) {
+         return user != null && user.isAdmin()
+                 && mSecureSettings.getIntForUser(Settings.Secure.BUGREPORT_IN_POWER_MENU, 0,
+@@ -1122,6 +1146,33 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
+         }
+     }
+ 
++    private final class AdvancedRebootAction extends SinglePressAction {
++        private final String mReason;
++
++        AdvancedRebootAction(int messageResId, String reason) {
++            super(com.android.systemui.res.R.drawable.ic_global_actions_restart, messageResId);
++            mReason = reason;
++        }
++
++        @Override
++        public boolean showDuringKeyguard() {
++            return false;
++        }
++
++        @Override
++        public boolean showBeforeProvisioning() {
++            return false;
++        }
++
++        @Override
++        public void onPress() {
++            if (ActivityManager.isUserAMonkey()) {
++                return;
++            }
++            mBackgroundExecutor.execute(() -> mPowerManager.reboot(mReason));
++        }
++    }
++
+     @VisibleForTesting
+     class ScreenshotAction extends SinglePressAction {
+         ScreenshotAction() {
+-- 
+2.43.0
+

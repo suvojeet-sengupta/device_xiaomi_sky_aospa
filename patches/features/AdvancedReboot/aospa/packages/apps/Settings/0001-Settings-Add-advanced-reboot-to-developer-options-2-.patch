@@ -1,0 +1,121 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Mon, 19 Oct 2026 09:54:41 +0000
+Subject: [PATCH] Settings: Add advanced reboot to developer options [2/2]
+
+A switch in Developer options for Settings.Secure.ADVANCED_REBOOT, which adds restarting to recovery and to the bootloader to the power menu.
+
+Change-Id: I1573cc6d5d98162ffa1c79f1f87484c84c0ed917
+---
+ res/values/advanced_reboot_strings.xml        | 10 ++++
+ res/xml/development_settings.xml              |  5 ++
+ .../AdvancedRebootPreferenceController.java   | 51 +++++++++++++++++++
+ .../DevelopmentSettingsDashboardFragment.java |  1 +
+ 4 files changed, 67 insertions(+)
+ create mode 100644 res/values/advanced_reboot_strings.xml
+ create mode 100644 src/com/android/settings/development/AdvancedRebootPreferenceController.java
+
+diff --git a/res/values/advanced_reboot_strings.xml b/res/values/advanced_reboot_strings.xml
+new file mode 100644
+index 00000000000..c7bc1183b49
+--- /dev/null
++++ b/res/values/advanced_reboot_strings.xml
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!--
++     SPDX-FileCopyrightText: 2026 Paranoid Android
++     SPDX-License-Identifier: Apache-2.0
++-->
++<resources>
++    <!-- Developer options: restart to recovery or to the bootloader from the power menu -->
++    <string name="advanced_reboot_title">Advanced restart</string>
++    <string name="advanced_reboot_summary">Show options in the power menu to restart to recovery or to the bootloader</string>
++</resources>
+diff --git a/res/xml/development_settings.xml b/res/xml/development_settings.xml
+index 0af950cafbf..5c941fa4e00 100644
+--- a/res/xml/development_settings.xml
++++ b/res/xml/development_settings.xml
+@@ -190,6 +190,11 @@
+             android:title="@string/bugreport_in_power"
+             android:summary="@string/bugreport_in_power_summary" />
+ 
++        <SwitchPreferenceCompat
++            android:key="advanced_reboot"
++            android:title="@string/advanced_reboot_title"
++            android:summary="@string/advanced_reboot_summary" />
++
+         <SwitchPreferenceCompat
+             android:key="enable_verbose_vendor_logging"
+             android:title="@string/enable_verbose_vendor_logging"
+diff --git a/src/com/android/settings/development/AdvancedRebootPreferenceController.java b/src/com/android/settings/development/AdvancedRebootPreferenceController.java
+new file mode 100644
+index 00000000000..7cc3f5a99e1
+--- /dev/null
++++ b/src/com/android/settings/development/AdvancedRebootPreferenceController.java
+@@ -0,0 +1,51 @@
++/*
++ * SPDX-FileCopyrightText: 2026 Paranoid Android
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++package com.android.settings.development;
++
++import android.content.Context;
++import android.provider.Settings;
++
++import androidx.preference.Preference;
++import androidx.preference.TwoStatePreference;
++
++import com.android.settings.core.PreferenceControllerMixin;
++import com.android.settingslib.development.DeveloperOptionsPreferenceController;
++
++/** Offers restarting to recovery and to the bootloader in the power menu. */
++public class AdvancedRebootPreferenceController extends DeveloperOptionsPreferenceController
++        implements Preference.OnPreferenceChangeListener, PreferenceControllerMixin {
++
++    private static final String KEY_ADVANCED_REBOOT = "advanced_reboot";
++
++    public AdvancedRebootPreferenceController(Context context) {
++        super(context);
++    }
++
++    @Override
++    public String getPreferenceKey() {
++        return KEY_ADVANCED_REBOOT;
++    }
++
++    @Override
++    public boolean onPreferenceChange(Preference preference, Object newValue) {
++        Settings.Secure.putInt(mContext.getContentResolver(),
++                Settings.Secure.ADVANCED_REBOOT, (Boolean) newValue ? 1 : 0);
++        return true;
++    }
++
++    @Override
++    public void updateState(Preference preference) {
++        ((TwoStatePreference) mPreference).setChecked(Settings.Secure.getInt(
++                mContext.getContentResolver(), Settings.Secure.ADVANCED_REBOOT, 0) != 0);
++    }
++
++    @Override
++    protected void onDeveloperOptionsSwitchDisabled() {
++        super.onDeveloperOptionsSwitchDisabled();
++        Settings.Secure.putInt(mContext.getContentResolver(), Settings.Secure.ADVANCED_REBOOT, 0);
++        ((TwoStatePreference) mPreference).setChecked(false);
++    }
++}
+diff --git a/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java b/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java
+index 1bd6495d90a..fbd281c2463 100644
+--- a/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java
++++ b/src/com/android/settings/development/DevelopmentSettingsDashboardFragment.java
+@@ -537,6 +537,7 @@ public class DevelopmentSettingsDashboardFragment extends RestrictedDashboardFra
+         controllers.add(new LocalTerminalPreferenceController(context));
+         controllers.add(new LinuxTerminalPreferenceController(context));
+         controllers.add(new BugReportInPowerPreferenceController(context));
++        controllers.add(new AdvancedRebootPreferenceController(context));
+         controllers.add(new AutomaticSystemServerHeapDumpPreferenceController(context));
+         controllers.add(new MockLocationAppPreferenceController(context, fragment));
+         controllers.add(new MockModemPreferenceController(context));
+-- 
+2.43.0
+
