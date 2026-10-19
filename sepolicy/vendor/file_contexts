@@ -60,3 +60,31 @@
 
 # Wakeup nodes
 /sys/devices/platform/soc/soc:qcom,msm-audio-apr/soc:qcom,msm-audio-apr:qcom,q6core-audio/soc:qcom,msm-audio-apr:qcom,q6core-audio:sound/Listen\s[0-9]+\sAudio\sService/wakeup/wakeup[0-9]+(/.*)? u:object_r:sysfs_wakeup:s0
+
+# MIUI Camera algo libraries
+/vendor/lib64/com\.xiaomi\.plugin\.capbokeh\.so    u:object_r:same_process_hal_file:s0
+/vendor/lib64/com\.xiaomi\.plugin\.hdr\.so    u:object_r:same_process_hal_file:s0
+/vendor/lib64/com\.xiaomi\.plugin\.memcpy\.so    u:object_r:same_process_hal_file:s0
+/vendor/lib64/com\.xiaomi\.plugin\.mibokeh\.so    u:object_r:same_process_hal_file:s0
+/vendor/lib64/com\.xiaomi\.plugin\.skinbeautifier\.so    u:object_r:same_process_hal_file:s0
+/vendor/lib64/com\.xiaomi\.plugin\.superlowlight\.so    u:object_r:same_process_hal_file:s0
+/vendor/lib64/com\.xiaomi\.plugin\.swflip\.so    u:object_r:same_process_hal_file:s0
+/vendor/lib64/libarcsoft_beautyshot\.so    u:object_r:same_process_hal_file:s0
+/vendor/lib64/libarcsoft_dualcam_refocus_image\.so    u:object_r:same_process_hal_file:s0
+/vendor/lib64/libarcsoft_high_dynamic_range\.so    u:object_r:same_process_hal_file:s0
+/vendor/lib64/libarcsoft_low_light_hdr\.so    u:object_r:same_process_hal_file:s0
+/vendor/lib64/libarcsoft_portrait_lighting_c\.so    u:object_r:same_process_hal_file:s0
+/vendor/lib64/libarcsoft_portrait_lighting\.so    u:object_r:same_process_hal_file:s0
+/vendor/lib64/libarcsoft_supernight\.so    u:object_r:same_process_hal_file:s0
+/vendor/lib64/libcom\.xiaomi\.metadatautils\.so    u:object_r:same_process_hal_file:s0
+/vendor/lib64/libcom\.xiaomi\.pluginutils\.so    u:object_r:same_process_hal_file:s0
+/vendor/lib64/libc\+\+_shared\.so    u:object_r:same_process_hal_file:s0
+/vendor/lib64/libmialgo_aio_seg\.so    u:object_r:same_process_hal_file:s0
+/vendor/lib64/libmialgo_ai_vision\.so    u:object_r:same_process_hal_file:s0
+/vendor/lib64/libmialgoengine2\.so    u:object_r:same_process_hal_file:s0
+/vendor/lib64/libmialgoengine\.so    u:object_r:same_process_hal_file:s0
+/vendor/lib64/libmialgo_utils\.so    u:object_r:same_process_hal_file:s0
+/vendor/lib64/libmiphone_capture_bokeh\.so    u:object_r:same_process_hal_file:s0
+/vendor/lib64/libMNN\.so    u:object_r:same_process_hal_file:s0
+/vendor/lib64/libmpbase\.so    u:object_r:same_process_hal_file:s0
+/vendor/lib64/librelight_only\.so    u:object_r:same_process_hal_file:s0
