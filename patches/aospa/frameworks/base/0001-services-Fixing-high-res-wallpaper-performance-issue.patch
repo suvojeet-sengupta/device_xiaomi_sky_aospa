@@ -1,0 +1,122 @@
+From a8f982ee086f2cc6e4e418bef8b1e9f4dd420e62 Mon Sep 17 00:00:00 2001
+From: rmp22 <195054967+rmp22@users.noreply.github.com>
+Date: Wed, 6 May 2026 10:23:08 +0800
+Subject: [PATCH] services: Fixing high-res wallpaper performance issue
+
+limiting generated static wallpaper crops to the max zoomed display size instead of keeping oversized source crops as the runtime wallpaper surface fixes qs and transition jank with high-res wallpapers where imagewallpaper creates large buffers that surfaceflinger has to compose every frame during wallpaper zoom and blur animations
+
+formula
+device dimensions x max wallpaper zoom + 0.1f
+
+result
+original wallpaper - 1840x4096 7.54mp
+generated crop - 1193x2654 3.17mp
+imagewallpaper requested surface - 1193x2654
+sample size - 1.5430424
+
+Change-Id: I2d90fdc97710db04b8c3a40c3122ecfb966f4e7b
+Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
+---
+ .../server/wallpaper/WallpaperCropper.java    | 40 ++++++++++++++++---
+ .../wallpaper/WallpaperManagerService.java    |  2 +-
+ 2 files changed, 36 insertions(+), 6 deletions(-)
+
+diff --git a/services/core/java/com/android/server/wallpaper/WallpaperCropper.java b/services/core/java/com/android/server/wallpaper/WallpaperCropper.java
+index 77b814b2bcddf..7e94614058ef4 100644
+--- a/services/core/java/com/android/server/wallpaper/WallpaperCropper.java
++++ b/services/core/java/com/android/server/wallpaper/WallpaperCropper.java
+@@ -31,6 +31,7 @@
+ import android.annotation.NonNull;
+ import android.app.WallpaperManager;
+ import android.content.Context;
++import android.content.res.Resources;
+ import android.graphics.Bitmap;
+ import android.graphics.BitmapFactory;
+ import android.graphics.ImageDecoder;
+@@ -44,6 +45,7 @@
+ import android.view.DisplayInfo;
+ import android.view.View;
+ 
++import com.android.internal.R;
+ import com.android.internal.annotations.VisibleForTesting;
+ import com.android.server.utils.TimingsTraceAndSlog;
+ 
+@@ -95,9 +97,12 @@ public class WallpaperCropper {
+ 
+     private final WallpaperDefaultDisplayInfo mDefaultDisplayInfo;
+ 
+-    WallpaperCropper(WallpaperDisplayHelper wallpaperDisplayHelper) {
++    private final float mMaxWallpaperScale;
++
++    WallpaperCropper(WallpaperDisplayHelper wallpaperDisplayHelper, Resources resources) {
+         mWallpaperDisplayHelper = wallpaperDisplayHelper;
+         mDefaultDisplayInfo = mWallpaperDisplayHelper.getDefaultDisplayInfo();
++        mMaxWallpaperScale = Math.max(1f, resources.getFloat(R.dimen.config_wallpaperMaxScale));
+     }
+ 
+     /**
+@@ -667,15 +672,17 @@ private void generateCropInternal(WallpaperData wallpaper) {
+                         (float) crop.height() / displayForThisOrientation.y));
+                 sampleSize = Math.min(sampleSize, sampleSizeForThisOrientation);
+             }
+-            // If the total crop has more width or height than either the max texture size
+-            // or twice the largest display dimension, downsample the image
++            // If the total crop has more width or height than either the max texture size,
++            // twice the largest display dimension, or the largest useful runtime zoomed
++            // display size, downsample the image.
+             int maxCropSize = Math.min(
+                     2 * mWallpaperDisplayHelper.getDefaultDisplayLargestDimension(),
+                     GLHelper.getMaxTextureSize());
+             float minimumSampleSize = Math.max(1f, Math.max(
+                     (float) cropHint.height() / maxCropSize,
+-                    (float) cropHint.width()) / maxCropSize);
+-            sampleSize = Math.max(sampleSize, minimumSampleSize);
++                    (float) cropHint.width() / maxCropSize));
++            float runtimeSampleSize = getMaxZoomCropSampleSize(cropHint);
++            sampleSize = Math.max(sampleSize, Math.max(minimumSampleSize, runtimeSampleSize));
+             needScale = sampleSize > 1f;
+ 
+             if (DEBUG_CROP) {
+@@ -810,6 +817,29 @@ private void generateCropInternal(WallpaperData wallpaper) {
+         }
+     }
+ 
++    private float getMaxZoomCropSampleSize(Rect cropHint) {
++        int maxDisplayWidth = 0;
++        int maxDisplayHeight = 0;
++        SparseArray<Point> displaySizes = mWallpaperDisplayHelper.getDefaultDisplaySizes();
++        for (int i = 0; i < displaySizes.size(); i++) {
++            Point size = displaySizes.valueAt(i);
++            maxDisplayWidth = Math.max(maxDisplayWidth, size.x);
++            maxDisplayHeight = Math.max(maxDisplayHeight, size.y);
++        }
++
++        if (maxDisplayWidth <= 0 || maxDisplayHeight <= 0) {
++            return 1f;
++        }
++
++        final int cropWidth = cropHint.width();
++        final int cropHeight = cropHint.height();
++        final float maxRuntimeWidth = maxDisplayWidth * mMaxWallpaperScale;
++        final float maxRuntimeHeight = maxDisplayHeight * mMaxWallpaperScale;
++
++        return Math.max(1f,
++                Math.max(cropWidth / maxRuntimeWidth, cropHeight / maxRuntimeHeight));
++    }
++
+     private static Rect getCropForExternalDisplay(
+             Point displaySize,
+             WallpaperDefaultDisplayInfo defaultDisplayInfo,
+diff --git a/services/core/java/com/android/server/wallpaper/WallpaperManagerService.java b/services/core/java/com/android/server/wallpaper/WallpaperManagerService.java
+index 27e26df37f17f..f1a4290fb4136 100644
+--- a/services/core/java/com/android/server/wallpaper/WallpaperManagerService.java
++++ b/services/core/java/com/android/server/wallpaper/WallpaperManagerService.java
+@@ -1522,7 +1522,7 @@ public WallpaperManagerService(Context context) {
+         WindowManager windowManager = mContext.getSystemService(WindowManager.class);
+         mWallpaperDisplayHelper = new WallpaperDisplayHelper(
+                 displayManager, windowManager, mWindowManagerInternal, mContext.getResources());
+-        mWallpaperCropper = new WallpaperCropper(mWallpaperDisplayHelper);
++        mWallpaperCropper = new WallpaperCropper(mWallpaperDisplayHelper, mContext.getResources());
+         mActivityManager = mContext.getSystemService(ActivityManager.class);
+ 
+         if (mContext.getResources().getBoolean(
