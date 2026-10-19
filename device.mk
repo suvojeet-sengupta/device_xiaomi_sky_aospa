@@ -488,6 +488,7 @@ TARGET_COMMON_QTI_COMPONENTS := \
     bt \
     init \
     overlay \
+    perf \
     telephony \
     wfd \
     wlan \

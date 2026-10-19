@@ -14,6 +14,7 @@ from extract_utils.main import ExtractUtils, ExtractUtilsModule
 namespace_imports = [
     'device/xiaomi/sky',
     'hardware/xiaomi',
+    'vendor/qcom/common/vendor/perf',
     'vendor/qcom/common/vendor/wlan',
 ]
 
@@ -44,6 +45,7 @@ lib_fixups: lib_fixups_user_type = {
         'vendor.qti.hardware.dpmaidlservice-V1-ndk',
         'vendor.qti.hardware.embmsslaidl-V2-ndk',
         'vendor.qti.hardware.mwqemadapteraidlservice-V1-ndk',
+        'vendor.qti.hardware.perf2-V1-ndk',
         'vendor.qti.hardware.wifidisplaysession_aidl-V1-ndk',
         'vendor.qti.ims.callcapabilityaidlservice-V1-ndk',
         'vendor.qti.ims.configaidlservice-V1-ndk',
@@ -56,6 +58,7 @@ lib_fixups: lib_fixups_user_type = {
         'vendor.qti.latencyaidlservice-V1-ndk',
         'vendor.qti.qccsyshal_aidl-V1-ndk',
         'vendor.qti.qccvndhal_aidl-V1-ndk',
+        'vendor.qti.qspmhal-V1-ndk',
     ): lib_fixup_vendor_suffix,
 }
 
@@ -63,20 +66,11 @@ blob_fixups: blob_fixups_user_type = {
     ('system_ext/etc/seccomp_policy/tcmd.policy', 'vendor/etc/seccomp_policy/qsap_qapeservice.policy', 'vendor/etc/seccomp_policy/syshealthmon.policy'): blob_fixup()
         .add_line_if_missing('lseek: 1'),
     (
-        'vendor/bin/poweropt-service',
         'vendor/lib64/hw/libaudioeffecthal.qti.so',
-        'vendor/lib64/libaodoptfeature.so',
         'vendor/lib64/libaudiocloudctrl.so',
         'vendor/lib64/libcamerapoweroptfeature.so',
         'vendor/lib64/libdpps.so',
-        'vendor/lib64/libgamepoweroptfeature.so',
-        'vendor/lib64/liblearningmodule.so',
-        'vendor/lib64/liboffscreenpoweroptfeature.so',
-        'vendor/lib64/libpowercore.so',
-        'vendor/lib64/libpsmoptfeature.so',
         'vendor/lib64/libsnapdragoncolor-manager.so',
-        'vendor/lib64/libstandbyfeature.so',
-        'vendor/lib64/libvideooptfeature.so',
     ): blob_fixup()
         .replace_needed('libtinyxml2.so', 'libtinyxml2-v34.so'),
     'system_ext/priv-app/ims/ims.apk': blob_fixup()
@@ -96,9 +90,6 @@ blob_fixups: blob_fixups_user_type = {
     'vendor/etc/seccomp_policy/gnss@2.0-qsap-location.policy': blob_fixup()
         .add_line_if_missing('sched_get_priority_min: 1')
         .add_line_if_missing('sched_get_priority_max: 1'),
-    ('vendor/lib64/libapengine.so', 'vendor/lib64/libqti-perfd.so'): blob_fixup()
-        .replace_needed('vendor.qti.hardware.display.config-V5-ndk.so', 'vendor.qti.hardware.display.config-V12-ndk.so')
-        .replace_needed('libtinyxml2.so', 'libtinyxml2-v34.so'),
     'vendor/lib64/android.hardware.bluetooth.audio-impl_prebuilt.so': blob_fixup()
         .replace_needed('libbluetooth_audio_session_aidl.so', 'libbluetooth_audio_session_aidl_prebuilt.so'),
     'vendor/lib64/libaudioserviceexampleimpl.so': blob_fixup()
