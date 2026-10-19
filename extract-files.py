@@ -118,6 +118,8 @@ blob_fixups: blob_fixups_user_type = {
         'vendor/lib64/hw/fingerprint.goodix.default.so',
     ): blob_fixup()
         .fix_soname(),
+    'vendor/lib64/hw/camera.qcom.so': blob_fixup()
+        .replace_needed('libsnsapi.so', 'libsnsapi_camx.so'),
     'vendor/etc/sensors/hals.conf': blob_fixup()
         .regex_replace(r'sensors\.ssc\.so', 'sensors.ssc_sky.so'),
     'vendor/lib64/sensors.touch.so': blob_fixup()

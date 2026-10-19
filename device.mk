@@ -180,7 +180,6 @@ PRODUCT_PACKAGES += \
     libcamera_metadata.vendor
 
 PRODUCT_PACKAGES += \
-    android.hardware.graphics.allocator-V1-ndk.vendor \
     framework_compatibility_matrix.camx_hidl.xml \
     libprotobuf-cpp-full-3.9.1-vendorcompat \
     libprotobuf-cpp-lite-3.9.1-vendorcompat \
