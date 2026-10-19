@@ -6,4 +6,7 @@
 <resources>
     <!-- Default for Settings.Global.DEVICE_NAME $1=MODEL-->
     <string name="def_device_name_simple" translatable="false">Redmi 12 5G</string>
+
+    <!-- Default for Settings.System.MIN_REFRESH_RATE: force 90 Hz, adaptive off -->
+    <integer name="def_min_refresh_rate">90</integer>
 </resources>
