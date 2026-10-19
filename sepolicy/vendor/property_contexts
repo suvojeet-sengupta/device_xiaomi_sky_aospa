@@ -24,3 +24,8 @@ persist.vendor.sys.provision.status                   u:object_r:vendor_mlipay_p
 
 # Thermal
 vendor.sys.thermal.                                   u:object_r:vendor_thermal_prop:s0
+
+# Radio
+odm.ril.radio.status.                                 u:object_r:vendor_radio_prop:s0
+persist.vendor.oem.cta_code                           u:object_r:vendor_radio_prop:s0
+ro.vendor.oem.ctacode                                 u:object_r:vendor_radio_prop:s0
