@@ -538,12 +538,6 @@ vendor/etc/seccomp_policy/qsap_qapeservice.policy
 vendor/lib64/libcamerapoweroptfeature.so
 vendor/lib64/libperfdb.so
 vendor/lib64/libqti-appclassifier.so
-vendor/lib64/libqti-jankrescue.so
-vendor/lib64/libqti-lllite.so
-vendor/lib64/libqti-perfextn-intf.so
-vendor/lib64/libqti-s3tf.so
-vendor/lib64/libqti-scenariod.so
-vendor/lib64/libqti-sslite.so
 
 # Peripheral manager
 vendor/bin/pm-proxy
