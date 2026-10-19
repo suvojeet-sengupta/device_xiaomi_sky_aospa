@@ -1,0 +1,105 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Mon, 19 Oct 2026 09:48:34 +0000
+Subject: [PATCH] Settings: Add a switch for heads-up notifications
+
+A switch in Notifications for Settings.Global.HEADS_UP_NOTIFICATIONS_ENABLED, which SystemUI already honours.
+
+Change-Id: I018098306b37451e8c8b515beacc4f75283a4b7f
+---
+ res/values/heads_up_strings.xml               | 10 ++++
+ res/xml/configure_notification_settings.xml   |  7 +++
+ ...adsUpNotificationPreferenceController.java | 46 +++++++++++++++++++
+ 3 files changed, 63 insertions(+)
+ create mode 100644 res/values/heads_up_strings.xml
+ create mode 100644 src/com/android/settings/notification/HeadsUpNotificationPreferenceController.java
+
+diff --git a/res/values/heads_up_strings.xml b/res/values/heads_up_strings.xml
+new file mode 100644
+index 00000000000..f913749395f
+--- /dev/null
++++ b/res/values/heads_up_strings.xml
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!--
++     SPDX-FileCopyrightText: 2026 Paranoid Android
++     SPDX-License-Identifier: Apache-2.0
++-->
++<resources>
++    <!-- Notifications > General: show new notifications as a pop-up -->
++    <string name="heads_up_notifications_title">Heads-up notifications</string>
++    <string name="heads_up_notifications_summary">Show new notifications as a pop-up at the top of the screen</string>
++</resources>
+diff --git a/res/xml/configure_notification_settings.xml b/res/xml/configure_notification_settings.xml
+index ed112eedfa6..dd4a6593f37 100644
+--- a/res/xml/configure_notification_settings.xml
++++ b/res/xml/configure_notification_settings.xml
+@@ -150,6 +150,13 @@
+             android:title="@string/notification_polite_title"
+             settings:controller="com.android.settings.notification.PoliteNotificationsPreferenceController" />
+ 
++        <SwitchPreferenceCompat
++            android:key="heads_up_notifications"
++            android:order="19"
++            android:title="@string/heads_up_notifications_title"
++            android:summary="@string/heads_up_notifications_summary"
++            settings:controller="com.android.settings.notification.HeadsUpNotificationPreferenceController" />
++
+         <SwitchPreferenceCompat
+             android:key="lock_screen_notif_minimalism"
+             android:order="20"
+diff --git a/src/com/android/settings/notification/HeadsUpNotificationPreferenceController.java b/src/com/android/settings/notification/HeadsUpNotificationPreferenceController.java
+new file mode 100644
+index 00000000000..8871a843b40
+--- /dev/null
++++ b/src/com/android/settings/notification/HeadsUpNotificationPreferenceController.java
+@@ -0,0 +1,46 @@
++/*
++ * SPDX-FileCopyrightText: 2026 Paranoid Android
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++package com.android.settings.notification;
++
++import static android.provider.Settings.Global.HEADS_UP_NOTIFICATIONS_ENABLED;
++import static android.provider.Settings.Global.HEADS_UP_OFF;
++import static android.provider.Settings.Global.HEADS_UP_ON;
++
++import android.content.Context;
++import android.provider.Settings;
++
++import com.android.settings.R;
++import com.android.settings.core.TogglePreferenceController;
++
++/** Shows new notifications as a pop-up, in Settings.Global.HEADS_UP_NOTIFICATIONS_ENABLED. */
++public class HeadsUpNotificationPreferenceController extends TogglePreferenceController {
++
++    public HeadsUpNotificationPreferenceController(Context context, String key) {
++        super(context, key);
++    }
++
++    @Override
++    public int getAvailabilityStatus() {
++        return AVAILABLE;
++    }
++
++    @Override
++    public boolean isChecked() {
++        return Settings.Global.getInt(mContext.getContentResolver(),
++                HEADS_UP_NOTIFICATIONS_ENABLED, HEADS_UP_ON) != HEADS_UP_OFF;
++    }
++
++    @Override
++    public boolean setChecked(boolean isChecked) {
++        return Settings.Global.putInt(mContext.getContentResolver(),
++                HEADS_UP_NOTIFICATIONS_ENABLED, isChecked ? HEADS_UP_ON : HEADS_UP_OFF);
++    }
++
++    @Override
++    public int getSliceHighlightMenuRes() {
++        return R.string.menu_key_notifications;
++    }
++}
+-- 
+2.43.0
+
