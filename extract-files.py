@@ -124,7 +124,7 @@ blob_fixups: blob_fixups_user_type = {
         .replace_needed('libsnsapi.so', 'libsnsapi_camx.so')
         .replace_needed('libssc.so', 'libssc_sky.so'),
     'vendor/lib64/libcamximageformatutils.so': blob_fixup()
-        .replace_needed('vendor.qti.hardware.display.config-V2-ndk_platform.so', 'vendor.qti.hardware.display.config-V5-ndk.so'),
+        .replace_needed('vendor.qti.hardware.display.config-V2-ndk.so', 'vendor.qti.hardware.display.config-V5-ndk.so'),
     'vendor/lib64/libgralloccore_hidl.so': blob_fixup()
         .fix_soname()
         .replace_needed('libgrallocutils.so', 'libgrallocutils_hidl.so'),
