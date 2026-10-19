@@ -25,9 +25,11 @@
 
 ### What is what
 
+`calcite-6.6` (6.6 kernel) is the main branch and the default on GitHub. `calcite` (5.10 kernel) is kept but not worked on much.
+
 | Repo | Branch | What it has |
 |---|---|---|
-| [device_xiaomi_sky_aospa](https://github.com/suvojeet-sengupta/device_xiaomi_sky_aospa) (this one) | `calcite` (5.10 kernel), `calcite-6.6` (6.6 kernel) | Device tree: configs, overlays, sepolicy and source patches |
+| [device_xiaomi_sky_aospa](https://github.com/suvojeet-sengupta/device_xiaomi_sky_aospa) (this one) | `calcite-6.6` (6.6 kernel, default), `calcite` (5.10 kernel) | Device tree: configs, overlays, sepolicy and source patches |
 | [device_xiaomi_sky-kernel](https://github.com/suvojeet-sengupta/device_xiaomi_sky-kernel) | same as above | Prebuilt kernel and modules |
 | [vendor_xiaomi_sky_aospa](https://github.com/suvojeet-sengupta/vendor_xiaomi_sky_aospa) | same as above | Blobs from stock |
 | [device](https://github.com/suvojeet-sengupta/device_xiaomi_miuicamera-sky) and [vendor](https://github.com/suvojeet-sengupta/vendor_xiaomi_miuicamera-sky) miuicamera-sky | `calcite` | MIUI Camera |
@@ -48,7 +50,7 @@ repo init -u https://github.com/AOSPA/manifest -b calcite
 repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
 ```
 
-2. Add sky to it. Use `beans-6.6.xml` for the 6.6 kernel or `beans-5.10.xml` for 5.10:
+2. Add sky to it. `beans-6.6.xml` gets the 6.6 trees; use `beans-5.10.xml` instead for 5.10:
 ```bash
 git clone -b aospa-setup https://github.com/suvojeet-sengupta/device_xiaomi_sky_aospa.git ~/sky-setup
 ```
