@@ -23,25 +23,23 @@
 
 ## Building AOSPA calcite
 
-This tree builds [AOSPA](https://github.com/AOSPA) calcite for sky.
+### What is what
 
-### Branches
+| Repo | Branch | What it has |
+|---|---|---|
+| [device_xiaomi_sky_aospa](https://github.com/suvojeet-sengupta/device_xiaomi_sky_aospa) (this one) | `calcite` (5.10 kernel), `calcite-6.6` (6.6 kernel) | Device tree: configs, overlays, sepolicy and source patches |
+| [device_xiaomi_sky-kernel](https://github.com/suvojeet-sengupta/device_xiaomi_sky-kernel) | same as above | Prebuilt kernel and modules |
+| [vendor_xiaomi_sky_aospa](https://github.com/suvojeet-sengupta/vendor_xiaomi_sky_aospa) | same as above | Blobs from stock |
+| [device](https://github.com/suvojeet-sengupta/device_xiaomi_miuicamera-sky) and [vendor](https://github.com/suvojeet-sengupta/vendor_xiaomi_miuicamera-sky) miuicamera-sky | `calcite` | MIUI Camera |
+| this repo | [`aospa-setup`](https://github.com/suvojeet-sengupta/device_xiaomi_sky_aospa/tree/aospa-setup) | Files that go into the AOSPA tree: `aospa_sky.mk`, the beans (list of repos to sync) and `publish.sh` |
 
-| Kernel | Device tree | Kernel prebuilt | Vendor blobs |
-|---|---|---|---|
-| 5.10 | `calcite` | [device_xiaomi_sky-kernel](https://github.com/suvojeet-sengupta/device_xiaomi_sky-kernel) `calcite` | [vendor_xiaomi_sky_aospa](https://github.com/suvojeet-sengupta/vendor_xiaomi_sky_aospa) `calcite` |
-| 6.6 | `calcite-6.6` | [device_xiaomi_sky-kernel](https://github.com/suvojeet-sengupta/device_xiaomi_sky-kernel) `calcite-6.6` | [vendor_xiaomi_sky_aospa](https://github.com/suvojeet-sengupta/vendor_xiaomi_sky_aospa) `calcite-6.6` |
+`patches/` holds the changes to AOSPA source: fixes in `patches/aospa/`, extras like App Lock or advanced reboot in `patches/features/<name>/`. You never apply them by hand, they go in by themselves every time `build/envsetup.sh` is sourced. A patch that is already in is skipped.
 
-Both also pull in MIUI Camera ([device](https://github.com/suvojeet-sengupta/device_xiaomi_miuicamera-sky) and [vendor](https://github.com/suvojeet-sengupta/vendor_xiaomi_miuicamera-sky), `calcite`).
+### Set up the server (once)
 
-The files that live outside these repos (AOSPA product makefile, beans, publish script) are on the [`aospa-setup`](https://github.com/suvojeet-sengupta/device_xiaomi_sky_aospa/tree/aospa-setup) branch of this repo.
-
-### Setting up a build tree
-
-#### 1. Sync AOSPA
-
+1. Get AOSPA:
 ```bash
-mkdir aospa && cd aospa
+mkdir ~/aospa && cd ~/aospa
 ```
 ```bash
 repo init -u https://github.com/AOSPA/manifest -b calcite
@@ -50,8 +48,7 @@ repo init -u https://github.com/AOSPA/manifest -b calcite
 repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
 ```
 
-#### 2. Add the sky product to AOSPA
-
+2. Add sky to it. Use `beans-6.6.xml` for the 6.6 kernel or `beans-5.10.xml` for 5.10:
 ```bash
 git clone -b aospa-setup https://github.com/suvojeet-sengupta/device_xiaomi_sky_aospa.git ~/sky-setup
 ```
@@ -61,81 +58,34 @@ mkdir -p vendor/aospa/products/sky
 ```bash
 cp ~/sky-setup/vendor_aospa_products_sky/aospa_sky.mk vendor/aospa/products/sky/
 ```
-
-Pick the kernel. For 5.10:
-```bash
-cp ~/sky-setup/vendor_aospa_products_sky/beans-5.10.xml vendor/aospa/products/sky/beans.xml
-```
-Or for 6.6:
 ```bash
 cp ~/sky-setup/vendor_aospa_products_sky/beans-6.6.xml vendor/aospa/products/sky/beans.xml
 ```
 
-#### 3. Sync the device repos
-
-`beans.xml` lists the device, kernel, vendor, MIUI Camera and HAL repos. Barista turns it into a local manifest and syncs them:
+3. Pull the device, kernel, vendor and camera repos:
 ```bash
 python3 vendor/aospa/build/tools/barista.py aospa_sky
 ```
 
-#### 4. Build
+### Build
 
 ```bash
-./rom-build.sh sky -z
+cd ~/aospa && ./rom-build.sh sky -z
 ```
 
-- `-z` also makes a fastboot flashable `-image.zip` next to the recovery zip.
-- `-t eng` builds an eng build instead of userdebug.
-- `-i` (installclean) is needed for the first build after switching between 5.10 and 6.6, or between userdebug and eng.
+- The zips land in `out/target/product/sky/`: one for recovery and, with `-z`, an `-image.zip` for fastboot.
+- `-t eng` makes an eng build (default is userdebug).
+- `-i` cleans the old images first. Use it once after switching kernel or build type.
 
-The zips end up in `out/target/product/sky/`.
+Got a link-sharing web folder on the server? `cp ~/sky-setup/publish.sh . && ./publish.sh` copies the newest zips there and prints the links.
 
-#### 5. Share the build (optional)
+### Update later
 
-```bash
-cp ~/sky-setup/publish.sh .
-```
-```bash
-./publish.sh
-```
-It copies the newest fastboot and recovery zips to the web folder and prints their download links. `./publish.sh --help` lists the options.
+Run barista again to pull the latest device repos, then build. To switch kernel, copy the other `beans-*.xml` over `vendor/aospa/products/sky/beans.xml`, run barista, and build once with `-i`.
 
-### What happens on `source build/envsetup.sh`
+### Flash
 
-`vendorsetup.sh` runs automatically and:
-- applies the source patches in `patches/aospa/` and then each feature in `patches/features/<name>/aospa/`, skipping ones that are already applied, and prints any patch that fails;
-- merges the split MIUI Camera apk in `vendor/xiaomi/miuicamera-sky`.
+- **Recovery zip:** in AOSPA recovery, Apply update, then sideload it over ADB or pick it from the SD card.
+- **Image zip:** flash it from fastboot.
 
-Patches carried by this tree:
-- healthd: find chargers on every update (charging status)
-- Settings: show the maintainer in About phone
-- QTI common and power: perf and power HAL tuning
-- App Lock
-- Hide app list, ignore secure windows, pure black theme, three finger screenshot
-- PropImitationHooks without Play Integrity spoofing
-- MIUI Camera framework support
-
-### Switching between 5.10 and 6.6
-
-1. Copy the other `beans-*.xml` over `vendor/aospa/products/sky/beans.xml` (step 2).
-2. Run barista again (step 3).
-3. Build with `-i` once (step 4).
-
-### Flashing
-
-The kernel, its modules and the devicetree overlay come from three partitions that must always match: `boot`, `vendor_boot` and `dtbo`. Never flash only one of them from another build.
-
-- **Recovery zip:** sideload it from AOSPA recovery (Apply update from ADB).
-- **Fastboot zip:** flash it from the bootloader. Flash `boot`, `vendor_boot`, `dtbo` and both `vbmeta` images to both slots, then the super partitions from fastbootd.
-
-The recovery image carries no kernel. It uses the kernel from `boot` and the modules from `vendor_boot`, so it runs on whichever kernel the phone has.
-
-### Debugging a boot that fails
-
-The 6.6 kernel keeps the previous boot's kernel log and logcat in ramoops. After a failed boot, reboot into a recovery with a shell and read:
-```bash
-cat /sys/fs/pstore/console-ramoops-0
-```
-```bash
-cat /sys/fs/pstore/pmsg-ramoops-0
-```
+`boot`, `vendor_boot` and `dtbo` hold the kernel, its modules and the device tree, so they always have to come from the same build. Never flash just one of them from another build.
