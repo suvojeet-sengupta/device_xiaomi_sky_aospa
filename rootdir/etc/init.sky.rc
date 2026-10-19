@@ -176,8 +176,6 @@ service vendor.qti.hardware.display.composer /vendor/bin/hw/vendor.qti.hardware.
 
 on property:sys.boot_completed=1
     write /sys/class/thermal/thermal_message/sconfig 500
-    chmod 0444 /sys/class/thermal/thermal_message/sconfig
-    restart mi_thermald
 
 on init
     mount none /vendor/etc/acdbdata/ravelin_qrd_cust /vendor/etc/acdbdata/ravelin_qrd bind
