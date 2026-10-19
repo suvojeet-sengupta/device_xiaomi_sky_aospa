@@ -240,6 +240,3 @@ SOONG_CONFIG_qtidisplay_target_uses_ycrcb_venus_camera_preview := false
 TARGET_PRODUCT_PROP += $(DEVICE_PATH)/configs/props/product.prop
 TARGET_SYSTEM_EXT_PROP += $(DEVICE_PATH)/configs/props/system_ext.prop
 TARGET_VENDOR_PROP += $(DEVICE_PATH)/configs/props/vendor.prop
-
-# MIUI Camera
--include device/xiaomi/miuicamera-sky/BoardConfig.mk

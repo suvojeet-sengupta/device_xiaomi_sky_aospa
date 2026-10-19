@@ -174,8 +174,6 @@ PRODUCT_VENDOR_PROPERTIES += \
     ro.vendor.bluetooth.csip_qti=true
 
 # Camera
-$(call inherit-product-if-exists, device/xiaomi/miuicamera-sky/device.mk)
-
 PRODUCT_PACKAGES += \
     framework_compatibility_matrix.camx_hidl.xml \
     libprotobuf-cpp-full-3.9.1-vendorcompat \
