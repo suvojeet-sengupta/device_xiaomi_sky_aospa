@@ -201,6 +201,15 @@ PRODUCT_PACKAGES += \
 # Dalvik
 $(call inherit-product, frameworks/native/build/phone-xhdpi-4096-dalvik-heap.mk)
 
+PRODUCT_VENDOR_PROPERTIES += \
+    dalvik.vm.heapgrowthlimit=256m \
+    dalvik.vm.heapmaxfree=8m \
+    dalvik.vm.heaptargetutilization=0.75
+
+# LMKD
+PRODUCT_VENDOR_PROPERTIES += \
+    ro.lmk.kill_heaviest_task=true
+
 # Display / Graphics
 PRODUCT_PACKAGES += \
     android.hardware.graphics.mapper@4.0-impl-qti-display \

@@ -35,6 +35,9 @@ on early-init && property:ro.boot.boardid=S88029AA1
     setprop ro.vendor.nfc.dispatch_optim 1
 
 on boot
+    # MGLRU
+    write /sys/kernel/mm/lru_gen/enabled y
+
     # Modem
     chmod 0777 /dev/smd8
     chown radio radio /dev/smd8
