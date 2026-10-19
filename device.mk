@@ -177,9 +177,6 @@ PRODUCT_VENDOR_PROPERTIES += \
 $(call inherit-product-if-exists, device/xiaomi/miuicamera-sky/device.mk)
 
 PRODUCT_PACKAGES += \
-    libcamera_metadata.vendor
-
-PRODUCT_PACKAGES += \
     framework_compatibility_matrix.camx_hidl.xml \
     libprotobuf-cpp-full-3.9.1-vendorcompat \
     libprotobuf-cpp-lite-3.9.1-vendorcompat \

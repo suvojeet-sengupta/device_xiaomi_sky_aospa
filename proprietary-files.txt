@@ -57,32 +57,6 @@ vendor/lib64/libaudio_aidl_conversion_common_ndk.so:vendor/lib64/libaudio_aidl_c
 vendor/lib64/libaudioserviceexampleimpl.so;DISABLE_DEPS
 vendor/lib64/libbluetooth_audio_session_aidl.so:vendor/lib64/libbluetooth_audio_session_aidl_prebuilt.so;FIX_SONAME
 
-# Camera - MIUI algo (sky V816.0.11.0.UMWMIXM, loaded into MiuiCamera)
-vendor/lib64/com.xiaomi.plugin.capbokeh.so
-vendor/lib64/com.xiaomi.plugin.hdr.so
-vendor/lib64/com.xiaomi.plugin.memcpy.so
-vendor/lib64/com.xiaomi.plugin.mibokeh.so
-vendor/lib64/com.xiaomi.plugin.skinbeautifier.so
-vendor/lib64/com.xiaomi.plugin.superlowlight.so
-vendor/lib64/com.xiaomi.plugin.swflip.so
-vendor/lib64/libarcsoft_beautyshot.so
-vendor/lib64/libarcsoft_dualcam_refocus_image.so
-vendor/lib64/libarcsoft_high_dynamic_range.so
-vendor/lib64/libarcsoft_low_light_hdr.so
-vendor/lib64/libarcsoft_portrait_lighting_c.so
-vendor/lib64/libarcsoft_portrait_lighting.so
-vendor/lib64/libarcsoft_supernight.so
-vendor/lib64/libcom.xiaomi.metadatautils.so
-vendor/lib64/libcom.xiaomi.pluginutils.so
-vendor/lib64/libmialgo_aio_seg.so
-vendor/lib64/libmialgo_ai_vision.so
-vendor/lib64/libmialgoengine2.so
-vendor/lib64/libmialgoengine.so
-vendor/lib64/libmialgo_utils.so
-vendor/lib64/libmiphone_capture_bokeh.so
-vendor/lib64/libMNN.so
-vendor/lib64/librelight_only.so
-
 # Audio configs
 vendor/etc/bluetooth_qti_hearing_aid_audio_policy_configuration.xml
 vendor/etc/stub_audio_policy_configuration.xml
