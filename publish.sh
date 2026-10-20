@@ -4,10 +4,11 @@
 #   all       fastboot (-image.zip) and recovery (.zip) builds, the default
 #   --keep N  keep only the N newest published zips of each kind, older ones are deleted
 #   --dry-run show what would be published without copying anything
+# Zips are published as <name>-<user|userdebug>-<build time, IST>-<random>.zip
 set -euo pipefail
 
 WEB=/var/www/html/suvojeetsengupta
-URL=https://ferrari.serverhive.in/suvojeetsengupta
+URL=https://unicorn.serverhive.in/suvojeetsengupta
 SRC=$(cd "$(dirname "$0")" && pwd)
 
 what=all keep=0 dry=0
@@ -16,18 +17,30 @@ while [ $# -gt 0 ]; do
         all|fastboot|recovery) what=$1 ;;
         --keep) keep=${2:?--keep needs a number}; shift ;;
         --dry-run|-n) dry=1 ;;
-        -h|--help) sed -n 2,6p "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        -h|--help) sed -n 2,7p "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
         *) echo "Unknown argument: $1" >&2; exit 1 ;;
     esac
     shift
 done
 
 latest() {
-    ls -t "$SRC"/aospa-*.zip 2>/dev/null | if [ "$1" = fastboot ]; then grep -- '-image\.zip$'; else grep -v -- '-image\.zip$'; fi | head -1 || true
+    ls -t "$SRC"/aospa-*.zip 2>/dev/null | grep -v -- '-target_files\.zip$' |
+        if [ "$1" = fastboot ]; then grep -- '-image\.zip$'; else grep -v -- '-image\.zip$'; fi | head -1 || true
+}
+
+# Build type and build time come from the OTA metadata of the recovery zip,
+# which the fastboot zip of the same build does not carry.
+build_info() {
+    local meta ts variant
+    meta=$(unzip -p "$1" META-INF/com/android/metadata 2>/dev/null || true)
+    ts=$(sed -n 's/^post-timestamp=//p' <<<"$meta")
+    variant=$(sed -n 's/^post-build=.*:\([a-z]*\)\/[a-z-]*$/\1/p' <<<"$meta")
+    [ -n "$ts" ] || ts=$(date -r "$1" +%s)
+    echo "${variant:-unknown} $(TZ=Asia/Kolkata date -d "@$ts" +%Y%m%d-%H%M)"
 }
 
 publish() {
-    local kind=$1 f
+    local kind=$1 f rec
     f=$(latest "$kind")
     if [ -z "$f" ]; then
         echo "[$kind] no zip found in $SRC" >&2
@@ -38,22 +51,35 @@ publish() {
         echo "[$kind] warning: the last build failed after this zip was made, publishing the older zip" >&2
     fi
 
-    local base stamp suffix name
+    local base suffix variant stamp prefix name
     base=$(basename "$f" .zip)
     suffix=""
     [ "$kind" = fastboot ] && suffix="-image" && base=${base%-image}
-    stamp=$(date -r "$f" +%Y%m%d-%H%M)
-    name="${base%-*}-$stamp$suffix.zip"
+    rec="$SRC/$base.zip"
+    [ -f "$rec" ] || rec=$f
+    read -r variant stamp < <(build_info "$rec")
+    prefix="${base%-*}-$variant-$stamp"
 
-    echo "[$kind] $(basename "$f") ($(du -h "$f" | cut -f1), built $(date -r "$f" '+%d %b %H:%M'))"
-    if [ "$dry" = 1 ]; then
-        echo "[$kind] would publish as $URL/$name"
-        return 0
-    fi
+    echo "[$kind] $(basename "$f") ($(du -h "$f" | cut -f1), $variant, built $stamp IST)"
 
-    if [ -f "$WEB/$name" ] && [ "$(stat -c %s "$WEB/$name")" = "$(stat -c %s "$f")" ]; then
+    name=""
+    for old in "$WEB/$prefix"-*"$suffix".zip; do
+        [ -f "$old" ] || continue
+        [ "$kind" = recovery ] && [[ $old == *-image.zip ]] && continue
+        if [ "$(stat -c %s "$old")" = "$(stat -c %s "$f")" ]; then
+            name=$(basename "$old")
+            break
+        fi
+    done
+
+    if [ -n "$name" ]; then
         echo "[$kind] already published"
     else
+        name="$prefix-$(head -c 4 /dev/urandom | od -An -tx1 | tr -d ' \n')$suffix.zip"
+        if [ "$dry" = 1 ]; then
+            echo "[$kind] would publish as $URL/$name"
+            return 0
+        fi
         echo "[$kind] checking the zip..."
         unzip -tq "$f" >/dev/null || { echo "[$kind] $f is corrupt, not publishing" >&2; return 1; }
         echo "[$kind] copying..."
@@ -68,7 +94,9 @@ publish() {
     echo "[$kind] $URL/$name"
 
     if [ "$keep" -gt 0 ]; then
-        ls -t "$WEB"/"${base%-*}"-????????-????"$suffix".zip 2>/dev/null | tail -n +"$((keep + 1))" | while read -r old; do
+        ls -t "$WEB"/"${base%-*}"-*-????????-????-????????"$suffix".zip 2>/dev/null |
+            { [ "$kind" = recovery ] && grep -v -- '-image\.zip$' || cat; } |
+            tail -n +"$((keep + 1))" | while read -r old; do
             rm -f "$old" && echo "[$kind] removed old $(basename "$old")"
         done
     fi
