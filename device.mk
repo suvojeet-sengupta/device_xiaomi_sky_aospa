@@ -272,7 +272,7 @@ PRODUCT_VENDOR_PROPERTIES += \
 ifneq ($(TARGET_BUILD_VARIANT),user)
 PRODUCT_SYSTEM_PROPERTIES += \
     persist.logd.size=16M \
-    ro.adb.secure=1 \
+    ro.adb.secure=0 \
     ro.logd.kernel=true
 
 PRODUCT_VENDOR_PROPERTIES += \
