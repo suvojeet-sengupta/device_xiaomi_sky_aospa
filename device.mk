@@ -247,7 +247,7 @@ PRODUCT_COPY_FILES += \
 PRODUCT_ODM_PROPERTIES += \
     persist.sys.sf.color_mode=0 \
     vendor.display.disable_3d_adaptive_tm=1 \
-    vendor.display.enable_rounded_corner=0
+    vendor.display.enable_rounded_corner=1
 
 PRODUCT_VENDOR_PROPERTIES += \
     debug.sf.defer_refresh_rate_when_off=1 \
