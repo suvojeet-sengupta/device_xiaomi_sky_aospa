@@ -12,6 +12,7 @@ bluetooth.hardware.power.tx_cur_ma=36
 bluetooth.profile.asha.central.enabled=false
 debug.c2.use_dmabufheaps=1
 debug.egl.hw=0
+debug.hwui.renderer=skiavk
 debug.sf.auto_latch_unsignaled=1
 debug.sf.disable_client_composition_cache=1
 debug.sf.early.app.duration=13666666
