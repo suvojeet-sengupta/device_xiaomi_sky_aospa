@@ -4,7 +4,7 @@
 #   all       fastboot (-image.zip) and recovery (.zip) builds, the default
 #   --keep N  keep only the N newest published zips of each kind, older ones are deleted
 #   --dry-run show what would be published without copying anything
-# Zips are published as <name>-<user|userdebug>-<build time, IST>-<random>.zip
+# Zips are published as <name>-<user|userdebug>-<recovery|fastboot>-<build time>IST-<random>.zip
 set -euo pipefail
 
 WEB=/var/www/html/suvojeetsengupta
@@ -36,7 +36,7 @@ build_info() {
     ts=$(sed -n 's/^post-timestamp=//p' <<<"$meta")
     variant=$(sed -n 's/^post-build=.*:\([a-z]*\)\/[a-z-]*$/\1/p' <<<"$meta")
     [ -n "$ts" ] || ts=$(date -r "$1" +%s)
-    echo "${variant:-unknown} $(TZ=Asia/Kolkata date -d "@$ts" +%Y%m%d-%H%M)"
+    echo "${variant:-unknown} $(TZ=Asia/Kolkata date -d "@$ts" +%Y%m%d-%H%M) $(TZ=Asia/Kolkata date -d "@$ts" '+%d %b %Y, %I:%M %p IST')"
 }
 
 publish() {
@@ -51,21 +51,20 @@ publish() {
         echo "[$kind] warning: the last build failed after this zip was made, publishing the older zip" >&2
     fi
 
-    local base suffix variant stamp prefix name
+    local base variant stamp when prefix name
     base=$(basename "$f" .zip)
-    suffix=""
-    [ "$kind" = fastboot ] && suffix="-image" && base=${base%-image}
+    base=${base%-image}
     rec="$SRC/$base.zip"
     [ -f "$rec" ] || rec=$f
-    read -r variant stamp < <(build_info "$rec")
-    prefix="${base%-*}-$variant-$stamp"
+    read -r variant stamp when < <(build_info "$rec")
+    prefix="${base%-*}-$variant-$kind-${stamp}IST"
 
-    echo "[$kind] $(basename "$f") ($(du -h "$f" | cut -f1), $variant, built $stamp IST)"
+    echo "[$kind] $(basename "$f") ($(du -h "$f" | cut -f1), $variant)"
+    echo "[$kind] built $when"
 
     name=""
-    for old in "$WEB/$prefix"-*"$suffix".zip; do
+    for old in "$WEB/$prefix"-*.zip; do
         [ -f "$old" ] || continue
-        [ "$kind" = recovery ] && [[ $old == *-image.zip ]] && continue
         if [ "$(stat -c %s "$old")" = "$(stat -c %s "$f")" ]; then
             name=$(basename "$old")
             break
@@ -75,7 +74,7 @@ publish() {
     if [ -n "$name" ]; then
         echo "[$kind] already published"
     else
-        name="$prefix-$(head -c 4 /dev/urandom | od -An -tx1 | tr -d ' \n')$suffix.zip"
+        name="$prefix-$(head -c 4 /dev/urandom | od -An -tx1 | tr -d ' \n').zip"
         if [ "$dry" = 1 ]; then
             echo "[$kind] would publish as $URL/$name"
             return 0
@@ -94,8 +93,7 @@ publish() {
     echo "[$kind] $URL/$name"
 
     if [ "$keep" -gt 0 ]; then
-        ls -t "$WEB"/"${base%-*}"-*-????????-????-????????"$suffix".zip 2>/dev/null |
-            { [ "$kind" = recovery ] && grep -v -- '-image\.zip$' || cat; } |
+        ls -t "$WEB"/"${base%-*}"-*-"$kind"-????????-????IST-????????.zip 2>/dev/null |
             tail -n +"$((keep + 1))" | while read -r old; do
             rm -f "$old" && echo "[$kind] removed old $(basename "$old")"
         done
