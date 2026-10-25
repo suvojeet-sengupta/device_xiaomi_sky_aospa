@@ -1,0 +1,43 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Tue, 6 Oct 2026 16:14:19 +0000
+Subject: [PATCH] FaceService: Only add the virtual HAL when it is installed
+
+getDeclaredInstances() always appended the virtual instance, so on a
+build without the face virtual HAL APEX system_server kept waiting for
+IVirtualHal/virtual and servicemanager tried to start it every second.
+
+Change-Id: Ibfc38de541c53869e308b2d2c6020f3c45d0b797
+---
+ .../server/biometrics/sensors/face/FaceService.java      | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/services/core/java/com/android/server/biometrics/sensors/face/FaceService.java b/services/core/java/com/android/server/biometrics/sensors/face/FaceService.java
+index a34791f7..2a8cf2fc 100644
+--- a/services/core/java/com/android/server/biometrics/sensors/face/FaceService.java
++++ b/services/core/java/com/android/server/biometrics/sensors/face/FaceService.java
+@@ -813,14 +813,19 @@ public class FaceService extends SystemService {
+      * Get all face hal instances declared in manifest
+      * @return instance names
+      */
++    private static final String FACE_VIRTUAL_HAL_APEX =
++            "/apex/com.android.hardware.biometrics.face.virtual";
++
+     public static String[] getDeclaredInstances() {
+         String[] a = ServiceManager.getDeclaredInstances(IFace.DESCRIPTOR);
+         Slog.i(TAG, "Before:getDeclaredInstances: IFace instance found, a.length="
+                 + a.length);
+-        if (!ArrayUtils.contains(a, "virtual")) {
++        if (!ArrayUtils.contains(a, "virtual")
++                && new java.io.File(FACE_VIRTUAL_HAL_APEX).exists()) {
+             // Now, the virtual hal is registered with IVirtualHal interface and it is also
+             //   moved from vendor to system_ext partition without a device manifest. So
+-            //   if the old vhal is not declared, add here.
++            //   if the old vhal is not declared, add here, but only when it is installed,
++            //   or system_server waits for it forever.
+             a = ArrayUtils.appendElement(String.class, a, "virtual");
+         }
+         Slog.i(TAG, "After:getDeclaredInstances: a.length=" + a.length);
+-- 
+2.55.0
+
