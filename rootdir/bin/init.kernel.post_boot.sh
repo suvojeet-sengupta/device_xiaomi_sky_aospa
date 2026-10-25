@@ -49,9 +49,14 @@ function configure_zram_parameters() {
 		let zRamSizeMB=4096
 	fi
 
-	# And enable lz4 zram compression for Go targets.
-	low_ram=`getprop ro.config.low_ram`
+	# lz4 for pages going out, it's the cheapest to compress and fault
+	# back in. zstd as the secondary algorithm: init.sky.zram.sh repacks the
+	# pages that stay idle with it, which fits about a fifth more into the
+	# same RAM than lz4's 2.8x. Both have to be set before the disksize.
 	echo lz4 > /sys/block/zram0/comp_algorithm
+	if [ -f /sys/block/zram0/recomp_algorithm ]; then
+		echo "algo=zstd priority=1" > /sys/block/zram0/recomp_algorithm
+	fi
 
 	if [ -f /sys/block/zram0/disksize ]; then
 		if [ -f /sys/block/zram0/use_dedup ]; then
@@ -124,13 +129,10 @@ function configure_memory_parameters() {
 		echo "mq-deadline" > "$device/queue/scheduler"
 	done
 
-	# O19 ExtM
-	ProductName=`getprop ro.product.name`
-	if [ "$ProductName" == "mist" ]; then
-		echo 150 > /proc/sys/vm/swappiness
-	else
-		echo 100 > /proc/sys/vm/swappiness
-	fi
+	# Swap is zram, so faulting anon pages back from it is far cheaper than
+	# reading file pages again from storage. Lean towards swapping anon:
+	# lmkd kept killing under memory pressure with 1-2 GB of zram free.
+	echo 150 > /proc/sys/vm/swappiness
 
 	# Disable periodic kcompactd wakeups. We do not use THP, so having many
 	# huge pages is not as necessary.

@@ -36,6 +36,7 @@
 
 # Init
 /vendor/bin/init\.sky\.perf\.sh						  u:object_r:vendor_qti_init_shell_exec:s0
+/vendor/bin/init\.sky\.zram\.sh						  u:object_r:vendor_qti_init_shell_exec:s0
 
 # Mlipay
 /vendor/bin/mlipayd@1.1                                                   u:object_r:hal_mlipay_default_exec:s0
