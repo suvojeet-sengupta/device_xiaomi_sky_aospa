@@ -9,7 +9,8 @@ on init
 # Migrate tasks again in case kernel threads are created during boot
 on property:sys.boot_completed=1
     copy_per_line /dev/cpuctl/tasks /dev/cpuctl/system/tasks
-    start vendor.sky-zram
+    # Recompress idle zram pages with zstd, see init.sky.zram.sh
+    exec_background u:r:vendor_qti_init_shell:s0 -- /vendor/bin/init.sky.zram.sh
 
 on property:vendor.post_boot.parsed=1
     exec u:r:vendor_qti_init_shell:s0 -- /vendor/bin/init.sky.perf.sh
@@ -39,12 +40,3 @@ on property:vendor.post_boot.parsed=1
     write /dev/cpuctl/nnapi-hal/cpu.shares 20480
     write /dev/cpuctl/rt/cpu.shares 20480
     write /dev/cpuctl/top-app/cpu.shares 20480
-
-# Recompress idle zram pages with zstd, see init.sky.zram.sh
-service vendor.sky-zram /vendor/bin/init.sky.zram.sh
-    class late_start
-    user root
-    group root system
-    seclabel u:r:vendor_qti_init_shell:s0
-    disabled
-    oneshot
