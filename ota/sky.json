@@ -3,15 +3,15 @@
     {
       "android_spl": "2026-08-05",
       "build_type": "unofficial",
-      "changelog_device": "New\n- Face unlock (Settings > Security > Face unlock), powered by ParanoidSense\n- System updates: OTAs through Settings > System > System update, with the maintainer and changelog shown\n- Network speed meter next to the clock (toggle in Network & internet)\n- Protect lock screen controls (Security > More security settings): sensitive quick settings tiles and power off / restart need an unlock while the phone is locked\n- Advanced reboot now lives in System > Gestures > Power menu\n- Google Photos is now a regular app: install it from the Play Store, and it can be uninstalled\n\nFixes and improvements\n- Fingerprint: enrollment works again, the sensor can save new fingerprints\n- Memory: swappiness is actually applied now (150), and idle zram memory is recompressed with zstd, so more apps stay open on 4 GB phones\n- Storage readahead tuning is applied on the UFS disks\n- Proximity: the sensors HAL can reach the touchscreen nodes it needs\n- Bluetooth keeps its address in the system properties again\n- Battery stats can read the touchscreen and i2c wakeup sources on the 6.6 kernel\n- Face unlock: system_server no longer waits for a face HAL that isn't there\n\nOTA updates\n- This is the first build with compressed virtual A/B: flash it from recovery once, later builds update through System update",
-      "datetime": "1792911586",
-      "filename": "aospa-calcite-unofficial-sky-20261025.zip",
+      "changelog_device": "New\n- Use VPN for connected devices (Settings > Network & internet > Hotspot & tethering): while the phone is on a VPN, devices on its hotspot go through the same VPN. With \"Block connections without VPN\" on, they never bypass it\n\nChanges\n- The sensors HAL no longer gets access to the touchscreen nodes again, as before 20261025\n\nOTA updates\n- Phones on 20261025 or newer update through Settings > System > System update. Older builds flash this one from recovery once",
+      "datetime": "1792953897",
+      "filename": "aospa-calcite-unofficial-sky-user-20261026-0014IST.zip",
       "maintainer": "Suvojeet Sengupta",
-      "recovery_sha256": "db74ab5114dcb0c8d3d85b39541e84798e9e4bdc8e6727849ba5e6e4fafde492",
-      "size": "1859561618",
-      "url": "https://downloads.sourceforge.net/project/builds-by-suvojeet/AOSPA/sky/20261025/aospa-calcite-unofficial-sky-user-20261025-1229IST.zip",
+      "recovery_sha256": "64da5673e6d0a4b2e330fdc19c627c2fdd4b850c70bf2ebe87ceaa75e3229218",
+      "size": "1859564499",
+      "url": "https://github.com/suvojeet-sengupta/ota_sky/releases/download/sky-20261026/aospa-calcite-unofficial-sky-user-20261026-0014IST.zip",
       "version": "Calcite",
-      "version_code": "20261025"
+      "version_code": "20261026"
     }
   ]
 }
