@@ -1,0 +1,19 @@
+New
+- Face unlock (Settings > Security > Face unlock), powered by ParanoidSense
+- System updates: OTAs through Settings > System > System update, with the maintainer and changelog shown
+- Network speed meter next to the clock (toggle in Network & internet)
+- Protect lock screen controls (Security > More security settings): sensitive quick settings tiles and power off / restart need an unlock while the phone is locked
+- Advanced reboot now lives in System > Gestures > Power menu
+- Google Photos is now a regular app: install it from the Play Store, and it can be uninstalled
+
+Fixes and improvements
+- Fingerprint: enrollment works again, the sensor can save new fingerprints
+- Memory: swappiness is actually applied now (150), and idle zram memory is recompressed with zstd, so more apps stay open on 4 GB phones
+- Storage readahead tuning is applied on the UFS disks
+- Proximity: the sensors HAL can reach the touchscreen nodes it needs
+- Bluetooth keeps its address in the system properties again
+- Battery stats can read the touchscreen and i2c wakeup sources on the 6.6 kernel
+- Face unlock: system_server no longer waits for a face HAL that isn't there
+
+OTA updates
+- This is the first build with compressed virtual A/B: flash it from recovery once, later builds update through System update
