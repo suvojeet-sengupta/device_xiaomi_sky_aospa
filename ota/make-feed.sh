@@ -23,7 +23,11 @@ here=$(cd "$(dirname "$0")" && pwd)
 prop=out/target/product/sky/system/build.prop
 [ -f "$prop" ] || die "no $prop, run this from the tree you built in"
 
-getprop() { sed -n "s/^$1=//p" "$prop" | tail -n 1; }
+# The maintainer is in product.prop, so look past the system props too.
+getprop() {
+    sed -n "s/^$1=//p" "$prop" out/target/product/sky/{product,system_ext}/etc/build.prop \
+        2>/dev/null | tail -n 1
+}
 meta() { unzip -p "$zip" META-INF/com/android/metadata | sed -n "s/^$1=//p"; }
 
 device=$(getprop ro.aospa.device)
