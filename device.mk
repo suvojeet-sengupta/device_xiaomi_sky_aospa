@@ -437,6 +437,10 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/com.android.nfc_extras.xml:$(NFC_PERMISSIONS_DIR)/com.android.nfc_extras.xml \
     frameworks/native/data/etc/com.nxp.mifare.xml:$(NFC_PERMISSIONS_DIR)/com.nxp.mifare.xml
 
+# OTA updates: AOSPA only ships ParanoidHub in STABLE and BETA builds
+PRODUCT_PACKAGES += \
+    ParanoidHub
+
 # Overlays
 PRODUCT_PACKAGES += \
     AOSPASkyFrameworksOverlay \
@@ -447,6 +451,7 @@ PRODUCT_PACKAGES += \
     SkyGLWifiOverlay \
     SkyINSettingsProviderOverlay \
     SkyINWifiOverlay \
+    SkyParanoidHubOverlay \
     SkySettingsOverlay \
     SkySystemUIOverlay \
     SkyWifiOverlay \

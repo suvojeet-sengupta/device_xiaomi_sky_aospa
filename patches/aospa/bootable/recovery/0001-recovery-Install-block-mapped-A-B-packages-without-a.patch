@@ -1,0 +1,92 @@
+From 622793004e1cbe7b3c014583cf3b60575a7ac2da Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Fri, 23 Oct 2026 20:07:04 +0000
+Subject: [PATCH] recovery: Install block-mapped A/B packages without a cache
+ partition
+
+On a virtual A/B device whose kernel lacks dm-user, update_engine
+cannot make snapshots in Android, but recovery can still write the
+partitions directly. Getting a package there needs uncrypt, whose block
+map lives in /cache/recovery, which is on /data when there is no cache
+partition, and recovery cannot mount /data.
+
+Have uncrypt leave a copy of the block map in /metadata/ota, read it
+from there when /cache cannot be mounted, and serve block-mapped
+packages through fuse, as update_engine_sideload needs a file to read
+an A/B payload from.
+
+Change-Id: Ib89a3a8bfc0efff91eeaee936a47ca168606a6f2
+---
+ install/install.cpp |  4 ++--
+ recovery.cpp        | 11 +++++++++++
+ uncrypt/uncrypt.cpp | 10 ++++++++++
+ 3 files changed, 23 insertions(+), 2 deletions(-)
+
+diff --git a/install/install.cpp b/install/install.cpp
+index 6cc6a67e..e5fb486e 100644
+--- a/install/install.cpp
++++ b/install/install.cpp
+@@ -815,8 +815,8 @@ bool SetupPackageMount(const std::string& package_path, bool* should_use_fuse) {
+       return false;
+     }
+ 
+-    // uncrypt only produces block map only if the package stays on /data.
+-    *should_use_fuse = false;
++    // Serve the package through fuse, as update_engine_sideload needs a file to read an A/B
++    // payload from.
+     return true;
+   }
+ 
+diff --git a/recovery.cpp b/recovery.cpp
+index cc12c31e..ac26dc69 100644
+--- a/recovery.cpp
++++ b/recovery.cpp
+@@ -931,6 +931,17 @@ Device::BuiltinAction start_recovery(Device* device, const std::vector<std::stri
+         set_retry_bootloader_message(retry_count + 1, args);
+       }
+ 
++      // Without a cache partition /cache is on /data, which recovery can't mount, so use the
++      // copy of the block map uncrypt leaves on /metadata.
++      static const std::string kCacheBlockMap = "/cache/recovery/block.map";
++      static const std::string kMetadataBlockMap = "@/metadata/ota/uncrypt-block.map";
++      if (update_package == "@" + kCacheBlockMap && ensure_path_mounted(kCacheBlockMap) != 0 &&
++          ensure_path_mounted(kMetadataBlockMap.substr(1)) == 0 &&
++          access(kMetadataBlockMap.c_str() + 1, R_OK) == 0) {
++        LOG(INFO) << "Reading the block map from " << kMetadataBlockMap.substr(1);
++        update_package = kMetadataBlockMap.c_str();
++      }
++
+       bool should_use_fuse = false;
+       if (!SetupPackageMount(update_package, &should_use_fuse)) {
+         LOG(INFO) << "Failed to set up the package access, skipping installation";
+diff --git a/uncrypt/uncrypt.cpp b/uncrypt/uncrypt.cpp
+index c798e31d..44f6ff3b 100644
+--- a/uncrypt/uncrypt.cpp
++++ b/uncrypt/uncrypt.cpp
+@@ -136,6 +136,8 @@ static constexpr int FIBMAP_RETRY_LIMIT = 3;
+ // and CACHE_BLOCK_MAP). It will be working (and needed) only for non-A/B
+ // devices, on which /cache partitions always exist.
+ static const std::string CACHE_BLOCK_MAP = "/cache/recovery/block.map";
++// Where /cache lives on /data, recovery can't read it, so the block map is copied here too.
++static const std::string METADATA_BLOCK_MAP = "/metadata/ota/uncrypt-block.map";
+ static const std::string UNCRYPT_PATH_FILE = "/cache/recovery/uncrypt_file";
+ static const std::string UNCRYPT_STATUS = "/cache/recovery/uncrypt_status";
+ static const std::string UNCRYPT_SOCKET = "uncrypt";
+@@ -548,6 +550,14 @@ static bool uncrypt_wrapper(const char* input_path, const char* map_file, const
+         PLOG(WARNING) << "failed to write to " << UNCRYPT_STATUS;
+     }
+ 
++    if (map_file == CACHE_BLOCK_MAP) {
++        std::string block_map;
++        if (!android::base::ReadFileToString(map_file, &block_map) ||
++            !android::base::WriteStringToFile(block_map, METADATA_BLOCK_MAP)) {
++            PLOG(WARNING) << "failed to copy " << map_file << " to " << METADATA_BLOCK_MAP;
++        }
++    }
++
+     write_status_to_socket(100, socket);
+ 
+     return true;
+-- 
+2.43.0
+

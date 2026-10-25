@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: Paranoid Android
+     SPDX-License-Identifier: Apache-2.0
+-->
+<resources>
+    <!-- Unofficial builds: the feed is ota/sky.json in this device tree,
+         see ota/README.md. %1$s is ro.aospa.device. -->
+    <string name="config_updateServerUrl" translatable="false">https://raw.githubusercontent.com/suvojeet-sengupta/device_xiaomi_sky_aospa/calcite-6.6/ota/%1$s.json</string>
+</resources>

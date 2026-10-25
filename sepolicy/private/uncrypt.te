@@ -1,0 +1,5 @@
+# Allow uncrypt to leave a copy of the block map in /metadata/ota, where
+# recovery can read it when /cache is on /data.
+allow uncrypt metadata_file:dir search;
+allow uncrypt ota_metadata_file:dir rw_dir_perms;
+allow uncrypt ota_metadata_file:file create_file_perms;

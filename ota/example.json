@@ -1,0 +1,17 @@
+{
+  "updates": [
+    {
+      "android_spl": "2026-10-05",
+      "build_type": "unofficial",
+      "changelog_device": "- Network speed in the status bar\n- Maintainer on the update screen\n- October security patch",
+      "datetime": "1792760400",
+      "filename": "aospa-calcite-unofficial-sky-20261023.zip",
+      "maintainer": "Suvojeet Sengupta",
+      "recovery_sha256": "3f2a7c1e9b4d8a6f0e5c2b7d9a1f4e6c8b0d2a4f6e8c1b3d5a7f9e0c2b4d6a8f",
+      "size": "2147000000",
+      "url": "https://github.com/suvojeet-sengupta/device_xiaomi_sky_aospa/releases/download/sky-20261023/aospa-calcite-unofficial-sky-20261023.zip",
+      "version": "Calcite",
+      "version_code": "20261023"
+    }
+  ]
+}
