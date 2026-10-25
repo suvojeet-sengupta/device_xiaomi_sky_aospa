@@ -1,0 +1,47 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Oliver Scott <olivercscott@gmail.com>
+Date: Wed, 7 Jul 2021 08:54:08 -0400
+Subject: [PATCH 2/2] Disallow non-VPN tethering upstreams on always-on VPN
+ lockdown mode
+
+* This ensures that the Hotspot "Allow clients to use VPN" option
+  respects the VPN "Block connections without VPN" option,
+  to avoid any leaks.
+
+Issue: calyxos#555
+Change-Id: Ibd690c605a3d87e3c493550039a65862be16848b
+---
+ .../networkstack/tethering/UpstreamNetworkMonitor.java | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/Tethering/src/com/android/networkstack/tethering/UpstreamNetworkMonitor.java b/Tethering/src/com/android/networkstack/tethering/UpstreamNetworkMonitor.java
+index 4ce39a53c0..54b5ced0bf 100644
+--- a/Tethering/src/com/android/networkstack/tethering/UpstreamNetworkMonitor.java
++++ b/Tethering/src/com/android/networkstack/tethering/UpstreamNetworkMonitor.java
+@@ -89,6 +89,7 @@ public class UpstreamNetworkMonitor {
+     private static final boolean VDBG = false;
+ 
+     // Copied from frameworks/base/core/java/android/provider/Settings.java
++    private static final String ALWAYS_ON_VPN_LOCKDOWN = "always_on_vpn_lockdown";
+     private static final String TETHERING_ALLOW_VPN_UPSTREAMS = "tethering_allow_vpn_upstreams";
+ 
+     public static final int EVENT_ON_CAPABILITIES   = 1;
+@@ -358,8 +359,13 @@ public class UpstreamNetworkMonitor {
+      */
+     public UpstreamNetworkState getCurrentPreferredUpstream() {
+         // Use VPN upstreams if hotspot settings allow.
+-        if (mTetheringUpstreamVpn != null && isAllowedToUseVpnUpstreams()) {
+-            return mNetworkMap.get(mTetheringUpstreamVpn);
++        if (isAllowedToUseVpnUpstreams()) {
++            if (mTetheringUpstreamVpn != null) {
++                return mNetworkMap.get(mTetheringUpstreamVpn);
++            } else if (Settings.Secure.getInt(mContext.getContentResolver(),
++                    ALWAYS_ON_VPN_LOCKDOWN, 0) == 1) {
++                return null;
++            }
+         }
+         final UpstreamNetworkState dfltState = (mDefaultInternetNetwork != null)
+                 ? mNetworkMap.get(mDefaultInternetNetwork)
+-- 
+2.43.0
+

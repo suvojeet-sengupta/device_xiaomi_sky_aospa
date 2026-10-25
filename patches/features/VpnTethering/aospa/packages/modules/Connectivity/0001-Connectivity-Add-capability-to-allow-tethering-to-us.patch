@@ -1,0 +1,253 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Oliver Scott <olivercscott@gmail.com>
+Date: Mon, 8 Nov 2021 15:37:55 -0500
+Subject: [PATCH 1/2] Connectivity: Add capability to allow tethering to use
+ VPN upstreams
+
+Updated for Android 14, which does not handle CONNECTIVITY_ACTION and
+therefore does not react to VPN connections as it previously did. The
+new way to handle this is EVENT_DEFAULT_SWITCHED, but this only
+considered the system default network, not VPNs; now, in 14, when VPN
+upstreams are allowed, we follow the default network for ROOT_UID,
+mirroring this change's existing consideration of ROOT_UID.
+
+Uses AOSP Settings for easier APEX updates
+
+Squash of:
+
+Author: Sam Mortimer <sam@mortimer.me.uk>
+Date:   Thu Aug 15 19:40:55 2019 -0700
+
+    fw/b: Add capability to allow tethering to use VPN upstreams
+
+    * Toggled on/off at runtime via a new hotspot lineage setting.
+
+    * Dynamically updates the tethering upstream for existing hotspot
+      clients as VPNs are brought up / down or the hotspot setting
+      is changed.
+
+    * This implementation depends on fw/b config_tether_upstream_automatic
+      being set to true.
+
+    Change-Id: I2ac0b4acc0ea686dfdf54561cb3428808e337160
+
+Author: Sam Mortimer <sam@mortimer.me.uk>
+Date:   Fri Sep 13 16:27:37 2019 -0700
+
+    fw/b: Prevent trying to enable hw offload for tethering via VPN upstreams
+
+    * Tethering via VPN upstream requires a sw path.
+
+    * hw offload setup happened to be being disabled anyway owing to a fail
+      return code from setDataLimit().  However, it was causing offload to be
+      disabled entirely (until next hotspot off / on event).
+
+    * Gracefully skip hw offload for vpn upstreams so that it is automatically
+      used again when a vpn is disconnected.
+
+    Change-Id: I4df13f02889305560903b7b1e919eedc7af78c07
+
+* Previously if you had a VPN running in a work profile, it'd end up using that over user 0 VPN
+* Only use user 0 VPNs, as that makes most sense logically for a device-wide feature (hotspot)
+
+Issue: calyxos#912
+Co-authored-by: Tommy Webb <tommy@calyxinstitute.org>
+Change-Id: I77ed0142e653f4993486eea44e4dac21e3f67f17
+---
+ .../networkstack/tethering/Tethering.java     | 21 ++++++
+ .../tethering/UpstreamNetworkMonitor.java     | 66 +++++++++++++++++--
+ 2 files changed, 82 insertions(+), 5 deletions(-)
+
+diff --git a/Tethering/src/com/android/networkstack/tethering/Tethering.java b/Tethering/src/com/android/networkstack/tethering/Tethering.java
+index 9e83d12dea..71142438bc 100644
+--- a/Tethering/src/com/android/networkstack/tethering/Tethering.java
++++ b/Tethering/src/com/android/networkstack/tethering/Tethering.java
+@@ -26,6 +26,7 @@ import static android.hardware.usb.UsbManager.USB_FUNCTION_RNDIS;
+ import static android.net.ConnectivityManager.ACTION_RESTRICT_BACKGROUND_CHANGED;
+ import static android.net.ConnectivityManager.CONNECTIVITY_ACTION;
+ import static android.net.ConnectivityManager.EXTRA_NETWORK_INFO;
++import static android.net.NetworkCapabilities.NET_CAPABILITY_NOT_VPN;
+ import static android.net.NetworkStack.PERMISSION_MAINLINE_NETWORK_STACK;
+ import static android.net.TetheringManager.ACTION_TETHER_STATE_CHANGED;
+ import static android.net.TetheringManager.CONNECTIVITY_SCOPE_GLOBAL;
+@@ -188,6 +189,9 @@ public class Tethering {
+     private static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
+     private static final boolean VDBG = Log.isLoggable(TAG, Log.VERBOSE);
+ 
++    // Copied from frameworks/base/core/java/android/provider/Settings.java
++    private static final String TETHERING_ALLOW_VPN_UPSTREAMS = "tethering_allow_vpn_upstreams";
++
+     private static final Class[] sMessageClasses = {
+             Tethering.class, TetherMainSM.class, IpServer.class
+     };
+@@ -504,6 +508,17 @@ public class Tethering {
+         }
+ 
+         startTrackDefaultNetwork();
++
++        // Listen for allowing tethering upstream via VPN settings changes
++        final ContentObserver vpnSettingObserver = new ContentObserver(mHandler) {
++            @Override
++            public void onChange(boolean self) {
++                // Reconsider tethering upstream
++                mUpstreamNetworkMonitor.maybeUpdateDefaultNetworkCallback();
++            }
++        };
++        mContext.getContentResolver().registerContentObserver(Settings.Secure.getUriFor(
++                TETHERING_ALLOW_VPN_UPSTREAMS), false, vpnSettingObserver);
+     }
+ 
+     private class TetheringThreadExecutor implements Executor {
+@@ -2567,6 +2582,12 @@ public class Tethering {
+             }
+ 
+             public void updateUpstreamNetworkState(UpstreamNetworkState ns) {
++                // Disable hw offload on vpn upstream interfaces.
++                // setUpstreamLinkProperties() interprets null as disable.
++                if (ns != null && ns.networkCapabilities != null
++                        && !ns.networkCapabilities.hasCapability(NET_CAPABILITY_NOT_VPN)) {
++                    ns = null;
++                }
+                 mOffloadController.setUpstreamLinkProperties(
+                         (ns != null) ? ns.linkProperties : null);
+             }
+diff --git a/Tethering/src/com/android/networkstack/tethering/UpstreamNetworkMonitor.java b/Tethering/src/com/android/networkstack/tethering/UpstreamNetworkMonitor.java
+index 793ae65810..4ce39a53c0 100644
+--- a/Tethering/src/com/android/networkstack/tethering/UpstreamNetworkMonitor.java
++++ b/Tethering/src/com/android/networkstack/tethering/UpstreamNetworkMonitor.java
+@@ -38,7 +38,10 @@ import android.net.Network;
+ import android.net.NetworkCapabilities;
+ import android.net.NetworkRequest;
+ import android.os.Handler;
++import android.os.Process;
++import android.provider.Settings;
+ import android.util.Log;
++import android.util.Range;
+ import android.util.SparseIntArray;
+ 
+ import androidx.annotation.NonNull;
+@@ -85,6 +88,9 @@ public class UpstreamNetworkMonitor {
+     private static final boolean DBG = false;
+     private static final boolean VDBG = false;
+ 
++    // Copied from frameworks/base/core/java/android/provider/Settings.java
++    private static final String TETHERING_ALLOW_VPN_UPSTREAMS = "tethering_allow_vpn_upstreams";
++
+     public static final int EVENT_ON_CAPABILITIES   = 1;
+     public static final int EVENT_ON_LINKPROPERTIES = 2;
+     public static final int EVENT_ON_LOST           = 3;
+@@ -133,6 +139,8 @@ public class UpstreamNetworkMonitor {
+     // The current system default network (not really used yet).
+     private Network mDefaultInternetNetwork;
+     private boolean mPreferTestNetworks;
++    // Set if the Internet is considered reachable via the main user's VPN network
++    private Network mTetheringUpstreamVpn;
+ 
+     public UpstreamNetworkMonitor(Context ctx, Handler h, SharedLog log, EventListener listener) {
+         mContext = ctx;
+@@ -156,11 +164,7 @@ public class UpstreamNetworkMonitor {
+             Log.wtf(TAG, "default network callback is already registered");
+             return;
+         }
+-        mDefaultNetworkCallback = new UpstreamNetworkCallback(CALLBACK_DEFAULT_INTERNET);
+-        // TODO (b/382413665): By definition, a local network cannot be the system default,
+-        //  because it does not provide internet capability. Figure out whether this
+-        //  is enforced in ConnectivityService. Or what will happen for tethering if it happens.
+-        cm().registerSystemDefaultNetworkCallback(mDefaultNetworkCallback, mHandler);
++        registerAppropriateDefaultNetworkCallback();
+         if (mEntitlementMgr == null) {
+             mEntitlementMgr = entitle;
+         }
+@@ -195,9 +199,36 @@ public class UpstreamNetworkMonitor {
+         releaseCallback(mListenUpstreamCallback);
+         mListenUpstreamCallback = null;
+ 
++        mTetheringUpstreamVpn = null;
+         mNetworkMap.clear();
+     }
+ 
++    public void maybeUpdateDefaultNetworkCallback() {
++        final NetworkCallback prevNetworkCallback = mDefaultNetworkCallback;
++        if (prevNetworkCallback != null) {
++            registerAppropriateDefaultNetworkCallback();
++            cm().unregisterNetworkCallback(prevNetworkCallback);
++        }
++    }
++
++    private void registerAppropriateDefaultNetworkCallback() {
++        mDefaultNetworkCallback = new UpstreamNetworkCallback(CALLBACK_DEFAULT_INTERNET);
++        // TODO (b/382413665): By definition, a local network cannot be the system default,
++        //  because it does not provide internet capability. Figure out whether this
++        //  is enforced in ConnectivityService. Or what will happen for tethering if it happens.
++        if (isAllowedToUseVpnUpstreams() && SdkLevel.isAtLeastU()) {
++            cm().registerDefaultNetworkCallbackForUid(Process.ROOT_UID, mDefaultNetworkCallback,
++                    mHandler);
++        } else {
++            cm().registerSystemDefaultNetworkCallback(mDefaultNetworkCallback, mHandler);
++        }
++    }
++
++    private boolean isAllowedToUseVpnUpstreams() {
++        return Settings.Secure.getInt(mContext.getContentResolver(),
++                TETHERING_ALLOW_VPN_UPSTREAMS, 0) == 1;
++    }
++
+     private void reevaluateUpstreamRequirements(boolean tryCell, boolean autoUpstream,
+             boolean dunRequired) {
+         final boolean mobileRequestRequired = tryCell && (dunRequired || !autoUpstream);
+@@ -326,6 +357,10 @@ public class UpstreamNetworkMonitor {
+      * Returns null if no current upstream is available.
+      */
+     public UpstreamNetworkState getCurrentPreferredUpstream() {
++        // Use VPN upstreams if hotspot settings allow.
++        if (mTetheringUpstreamVpn != null && isAllowedToUseVpnUpstreams()) {
++            return mNetworkMap.get(mTetheringUpstreamVpn);
++        }
+         final UpstreamNetworkState dfltState = (mDefaultInternetNetwork != null)
+                 ? mNetworkMap.get(mDefaultInternetNetwork)
+                 : null;
+@@ -367,6 +402,7 @@ public class UpstreamNetworkMonitor {
+     }
+ 
+     private void handleNetCap(Network network, NetworkCapabilities newNc) {
++        if (isSystemVpnUsable(newNc)) mTetheringUpstreamVpn = network;
+         final UpstreamNetworkState prev = mNetworkMap.get(network);
+         if (prev == null || newNc.equals(prev.networkCapabilities)) {
+             // Ignore notifications about networks for which we have not yet
+@@ -432,6 +468,10 @@ public class UpstreamNetworkMonitor {
+         //     - deletes the entry from the map only when the LISTEN_ALL
+         //       callback gets notified.
+ 
++        if (network.equals(mTetheringUpstreamVpn)) {
++            mTetheringUpstreamVpn = null;
++        }
++
+         if (!mNetworkMap.containsKey(network)) {
+             // Ignore loss of networks about which we had not previously
+             // learned any information or for which we have already processed
+@@ -646,6 +686,22 @@ public class UpstreamNetworkMonitor {
+                && !isCellular(ns.networkCapabilities);
+     }
+ 
++    private static boolean isSystemVpnUsable(NetworkCapabilities nc) {
++        return (nc != null)
++                && appliesToRootUid(nc) // Only VPNs in system user apply to root UID
++                && !nc.hasCapability(NET_CAPABILITY_NOT_VPN)
++                && nc.hasCapability(NET_CAPABILITY_INTERNET);
++    }
++
++    private static boolean appliesToRootUid(NetworkCapabilities nc) {
++        final Set<Range<Integer>> uids = nc.getUids();
++        if (uids == null) return true;
++        for (final Range<Integer> range : uids) {
++            if (range.contains(Process.ROOT_UID)) return true;
++        }
++        return false;
++    }
++
+     private static UpstreamNetworkState findFirstDunNetwork(
+             Iterable<UpstreamNetworkState> netStates) {
+         for (UpstreamNetworkState ns : netStates) {
+-- 
+2.43.0
+
