@@ -271,10 +271,13 @@ PRODUCT_VENDOR_PROPERTIES += \
 
 # Debugging
 ifneq ($(TARGET_BUILD_VARIANT),user)
+# adb is on from the first boot, needs no authorisation and runs as root
 PRODUCT_SYSTEM_PROPERTIES += \
     persist.logd.size=16M \
+    persist.sys.usb.config=mtp,adb \
     ro.adb.secure=0 \
-    ro.logd.kernel=true
+    ro.logd.kernel=true \
+    service.adb.root=1
 
 PRODUCT_VENDOR_PROPERTIES += \
     persist.vendor.usb.config=mtp,adb
