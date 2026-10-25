@@ -99,6 +99,9 @@ on boot
     #USB controller configuration
     setprop vendor.usb.controller a600000.dwc3
 
+    # Fingerprint: the Goodix TA stores its templates here
+    mkdir /data/vendor_de/0/goodix 0770 system system
+
 on property:vendor.display.lcd_density=560
    setprop dalvik.vm.heapgrowthlimit 256m
 
