@@ -1,0 +1,36 @@
+From d46c59dabe57fe31b81ec6c8256ac222d4661783 Mon Sep 17 00:00:00 2001
+From: Quince <quinceroms@gmail.com>
+Date: Fri, 20 Mar 2026 06:54:15 +0100
+Subject: [PATCH 11/11] CameraProviderManager: ignore torch callbacks for
+ flashless cameras
+
+Ignore torch status callbacks for known camera devices that do not have a
+flash unit.
+
+This keeps CameraService from receiving torch updates for cameras that
+were never added to its torch status map, which avoids repeated log spam
+for flashless sensors.
+
+Change-Id: I461190cee18b0107f99e69ebfe0e51cffb11990c
+Signed-off-by: Quince <quinceroms@gmail.com>
+---
+ .../camera/libcameraservice/common/CameraProviderManager.cpp   | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/services/camera/libcameraservice/common/CameraProviderManager.cpp b/services/camera/libcameraservice/common/CameraProviderManager.cpp
+index fcd184318c..5aa9e21998 100644
+--- a/services/camera/libcameraservice/common/CameraProviderManager.cpp
++++ b/services/camera/libcameraservice/common/CameraProviderManager.cpp
+@@ -3082,6 +3082,9 @@ void CameraProviderManager::ProviderInfo::torchModeStatusChangeInternal(
+         std::lock_guard<std::mutex> lock(mLock);
+         for (auto& deviceInfo : mDevices) {
+             if (deviceInfo->mName == cameraDeviceName) {
++                if (!deviceInfo->hasFlashUnit()) {
++                    return;
++                }
+                 ALOGI("Camera device %s torch status is now %s", cameraDeviceName.c_str(),
+                         FrameworkTorchStatusToString(newStatus));
+                 id = deviceInfo->mId;
+-- 
+2.43.0
+

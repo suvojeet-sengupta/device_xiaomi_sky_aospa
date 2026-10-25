@@ -1,0 +1,138 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Fri, 23 Oct 2026 11:18:17 +0000
+Subject: [PATCH] ParanoidHub: Show the maintainer
+
+Unofficial builds name their maintainer in ro.aospa.maintainer, and an
+update feed can name the maintainer of each build. Show it on the update
+screen under the Android version and security update, like the rest of
+the build details.
+
+Change-Id: I9cb8cb57d024e154d9cd96558aa2b5ae6e466bc2
+---
+ res/layout/updates_activity.xml                    | 5 +++++
+ res/values/strings.xml                             | 3 +++
+ src/co/aospa/hub/data/model/Update.kt              | 1 +
+ src/co/aospa/hub/data/source/UpdateServerClient.kt | 2 ++
+ src/co/aospa/hub/ui/UpdatesActivity.kt             | 6 ++++++
+ src/co/aospa/hub/util/BuildInfo.kt                 | 4 ++++
+ 6 files changed, 21 insertions(+)
+
+diff --git a/res/layout/updates_activity.xml b/res/layout/updates_activity.xml
+index aa5eb5a..0e27bfa 100644
+--- a/res/layout/updates_activity.xml
++++ b/res/layout/updates_activity.xml
+@@ -79,6 +79,11 @@
+                 style="@style/UpdateDetail"
+                 android:visibility="gone" />
+ 
++            <TextView
++                android:id="@+id/maintainer"
++                style="@style/UpdateDetail"
++                android:visibility="gone" />
++
+             <TextView
+                 android:id="@+id/last_check"
+                 style="@style/UpdateDetail.Spaced"
+diff --git a/res/values/strings.xml b/res/values/strings.xml
+index 8a607d2..997be59 100644
+--- a/res/values/strings.xml
++++ b/res/values/strings.xml
+@@ -49,6 +49,9 @@
+     <string name="update_download_progress"><xliff:g id="downloaded" example="1.2 GB">%1$s</xliff:g> of <xliff:g id="total" example="2.3 GB">%2$s</xliff:g></string>
+     <!-- Update screen, how far the install has got. [CHAR LIMIT=16] -->
+     <string name="update_install_progress"><xliff:g id="percent" example="42">%1$d</xliff:g>%%</string>
++    <!-- Update screen, who maintains builds for this device. [CHAR LIMIT=NONE] -->
++    <string name="update_maintainer">Maintainer: <xliff:g id="name" example="Jane Doe">%1$s</xliff:g></string>
++
+     <!-- Update screen, when the server was last reached. [CHAR LIMIT=NONE] -->
+     <string name="update_last_check">Last successful check for update: <xliff:g id="time" example="01:23">%1$s</xliff:g></string>
+ 
+diff --git a/src/co/aospa/hub/data/model/Update.kt b/src/co/aospa/hub/data/model/Update.kt
+index 6c087ed..42b45a0 100644
+--- a/src/co/aospa/hub/data/model/Update.kt
++++ b/src/co/aospa/hub/data/model/Update.kt
+@@ -23,6 +23,7 @@ data class Update(
+     val buildType: String,
+     val changelog: String = "",
+     val securityPatch: String = "",
++    val maintainer: String = "",
+ ) {
+     /** Whether this build is newer than the running one. */
+     val isNewerThanDevice: Boolean
+diff --git a/src/co/aospa/hub/data/source/UpdateServerClient.kt b/src/co/aospa/hub/data/source/UpdateServerClient.kt
+index 69b4ce8..5238d8b 100644
+--- a/src/co/aospa/hub/data/source/UpdateServerClient.kt
++++ b/src/co/aospa/hub/data/source/UpdateServerClient.kt
+@@ -28,6 +28,7 @@ private data class Entry(
+     @SerialName("changelog_device") val changelog: String? = null,
+     @SerialName("datetime") val timestamp: String,
+     @SerialName("filename") val filename: String,
++    @SerialName("maintainer") val maintainer: String? = null,
+     @SerialName("recovery_sha256") val sha256: String,
+     @SerialName("size") val size: String,
+     @SerialName("url") val url: String,
+@@ -46,6 +47,7 @@ private data class Entry(
+         buildType = buildType,
+         changelog = changelog.orEmpty(),
+         securityPatch = securityPatch.orEmpty(),
++        maintainer = maintainer.orEmpty(),
+     )
+ }
+ 
+diff --git a/src/co/aospa/hub/ui/UpdatesActivity.kt b/src/co/aospa/hub/ui/UpdatesActivity.kt
+index 0c57890..fe67242 100644
+--- a/src/co/aospa/hub/ui/UpdatesActivity.kt
++++ b/src/co/aospa/hub/ui/UpdatesActivity.kt
+@@ -54,6 +54,7 @@ class UpdatesActivity : AppCompatActivity() {
+     private lateinit var size: TextView
+     private lateinit var androidVersion: TextView
+     private lateinit var securityPatch: TextView
++    private lateinit var maintainer: TextView
+     private lateinit var lastCheck: TextView
+     private lateinit var status: TextView
+     private lateinit var progressInformation: TextView
+@@ -79,6 +80,7 @@ class UpdatesActivity : AppCompatActivity() {
+         size = requireViewById(R.id.size)
+         androidVersion = requireViewById(R.id.android_version)
+         securityPatch = requireViewById(R.id.security_patch)
++        maintainer = requireViewById(R.id.maintainer)
+         lastCheck = requireViewById(R.id.last_check)
+         status = requireViewById(R.id.status)
+         progressInformation = requireViewById(R.id.progress_information)
+@@ -165,6 +167,10 @@ class UpdatesActivity : AppCompatActivity() {
+             getString(R.string.update_size, Formatter.formatShortFileSize(this, it.size))
+         }
+ 
++        val maintainedBy = update?.maintainer?.ifEmpty { null } ?: BuildInfo.maintainer
++        maintainer.isVisible = maintainedBy.isNotEmpty()
++        maintainer.text = getString(R.string.update_maintainer, maintainedBy)
++
+         val idle = state as? UpdateState.Idle
+         androidVersion.isVisible = idle != null
+         securityPatch.isVisible = idle != null
+diff --git a/src/co/aospa/hub/util/BuildInfo.kt b/src/co/aospa/hub/util/BuildInfo.kt
+index 2973260..3783602 100644
+--- a/src/co/aospa/hub/util/BuildInfo.kt
++++ b/src/co/aospa/hub/util/BuildInfo.kt
+@@ -12,6 +12,7 @@ import android.os.SystemProperties
+ object BuildInfo {
+     private const val PROP_AB_UPDATE = "ro.build.ab_update"
+     private const val PROP_DEVICE = "ro.aospa.device"
++    private const val PROP_MAINTAINER = "ro.aospa.maintainer"
+     private const val PROP_RELEASE_TYPE = "ro.aospa.build.variant"
+ 
+     /** The Android release, such as "17". Not the SDK level. */
+@@ -23,6 +24,9 @@ object BuildInfo {
+     /** The device to ask the server about. */
+     val device: String = SystemProperties.get(PROP_DEVICE, "")
+ 
++    /** Who maintains builds for this device, empty for official builds. */
++    val maintainer: String = SystemProperties.get(PROP_MAINTAINER, "")
++
+     /** Whether this device has A/B partitions. */
+     val isAbDevice: Boolean = SystemProperties.getBoolean(PROP_AB_UPDATE, false)
+ 
+-- 
+2.43.0
+

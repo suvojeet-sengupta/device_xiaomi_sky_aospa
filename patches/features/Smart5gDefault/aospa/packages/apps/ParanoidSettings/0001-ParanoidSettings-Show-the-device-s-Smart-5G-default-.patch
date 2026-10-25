@@ -1,0 +1,30 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Tue, 20 Oct 2026 09:36:30 +0530
+Subject: [PATCH] ParanoidSettings: Show the device's Smart 5G default [2/2]
+
+Read config_smart5gDefault like Smart5gService does, so the switch
+matches what the service does before the user touches it.
+---
+ .../network/telephony/Smart5gPreferenceController.java        | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/co/aospa/settings/network/telephony/Smart5gPreferenceController.java b/src/co/aospa/settings/network/telephony/Smart5gPreferenceController.java
+index 8b0cbb9..c3f4f83 100644
+--- a/src/co/aospa/settings/network/telephony/Smart5gPreferenceController.java
++++ b/src/co/aospa/settings/network/telephony/Smart5gPreferenceController.java
+@@ -143,8 +143,10 @@ public class Smart5gPreferenceController extends TelephonyTogglePreferenceContro
+ 
+     @Override
+     public boolean isChecked() {
++        final int def = mContext.getResources().getBoolean(
++                com.android.internal.R.bool.config_smart5gDefault) ? 1 : 0;
+         return Settings.System.getIntForUser(mContext.getContentResolver(),
+-                SMART_5G + mSubId, 0, UserHandle.USER_CURRENT) == 1;
++                SMART_5G + mSubId, def, UserHandle.USER_CURRENT) == 1;
+     }
+ 
+     protected boolean isCallStateIdle() {
+-- 
+2.55.0
+

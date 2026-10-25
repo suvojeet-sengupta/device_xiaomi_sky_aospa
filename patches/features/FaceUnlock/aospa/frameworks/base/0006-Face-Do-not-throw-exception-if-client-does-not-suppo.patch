@@ -1,0 +1,28 @@
+From fb1379250636f72974d5a63b732643d299ac2245 Mon Sep 17 00:00:00 2001
+From: Abhay Singh Gill <abhaygill017@gmail.com>
+Date: Wed, 11 Dec 2024 11:15:15 +0530
+Subject: [PATCH 6/8] Face: Do not throw exception if client does not support
+ invalidation
+
+Signed-off-by: Abhay Singh Gill <abhaygill017@gmail.com>
+Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
+---
+ .../android/server/biometrics/sensors/face/ServiceProvider.java | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/services/core/java/com/android/server/biometrics/sensors/face/ServiceProvider.java b/services/core/java/com/android/server/biometrics/sensors/face/ServiceProvider.java
+index 6f76cdae4539..e047a7cf5b84 100644
+--- a/services/core/java/com/android/server/biometrics/sensors/face/ServiceProvider.java
++++ b/services/core/java/com/android/server/biometrics/sensors/face/ServiceProvider.java
+@@ -67,8 +67,6 @@ public interface ServiceProvider extends BiometricServiceProvider<FaceSensorProp
+      */
+     default void scheduleInvalidateAuthenticatorId(int sensorId, int userId,
+             @NonNull IInvalidationCallback callback) {
+-        throw new IllegalStateException("Providers that support invalidation must override"
+-                + " this method");
+     }
+ 
+     void scheduleGenerateChallenge(int sensorId, int userId, @NonNull IBinder token,
+-- 
+2.43.0
+

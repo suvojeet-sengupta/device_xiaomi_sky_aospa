@@ -1,0 +1,56 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Tue, 20 Oct 2026 09:36:11 +0530
+Subject: [PATCH] Smart5gService: Let devices turn Smart 5G on by default [1/2]
+
+Smart 5G is off for every SIM until the user finds the switch. Add
+config_smart5gDefault, so a device can have it on until the user
+changes it.
+---
+ core/res/res/values/aospa_config.xml                      | 3 +++
+ core/res/res/values/aospa_symbols.xml                     | 3 +++
+ services/core/java/com/android/server/Smart5gService.java | 4 +++-
+ 3 files changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/core/res/res/values/aospa_config.xml b/core/res/res/values/aospa_config.xml
+index a3ed2f65..a7146b40 100644
+--- a/core/res/res/values/aospa_config.xml
++++ b/core/res/res/values/aospa_config.xml
+@@ -155,4 +155,7 @@
+     <!-- Whether to use Richtap vibration -->
+     <bool name="config_usesRichtapVibration">false</bool>
+ 
++    <!-- Whether Smart 5G is on for a SIM until the user changes it -->
++    <bool name="config_smart5gDefault">false</bool>
++
+ </resources>
+diff --git a/core/res/res/values/aospa_symbols.xml b/core/res/res/values/aospa_symbols.xml
+index a9c6f75f..90b0073e 100644
+--- a/core/res/res/values/aospa_symbols.xml
++++ b/core/res/res/values/aospa_symbols.xml
+@@ -102,4 +102,7 @@
+     <!-- Whether to use Richtap vibration -->
+     <java-symbol type="bool" name="config_usesRichtapVibration" />
+ 
++    <!-- Whether Smart 5G is on for a SIM until the user changes it -->
++    <java-symbol type="bool" name="config_smart5gDefault" />
++
+ </resources>
+diff --git a/services/core/java/com/android/server/Smart5gService.java b/services/core/java/com/android/server/Smart5gService.java
+index c36fc961..9d0683e6 100644
+--- a/services/core/java/com/android/server/Smart5gService.java
++++ b/services/core/java/com/android/server/Smart5gService.java
+@@ -208,7 +208,9 @@ public class Smart5gService extends SystemService {
+     }
+ 
+     private boolean isEnabled(int subId) {
+-        return Settings.System.getIntForUser(mContext.getContentResolver(), SMART_5G + subId, 0,
++        final int def = mContext.getResources().getBoolean(
++                com.android.internal.R.bool.config_smart5gDefault) ? 1 : 0;
++        return Settings.System.getIntForUser(mContext.getContentResolver(), SMART_5G + subId, def,
+                 UserHandle.USER_CURRENT) == 1;
+     }
+ 
+-- 
+2.55.0
+

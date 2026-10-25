@@ -1,0 +1,101 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Fri, 23 Oct 2026 11:26:35 +0000
+Subject: [PATCH] Settings: Add a switch for the network traffic monitor [2/2]
+
+A switch in Network & internet for Settings.Secure network_traffic_enabled,
+which shows the network speed in the status bar.
+
+Change-Id: I3965bb9ba0e516a2b3305fae07504bdbc1940de0
+---
+ res/values/network_traffic_strings.xml        | 10 +++++
+ res/xml/network_provider_internet.xml         |  7 +++
+ .../NetworkTrafficPreferenceController.java   | 43 +++++++++++++++++++
+ 3 files changed, 60 insertions(+)
+ create mode 100644 res/values/network_traffic_strings.xml
+ create mode 100644 src/com/android/settings/network/NetworkTrafficPreferenceController.java
+
+diff --git a/res/values/network_traffic_strings.xml b/res/values/network_traffic_strings.xml
+new file mode 100644
+index 00000000000..5c68013b61e
+--- /dev/null
++++ b/res/values/network_traffic_strings.xml
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!--
++     SPDX-FileCopyrightText: 2026 Paranoid Android
++     SPDX-License-Identifier: Apache-2.0
++-->
++<resources>
++    <!-- Network & internet: show the network speed in the status bar -->
++    <string name="network_traffic_title">Network speed</string>
++    <string name="network_traffic_summary">Show how fast data is moving in the status bar</string>
++</resources>
+diff --git a/res/xml/network_provider_internet.xml b/res/xml/network_provider_internet.xml
+index 3bf982899c2..500b3a0b375 100644
+--- a/res/xml/network_provider_internet.xml
++++ b/res/xml/network_provider_internet.xml
+@@ -131,4 +131,11 @@
+         android:summary="@string/cellular_security_summary"
+         android:order="30"
+         settings:controller="com.android.settings.network.CellularSecurityPreferenceController"/>
++
++    <SwitchPreferenceCompat
++        android:key="network_traffic"
++        android:title="@string/network_traffic_title"
++        android:summary="@string/network_traffic_summary"
++        android:order="35"
++        settings:controller="com.android.settings.network.NetworkTrafficPreferenceController"/>
+ </PreferenceScreen>
+diff --git a/src/com/android/settings/network/NetworkTrafficPreferenceController.java b/src/com/android/settings/network/NetworkTrafficPreferenceController.java
+new file mode 100644
+index 00000000000..abc15e083b1
+--- /dev/null
++++ b/src/com/android/settings/network/NetworkTrafficPreferenceController.java
+@@ -0,0 +1,43 @@
++/*
++ * SPDX-FileCopyrightText: 2026 Paranoid Android
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++package com.android.settings.network;
++
++import android.content.Context;
++import android.provider.Settings;
++
++import com.android.settings.R;
++import com.android.settings.core.TogglePreferenceController;
++
++/** Shows the network speed in the status bar, in Settings.Secure network_traffic_enabled. */
++public class NetworkTrafficPreferenceController extends TogglePreferenceController {
++    private static final String NETWORK_TRAFFIC_ENABLED = "network_traffic_enabled";
++
++    public NetworkTrafficPreferenceController(Context context, String key) {
++        super(context, key);
++    }
++
++    @Override
++    public int getAvailabilityStatus() {
++        return AVAILABLE;
++    }
++
++    @Override
++    public boolean isChecked() {
++        return Settings.Secure.getInt(mContext.getContentResolver(),
++                NETWORK_TRAFFIC_ENABLED, 0) != 0;
++    }
++
++    @Override
++    public boolean setChecked(boolean isChecked) {
++        return Settings.Secure.putInt(mContext.getContentResolver(),
++                NETWORK_TRAFFIC_ENABLED, isChecked ? 1 : 0);
++    }
++
++    @Override
++    public int getSliceHighlightMenuRes() {
++        return R.string.menu_key_network;
++    }
++}
+-- 
+2.43.0
+

@@ -1,0 +1,108 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Fri, 23 Oct 2026 15:54:43 +0000
+Subject: [PATCH] Settings: Add a switch to protect lock screen controls [2/2]
+
+A switch in More security settings for Settings.Secure
+lockscreen_secure_controls: with it on, sensitive Quick Settings tiles
+and power off or restart ask for an unlock on a secure lock screen.
+
+Change-Id: Idf98477e4904a2019d1d1254f25b470404d740a1
+---
+ res/values/secure_lock_screen_strings.xml     | 10 ++++
+ res/xml/more_security_privacy_settings.xml    |  7 +++
+ ...ockScreenControlsPreferenceController.java | 47 +++++++++++++++++++
+ 3 files changed, 64 insertions(+)
+ create mode 100644 res/values/secure_lock_screen_strings.xml
+ create mode 100644 src/com/android/settings/security/SecureLockScreenControlsPreferenceController.java
+
+diff --git a/res/values/secure_lock_screen_strings.xml b/res/values/secure_lock_screen_strings.xml
+new file mode 100644
+index 00000000000..b188cbec6ae
+--- /dev/null
++++ b/res/values/secure_lock_screen_strings.xml
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!--
++     SPDX-FileCopyrightText: 2026 Paranoid Android
++     SPDX-License-Identifier: Apache-2.0
++-->
++<resources>
++    <!-- More security settings: sensitive Quick Settings tiles and the power menu need an unlock on the lock screen -->
++    <string name="lockscreen_secure_controls_title">Protect lock screen controls</string>
++    <string name="lockscreen_secure_controls_summary">Unlock to use Wi‑Fi, mobile data, Bluetooth, airplane mode and other sensitive tiles, or to power off and restart, from the lock screen</string>
++</resources>
+diff --git a/res/xml/more_security_privacy_settings.xml b/res/xml/more_security_privacy_settings.xml
+index e3b09ebee43..2d4a40642af 100644
+--- a/res/xml/more_security_privacy_settings.xml
++++ b/res/xml/more_security_privacy_settings.xml
+@@ -236,6 +236,13 @@
+         android:summary="@string/ignore_window_secure_summary"
+         settings:controller="com.android.settings.security.IgnoreSecureWindowPreferenceController"/>
+ 
++    <SwitchPreferenceCompat
++        android:order="295"
++        android:key="more_security_lockscreen_secure_controls"
++        android:title="@string/lockscreen_secure_controls_title"
++        android:summary="@string/lockscreen_secure_controls_summary"
++        settings:controller="com.android.settings.security.SecureLockScreenControlsPreferenceController"/>
++
+     <com.android.settingslib.RestrictedPreference
+         android:order="300"
+         android:id="@+id/memtag_page"
+diff --git a/src/com/android/settings/security/SecureLockScreenControlsPreferenceController.java b/src/com/android/settings/security/SecureLockScreenControlsPreferenceController.java
+new file mode 100644
+index 00000000000..7320e1148b6
+--- /dev/null
++++ b/src/com/android/settings/security/SecureLockScreenControlsPreferenceController.java
+@@ -0,0 +1,47 @@
++/*
++ * Copyright (C) 2026 Paranoid Android
++ *
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++package com.android.settings.security;
++
++import android.content.Context;
++import android.provider.Settings;
++
++import com.android.settings.R;
++import com.android.settings.core.TogglePreferenceController;
++
++/**
++ * Makes sensitive Quick Settings tiles and power off or restart ask for an unlock on a
++ * secure lock screen, in Settings.Secure lockscreen_secure_controls.
++ */
++public class SecureLockScreenControlsPreferenceController extends TogglePreferenceController {
++    private static final String LOCKSCREEN_SECURE_CONTROLS = "lockscreen_secure_controls";
++
++    public SecureLockScreenControlsPreferenceController(Context context, String key) {
++        super(context, key);
++    }
++
++    @Override
++    public int getAvailabilityStatus() {
++        return AVAILABLE;
++    }
++
++    @Override
++    public boolean isChecked() {
++        return Settings.Secure.getInt(mContext.getContentResolver(),
++                LOCKSCREEN_SECURE_CONTROLS, 0) == 1;
++    }
++
++    @Override
++    public boolean setChecked(boolean isChecked) {
++        return Settings.Secure.putInt(mContext.getContentResolver(),
++                LOCKSCREEN_SECURE_CONTROLS, isChecked ? 1 : 0);
++    }
++
++    @Override
++    public int getSliceHighlightMenuRes() {
++        return R.string.menu_key_security;
++    }
++}
+-- 
+2.43.0
+

@@ -1,0 +1,81 @@
+From 6aa7db6e780331dd02d642387664040473b5c5f9 Mon Sep 17 00:00:00 2001
+From: jhenrique09 <jhsv09@gmail.com>
+Date: Mon, 14 Feb 2022 14:14:38 -0300
+Subject: [PATCH 7/8] SenseProvider: Allow our face unlock to be used on
+ third-party apps
+
+neobuddy89: Added changes to make it work for all cases - legacy, senseprovider, biometricsOnboardingEducation
+
+Ref: https://github.com/crdroidandroid/android_frameworks_base/pull/1246/commits/553fb7b4efd1a852611b0868684c5e4505ab9e79
+Suggested-by: Jenna <jenna@jennalody.de>
+Co-authored-by: Pranav Vashi <neobuddy89@gmail.com>
+Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
+---
+ .../server/biometrics/BiometricService.java      | 16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
+
+diff --git a/services/core/java/com/android/server/biometrics/BiometricService.java b/services/core/java/com/android/server/biometrics/BiometricService.java
+index e789bd8de57c..d9eabde91268 100644
+--- a/services/core/java/com/android/server/biometrics/BiometricService.java
++++ b/services/core/java/com/android/server/biometrics/BiometricService.java
+@@ -114,6 +114,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
+ import java.util.concurrent.atomic.AtomicLong;
+ import java.util.function.Supplier;
+ 
++import com.android.server.biometrics.sensors.face.sense.SenseUtils;
++
+ /**
+  * System service that arbitrates the modality for BiometricPrompt to use.
+  */
+@@ -354,7 +356,7 @@ public class BiometricService extends SystemService {
+         public void updateContentObserver() {
+             mContentResolver.unregisterContentObserver(this);
+ 
+-            if (mUseLegacyFaceOnlySettings) {
++            if (mUseLegacyFaceOnlySettings || SenseUtils.canUseProvider()) {
+                 mContentResolver.registerContentObserver(FACE_UNLOCK_KEYGUARD_ENABLED,
+                         false /* notifyForDescendants */,
+                         this /* observer */,
+@@ -363,7 +365,9 @@ public class BiometricService extends SystemService {
+                         false /* notifyForDescendants */,
+                         this /* observer */,
+                         UserHandle.USER_ALL);
+-            } else if (com.android.settings.flags.Flags.biometricsOnboardingEducation()) {
++            }
++            if (!mUseLegacyFaceOnlySettings &&
++                    com.android.settings.flags.Flags.biometricsOnboardingEducation()) {
+                 mContentResolver.registerContentObserver(FINGERPRINT_KEYGUARD_ENABLED,
+                         false /* notifyForDescendants */,
+                         this /* observer */,
+@@ -380,7 +384,7 @@ public class BiometricService extends SystemService {
+                         false /* notifyForDescendants */,
+                         this /* observer */,
+                         UserHandle.USER_ALL);
+-            } else {
++            } else if (!mUseLegacyFaceOnlySettings) {
+                 mContentResolver.registerContentObserver(BIOMETRIC_KEYGUARD_ENABLED,
+                         false /* notifyForDescendants */,
+                         this /* observer */,
+@@ -538,7 +542,8 @@ public class BiometricService extends SystemService {
+                 }
+             } else {
+                 if (!mBiometricEnabledOnKeyguard.containsKey(userId)) {
+-                    if (mUseLegacyFaceOnlySettings) {
++                    if (mUseLegacyFaceOnlySettings ||
++                        (SenseUtils.canUseProvider() && modality == TYPE_FACE)) {
+                         onChange(true /* selfChange */, FACE_UNLOCK_KEYGUARD_ENABLED, userId);
+                     } else {
+                         onChange(true /* selfChange */, BIOMETRIC_KEYGUARD_ENABLED, userId);
+@@ -566,7 +571,8 @@ public class BiometricService extends SystemService {
+                 }
+             } else {
+                 if (!mBiometricEnabledForApps.containsKey(userId)) {
+-                    if (mUseLegacyFaceOnlySettings) {
++                    if (mUseLegacyFaceOnlySettings ||
++                        (SenseUtils.canUseProvider() && modality == TYPE_FACE)) {
+                         onChange(true /* selfChange */, FACE_UNLOCK_APP_ENABLED, userId);
+                     } else {
+                         onChange(true /* selfChange */, BIOMETRIC_APP_ENABLED, userId);
+-- 
+2.43.0
+

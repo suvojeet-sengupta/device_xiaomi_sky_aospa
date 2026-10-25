@@ -1,0 +1,63 @@
+From 4c5af9ec20e6bffaf3ba65626302dd139a0e7b2e Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Fri, 23 Oct 2026 20:07:18 +0000
+Subject: [PATCH] ParanoidHub: Install through recovery when update_engine
+ cannot
+
+Android 17 update_engine only makes virtual A/B snapshots through
+snapuserd, which needs dm-user in the kernel. Without it, applying the
+payload fails with INSTALL_DEVICE_OPEN_ERROR before anything is
+written. Recovery can still write the partitions directly, so hand the
+package to it then, as on devices without A/B partitions.
+
+Change-Id: Ied9f62b08f5be4f784b52657da57a5f02c2c1025
+---
+ src/co/aospa/hub/install/AbUpdateInstaller.kt | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/src/co/aospa/hub/install/AbUpdateInstaller.kt b/src/co/aospa/hub/install/AbUpdateInstaller.kt
+index b991625..7a7227b 100644
+--- a/src/co/aospa/hub/install/AbUpdateInstaller.kt
++++ b/src/co/aospa/hub/install/AbUpdateInstaller.kt
+@@ -19,6 +19,7 @@ import java.io.IOException
+ import java.nio.charset.StandardCharsets
+ import java.util.zip.ZipEntry
+ import java.util.zip.ZipFile
++import kotlin.concurrent.thread
+ import kotlin.math.roundToInt
+ 
+ private const val TAG = "AbUpdateInstaller"
+@@ -59,6 +60,7 @@ class AbUpdateInstaller(
+     private val updateEngine = UpdateEngine()
+     private var bound = false
+     @Volatile private var reattached = false
++    @Volatile private var packageFile: File? = null
+ 
+     private val callback = object : UpdateEngineCallback() {
+         override fun onStatusUpdate(status: Int, percent: Float) {
+@@ -84,6 +86,14 @@ class AbUpdateInstaller(
+             when (errorCode) {
+                 UpdateEngine.ErrorCodeConstants.SUCCESS -> listener.onComplete()
+ 
++                // update_engine can't make the snapshots when the kernel lacks dm-user,
++                // but recovery can write the partitions directly.
++                UpdateEngine.ErrorCodeConstants.INSTALL_DEVICE_OPEN_ERROR ->
++                    packageFile?.let { file ->
++                        Log.w(TAG, "Could not open the partitions, installing through recovery")
++                        thread { NonAbUpdateInstaller(context, listener).install(file) }
++                    } ?: listener.onError(errorMessage(errorCode))
++
+                 else -> listener.onError(errorMessage(errorCode))
+             }
+         }
+@@ -98,6 +108,7 @@ class AbUpdateInstaller(
+     }
+ 
+     override fun install(packageFile: File) {
++        this.packageFile = packageFile
+         val payload = try {
+             readPayload(packageFile)
+         } catch (e: IOException) {
+-- 
+2.43.0
+

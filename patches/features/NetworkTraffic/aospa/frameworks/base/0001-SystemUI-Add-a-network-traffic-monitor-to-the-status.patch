@@ -1,0 +1,249 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Fri, 23 Oct 2026 11:26:23 +0000
+Subject: [PATCH] SystemUI: Add a network traffic monitor to the status bar
+ [1/2]
+
+Show how fast data moves, down and up together, next to the status icons
+while Settings.Secure network_traffic_enabled is on. It refreshes every
+second, hides below 1 KB/s, stops counting while the screen is off and
+follows the status bar tint like the clock.
+
+Change-Id: I3027267812dec9984a7d2a575dd31080c0973e1e
+---
+ packages/SystemUI/res/layout/status_bar.xml   |  11 ++
+ .../res/values/network_traffic_strings.xml    |   9 ++
+ .../phone/PhoneStatusBarViewController.kt     |   5 +
+ .../statusbar/policy/NetworkTraffic.java      | 141 ++++++++++++++++++
+ 4 files changed, 166 insertions(+)
+ create mode 100644 packages/SystemUI/res/values/network_traffic_strings.xml
+ create mode 100644 packages/SystemUI/src/com/android/systemui/statusbar/policy/NetworkTraffic.java
+
+diff --git a/packages/SystemUI/res/layout/status_bar.xml b/packages/SystemUI/res/layout/status_bar.xml
+index e0912a89622c..22162fcc364a 100644
+--- a/packages/SystemUI/res/layout/status_bar.xml
++++ b/packages/SystemUI/res/layout/status_bar.xml
+@@ -150,6 +150,17 @@
+                 android:gravity="center_vertical|end"
+                 android:clipChildren="false">
+ 
++                <com.android.systemui.statusbar.policy.NetworkTraffic
++                    android:id="@+id/network_traffic"
++                    android:layout_width="wrap_content"
++                    android:layout_height="wrap_content"
++                    android:layout_gravity="center_vertical"
++                    android:paddingEnd="@dimen/status_bar_left_clock_end_padding"
++                    android:textAppearance="@style/TextAppearance.StatusBar.Default"
++                    android:textSize="12sp"
++                    android:singleLine="true"
++                    android:visibility="gone" />
++
+                 <include
+                     android:id="@+id/user_switcher_container"
+                     android:layout_width="wrap_content"
+diff --git a/packages/SystemUI/res/values/network_traffic_strings.xml b/packages/SystemUI/res/values/network_traffic_strings.xml
+new file mode 100644
+index 000000000000..c5bc82097154
+--- /dev/null
++++ b/packages/SystemUI/res/values/network_traffic_strings.xml
+@@ -0,0 +1,9 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!--
++     SPDX-FileCopyrightText: 2026 Paranoid Android
++     SPDX-License-Identifier: Apache-2.0
++-->
++<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
++    <!-- Status bar network speed, down and up together. [CHAR LIMIT=12] -->
++    <string name="network_traffic_rate"><xliff:g id="size" example="1.2 MB">%1$s</xliff:g>/s</string>
++</resources>
+diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBarViewController.kt b/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBarViewController.kt
+index 8e907fb31c09..962e9d4c4d1c 100644
+--- a/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBarViewController.kt
++++ b/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBarViewController.kt
+@@ -45,6 +45,7 @@ import com.android.systemui.statusbar.gesture.StatusBarLongPressGestureDetector
+ import com.android.systemui.statusbar.layout.StatusBarContentInsetsProvider
+ import com.android.systemui.statusbar.policy.Clock
+ import com.android.systemui.statusbar.policy.ConfigurationController
++import com.android.systemui.statusbar.policy.NetworkTraffic
+ import com.android.systemui.statusbar.window.StatusBarWindowControllerStore
+ import com.android.systemui.statusbar.window.StatusBarWindowStateController
+ import com.android.systemui.unfold.UNFOLD_STATUS_BAR
+@@ -89,6 +90,7 @@ private constructor(
+ ) : ViewController<PhoneStatusBarView>(view) {
+ 
+     private lateinit var clock: Clock
++    private lateinit var networkTraffic: NetworkTraffic
+     private lateinit var startSideContainer: View
+     private lateinit var endSideContainer: View
+ 
+@@ -180,6 +182,7 @@ private constructor(
+ 
+     override fun onViewAttached() {
+         clock = mView.requireViewById(R.id.clock)
++        networkTraffic = mView.requireViewById(R.id.network_traffic)
+ 
+         addDarkReceivers()
+ 
+@@ -315,10 +318,12 @@ private constructor(
+ 
+     private fun addDarkReceivers() {
+         darkIconDispatcher.addDarkReceiver(clock)
++        darkIconDispatcher.addDarkReceiver(networkTraffic)
+     }
+ 
+     private fun removeDarkReceivers() {
+         darkIconDispatcher.removeDarkReceiver(clock)
++        darkIconDispatcher.removeDarkReceiver(networkTraffic)
+     }
+ 
+     @Deprecated(
+diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/policy/NetworkTraffic.java b/packages/SystemUI/src/com/android/systemui/statusbar/policy/NetworkTraffic.java
+new file mode 100644
+index 000000000000..c7b7434792b4
+--- /dev/null
++++ b/packages/SystemUI/src/com/android/systemui/statusbar/policy/NetworkTraffic.java
+@@ -0,0 +1,141 @@
++/*
++ * SPDX-FileCopyrightText: 2026 Paranoid Android
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++package com.android.systemui.statusbar.policy;
++
++import android.content.BroadcastReceiver;
++import android.content.Context;
++import android.content.Intent;
++import android.content.IntentFilter;
++import android.database.ContentObserver;
++import android.graphics.Rect;
++import android.net.TrafficStats;
++import android.os.Handler;
++import android.os.Looper;
++import android.os.PowerManager;
++import android.os.SystemClock;
++import android.os.UserHandle;
++import android.provider.Settings;
++import android.text.format.Formatter;
++import android.util.AttributeSet;
++import android.view.View;
++import android.widget.TextView;
++
++import com.android.systemui.plugins.DarkIconDispatcher;
++import com.android.systemui.plugins.DarkIconDispatcher.DarkReceiver;
++import com.android.systemui.res.R;
++
++import java.util.ArrayList;
++
++/**
++ * Shows how fast data moves, down and up together, in the status bar while
++ * Settings.Secure.NETWORK_TRAFFIC_ENABLED is on. It hides below 1 KB/s and
++ * only counts while the screen is on.
++ */
++public class NetworkTraffic extends TextView implements DarkReceiver {
++    public static final String NETWORK_TRAFFIC_ENABLED = "network_traffic_enabled";
++
++    private static final long INTERVAL_MILLIS = 1000;
++    private static final long MIN_BYTES_PER_SECOND = 1024;
++
++    private final Handler mHandler = new Handler(Looper.getMainLooper());
++    private final Runnable mTick = this::tick;
++
++    private final ContentObserver mObserver = new ContentObserver(mHandler) {
++        @Override
++        public void onChange(boolean selfChange) {
++            update();
++        }
++    };
++
++    private final BroadcastReceiver mScreenReceiver = new BroadcastReceiver() {
++        @Override
++        public void onReceive(Context context, Intent intent) {
++            mScreenOn = Intent.ACTION_SCREEN_ON.equals(intent.getAction());
++            update();
++        }
++    };
++
++    private boolean mAttached;
++    private boolean mScreenOn = true;
++    private long mLastBytes;
++    private long mLastTime;
++
++    public NetworkTraffic(Context context) {
++        this(context, null);
++    }
++
++    public NetworkTraffic(Context context, AttributeSet attrs) {
++        this(context, attrs, 0);
++    }
++
++    public NetworkTraffic(Context context, AttributeSet attrs, int defStyle) {
++        super(context, attrs, defStyle);
++    }
++
++    @Override
++    protected void onAttachedToWindow() {
++        super.onAttachedToWindow();
++        mAttached = true;
++        mContext.getContentResolver().registerContentObserver(
++                Settings.Secure.getUriFor(NETWORK_TRAFFIC_ENABLED), false, mObserver,
++                UserHandle.USER_ALL);
++        IntentFilter filter = new IntentFilter();
++        filter.addAction(Intent.ACTION_SCREEN_ON);
++        filter.addAction(Intent.ACTION_SCREEN_OFF);
++        mContext.registerReceiver(mScreenReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
++        mScreenOn = mContext.getSystemService(PowerManager.class).isInteractive();
++        update();
++    }
++
++    @Override
++    protected void onDetachedFromWindow() {
++        mAttached = false;
++        mContext.getContentResolver().unregisterContentObserver(mObserver);
++        mContext.unregisterReceiver(mScreenReceiver);
++        update();
++        super.onDetachedFromWindow();
++    }
++
++    @Override
++    public void onDarkChanged(ArrayList<Rect> areas, float darkIntensity, int tint) {
++        setTextColor(DarkIconDispatcher.getTint(areas, this, tint));
++    }
++
++    private void update() {
++        mHandler.removeCallbacks(mTick);
++        boolean enabled = Settings.Secure.getIntForUser(mContext.getContentResolver(),
++                NETWORK_TRAFFIC_ENABLED, 0, UserHandle.USER_CURRENT) != 0;
++        if (!mAttached || !enabled || !mScreenOn) {
++            setVisibility(View.GONE);
++            return;
++        }
++        mLastBytes = totalBytes();
++        mLastTime = SystemClock.elapsedRealtime();
++        mHandler.postDelayed(mTick, INTERVAL_MILLIS);
++    }
++
++    private void tick() {
++        long bytes = totalBytes();
++        long now = SystemClock.elapsedRealtime();
++        long rate = Math.max(0, bytes - mLastBytes) * 1000 / Math.max(1, now - mLastTime);
++        mLastBytes = bytes;
++        mLastTime = now;
++
++        if (rate < MIN_BYTES_PER_SECOND) {
++            setVisibility(View.GONE);
++        } else {
++            setText(mContext.getString(R.string.network_traffic_rate,
++                    Formatter.formatShortFileSize(mContext, rate)));
++            setVisibility(View.VISIBLE);
++        }
++        mHandler.postDelayed(mTick, INTERVAL_MILLIS);
++    }
++
++    private static long totalBytes() {
++        return Math.max(0, TrafficStats.getTotalRxBytes())
++                + Math.max(0, TrafficStats.getTotalTxBytes());
++    }
++}
+-- 
+2.43.0
+

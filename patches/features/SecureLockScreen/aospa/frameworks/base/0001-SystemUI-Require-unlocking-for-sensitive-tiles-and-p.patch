@@ -1,0 +1,171 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Fri, 23 Oct 2026 15:54:02 +0000
+Subject: [PATCH] SystemUI: Require unlocking for sensitive tiles and powering
+ off [1/2]
+
+With Settings.Secure lockscreen_secure_controls on and a secure lock
+screen up, the tiles someone holding a locked phone could use to take it
+off the network (airplane mode, Wi-Fi, internet, mobile data, data SIM,
+Bluetooth, hotspot, NFC, data saver, battery saver, rotation, work
+profile) ask for an unlock before they act, and so do power off and
+restart in the power menu, so the phone can't be switched off from the
+lock screen.
+
+Adapted from LineageOS "SystemUI: Require unlocking to use sensitive QS
+tiles", in one place in QSTileImpl instead of every tile, and from
+crDroid "Ask pin for shutdown/reboot on secure lockscreen".
+
+Change-Id: Ie18d1f8d74daad314d723da4779b81f3a6483938
+---
+ .../GlobalActionsDialogLite.java              | 23 ++++++++++---
+ .../systemui/qs/tileimpl/QSTileImpl.java      | 34 +++++++++++++++++++
+ 2 files changed, 53 insertions(+), 4 deletions(-)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/globalactions/GlobalActionsDialogLite.java b/packages/SystemUI/src/com/android/systemui/globalactions/GlobalActionsDialogLite.java
+index 90ab696c64f4..4e5c7cd930ef 100644
+--- a/packages/SystemUI/src/com/android/systemui/globalactions/GlobalActionsDialogLite.java
++++ b/packages/SystemUI/src/com/android/systemui/globalactions/GlobalActionsDialogLite.java
+@@ -967,6 +967,21 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
+         }
+     }
+ 
++    /**
++     * With Settings.Secure lockscreen_secure_controls on, powering off or restarting from a
++     * secure lock screen needs an unlock first, so someone holding a locked phone can't
++     * switch it off.
++     */
++    private void runUnlocked(Runnable action) {
++        if (mKeyguardStateController.isMethodSecure() && mKeyguardStateController.isShowing()
++                && Settings.Secure.getIntForUser(mContext.getContentResolver(),
++                        "lockscreen_secure_controls", 0, mUserTracker.getUserId()) != 0) {
++            mActivityStarter.postQSRunnableDismissingKeyguard(action);
++        } else {
++            action.run();
++        }
++    }
++
+     @VisibleForTesting
+     final class ShutDownAction extends SinglePressAction implements LongPressAction {
+         ShutDownAction() {
+@@ -984,7 +999,7 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
+             mUiEventLogger.log(GlobalActionsEvent.GA_SHUTDOWN_LONG_PRESS);
+             if (!mUserManager.hasUserRestrictionForUser(UserManager.DISALLOW_SAFE_BOOT,
+                     mUserTracker.getUserHandle())) {
+-                mWindowManagerFuncs.reboot(true);
++                runUnlocked(() -> mWindowManagerFuncs.reboot(true));
+                 return true;
+             }
+             return false;
+@@ -1009,7 +1024,7 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
+             }
+             mUiEventLogger.log(GlobalActionsEvent.GA_SHUTDOWN_PRESS);
+             // shutdown by making sure radio and power are handled accordingly.
+-            mWindowManagerFuncs.shutdown();
++            runUnlocked(() -> mWindowManagerFuncs.shutdown());
+         }
+     }
+ 
+@@ -1118,7 +1133,7 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
+             mUiEventLogger.log(GlobalActionsEvent.GA_REBOOT_LONG_PRESS);
+             if (!mUserManager.hasUserRestrictionForUser(UserManager.DISALLOW_SAFE_BOOT,
+                     mUserTracker.getUserHandle())) {
+-                mWindowManagerFuncs.reboot(true);
++                runUnlocked(() -> mWindowManagerFuncs.reboot(true));
+                 return true;
+             }
+             return false;
+@@ -1142,7 +1157,7 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
+                 return;
+             }
+             mUiEventLogger.log(GlobalActionsEvent.GA_REBOOT_PRESS);
+-            mWindowManagerFuncs.reboot(false);
++            runUnlocked(() -> mWindowManagerFuncs.reboot(false));
+         }
+     }
+ 
+diff --git a/packages/SystemUI/src/com/android/systemui/qs/tileimpl/QSTileImpl.java b/packages/SystemUI/src/com/android/systemui/qs/tileimpl/QSTileImpl.java
+index 67d901ec836c..8fb0838e17ee 100644
+--- a/packages/SystemUI/src/com/android/systemui/qs/tileimpl/QSTileImpl.java
++++ b/packages/SystemUI/src/com/android/systemui/qs/tileimpl/QSTileImpl.java
+@@ -31,6 +31,7 @@ import static com.android.settingslib.RestrictedLockUtils.EnforcedAdmin;
+ import android.annotation.CallSuper;
+ import android.annotation.NonNull;
+ import android.annotation.SuppressLint;
++import android.app.KeyguardManager;
+ import android.content.Context;
+ import android.content.Intent;
+ import android.graphics.drawable.Drawable;
+@@ -38,6 +39,8 @@ import android.metrics.LogMaker;
+ import android.os.Handler;
+ import android.os.Looper;
+ import android.os.Message;
++import android.os.UserHandle;
++import android.provider.Settings;
+ import android.text.format.DateUtils;
+ import android.util.ArraySet;
+ import android.util.Log;
+@@ -72,6 +75,7 @@ import com.android.systemui.qs.logging.QSLogger;
+ 
+ import java.io.PrintWriter;
+ import java.util.Objects;
++import java.util.Set;
+ import java.util.concurrent.atomic.AtomicBoolean;
+ import java.util.concurrent.atomic.AtomicInteger;
+ 
+@@ -123,6 +127,17 @@ public abstract class QSTileImpl<TState extends State> implements QSTile, Lifecy
+     private boolean mShouldResetHandlesLongClick;
+ 
+     private String mTileSpec;
++
++    /**
++     * Tiles someone holding a locked phone could use to take it off the network or
++     * otherwise change it. With Settings.Secure lockscreen_secure_controls on, they
++     * need an unlock first while a secure lock screen is up.
++     */
++    private static final Set<String> SENSITIVE_TILES = Set.of(
++            "airplane", "battery", "bt", "cell", "dataswitch", "hotspot", "internet", "nfc",
++            "rotation", "saver", "wifi", "work");
++    private static final String LOCKSCREEN_SECURE_CONTROLS = "lockscreen_secure_controls";
++
+     @Nullable
+     @VisibleForTesting
+     protected EnforcedAdmin mEnforcedAdmin;
+@@ -291,8 +306,23 @@ public abstract class QSTileImpl<TState extends State> implements QSTile, Lifecy
+         mHandler.sendEmptyMessage(H.REMOVE_CALLBACKS);
+     }
+ 
++    private boolean needsUnlockFirst() {
++        if (!SENSITIVE_TILES.contains(mTileSpec)
++                || Settings.Secure.getIntForUser(mContext.getContentResolver(),
++                        LOCKSCREEN_SECURE_CONTROLS, 0, UserHandle.USER_CURRENT) == 0) {
++            return false;
++        }
++        KeyguardManager keyguardManager = mContext.getSystemService(KeyguardManager.class);
++        return keyguardManager != null && keyguardManager.isKeyguardLocked()
++                && keyguardManager.isDeviceSecure();
++    }
++
+     @Override
+     public void click(@Nullable Expandable expandable) {
++        if (needsUnlockFirst()) {
++            mActivityStarter.postQSRunnableDismissingKeyguard(() -> click(expandable));
++            return;
++        }
+         mMetricsLogger.write(populate(new LogMaker(ACTION_QS_CLICK).setType(TYPE_ACTION)
+                 .addTaggedData(FIELD_STATUS_BAR_STATE,
+                         mStatusBarStateController.getState())));
+@@ -308,6 +338,10 @@ public abstract class QSTileImpl<TState extends State> implements QSTile, Lifecy
+ 
+     @Override
+     public void secondaryClick(@Nullable Expandable expandable) {
++        if (needsUnlockFirst()) {
++            mActivityStarter.postQSRunnableDismissingKeyguard(() -> secondaryClick(expandable));
++            return;
++        }
+         mMetricsLogger.write(populate(new LogMaker(ACTION_QS_SECONDARY_CLICK).setType(TYPE_ACTION)
+                 .addTaggedData(FIELD_STATUS_BAR_STATE,
+                         mStatusBarStateController.getState())));
+-- 
+2.43.0
+

@@ -1,0 +1,137 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Fri, 23 Oct 2026 15:35:09 +0000
+Subject: [PATCH] SystemUI: Show the network traffic as a meter next to the
+ clock
+
+Next to the status icons it took the room of two or three icons, so they
+collapsed into the overflow dot, and longer readings got cut. Show it
+after the clock instead, as the number over its unit (KB/s or MB/s) in
+small type with a fixed minimum width, so it stays about one icon wide
+and doesn't jitter as the number changes.
+
+Change-Id: Ic007d31012e7f3ae50ef2fd83d1ee30606bb42e4
+---
+ packages/SystemUI/res/layout/status_bar.xml   | 28 +++++++++++--------
+ .../res/values/network_traffic_strings.xml    |  8 ++++--
+ .../statusbar/policy/NetworkTraffic.java      | 20 ++++++++++---
+ 3 files changed, 38 insertions(+), 18 deletions(-)
+
+diff --git a/packages/SystemUI/res/layout/status_bar.xml b/packages/SystemUI/res/layout/status_bar.xml
+index 22162fcc364a..7d5181bd89d5 100644
+--- a/packages/SystemUI/res/layout/status_bar.xml
++++ b/packages/SystemUI/res/layout/status_bar.xml
+@@ -102,6 +102,23 @@
+                         android:gravity="center_vertical|start"
+                     />
+ 
++                    <!-- Network speed meter: the number over its unit, so it stays about
++                         one icon wide and never pushes the status icons out -->
++                    <com.android.systemui.statusbar.policy.NetworkTraffic
++                        android:id="@+id/network_traffic"
++                        android:layout_width="wrap_content"
++                        android:layout_height="wrap_content"
++                        android:layout_gravity="center_vertical"
++                        android:minWidth="26dp"
++                        android:paddingEnd="@dimen/status_bar_left_clock_end_padding"
++                        android:gravity="center"
++                        android:maxLines="2"
++                        android:includeFontPadding="false"
++                        android:lineSpacingMultiplier="0.85"
++                        android:textAppearance="@style/TextAppearance.StatusBar.Default"
++                        android:textSize="9sp"
++                        android:visibility="gone" />
++
+                     <!-- To avoid chips causing notifs to re-layout, wrap them in a FrameLayout
+                     so they can overlap -->
+                     <FrameLayout
+@@ -150,17 +167,6 @@
+                 android:gravity="center_vertical|end"
+                 android:clipChildren="false">
+ 
+-                <com.android.systemui.statusbar.policy.NetworkTraffic
+-                    android:id="@+id/network_traffic"
+-                    android:layout_width="wrap_content"
+-                    android:layout_height="wrap_content"
+-                    android:layout_gravity="center_vertical"
+-                    android:paddingEnd="@dimen/status_bar_left_clock_end_padding"
+-                    android:textAppearance="@style/TextAppearance.StatusBar.Default"
+-                    android:textSize="12sp"
+-                    android:singleLine="true"
+-                    android:visibility="gone" />
+-
+                 <include
+                     android:id="@+id/user_switcher_container"
+                     android:layout_width="wrap_content"
+diff --git a/packages/SystemUI/res/values/network_traffic_strings.xml b/packages/SystemUI/res/values/network_traffic_strings.xml
+index c5bc82097154..420bde4d0c7a 100644
+--- a/packages/SystemUI/res/values/network_traffic_strings.xml
++++ b/packages/SystemUI/res/values/network_traffic_strings.xml
+@@ -3,7 +3,9 @@
+      SPDX-FileCopyrightText: 2026 Paranoid Android
+      SPDX-License-Identifier: Apache-2.0
+ -->
+-<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+-    <!-- Status bar network speed, down and up together. [CHAR LIMIT=12] -->
+-    <string name="network_traffic_rate"><xliff:g id="size" example="1.2 MB">%1$s</xliff:g>/s</string>
++<resources>
++    <!-- Status bar network speed meter, the unit under the number. [CHAR LIMIT=5] -->
++    <string name="network_traffic_kb_per_second">KB/s</string>
++    <!-- Status bar network speed meter, the unit under the number. [CHAR LIMIT=5] -->
++    <string name="network_traffic_mb_per_second">MB/s</string>
+ </resources>
+diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/policy/NetworkTraffic.java b/packages/SystemUI/src/com/android/systemui/statusbar/policy/NetworkTraffic.java
+index c7b7434792b4..523ce2697dd1 100644
+--- a/packages/SystemUI/src/com/android/systemui/statusbar/policy/NetworkTraffic.java
++++ b/packages/SystemUI/src/com/android/systemui/statusbar/policy/NetworkTraffic.java
+@@ -18,7 +18,6 @@ import android.os.PowerManager;
+ import android.os.SystemClock;
+ import android.os.UserHandle;
+ import android.provider.Settings;
+-import android.text.format.Formatter;
+ import android.util.AttributeSet;
+ import android.view.View;
+ import android.widget.TextView;
+@@ -28,9 +27,11 @@ import com.android.systemui.plugins.DarkIconDispatcher.DarkReceiver;
+ import com.android.systemui.res.R;
+ 
+ import java.util.ArrayList;
++import java.util.Locale;
+ 
+ /**
+- * Shows how fast data moves, down and up together, in the status bar while
++ * A small speed meter next to the clock: how fast data moves, down and up
++ * together, as the number over its unit, while
+  * Settings.Secure.NETWORK_TRAFFIC_ENABLED is on. It hides below 1 KB/s and
+  * only counts while the screen is on.
+  */
+@@ -127,13 +128,24 @@ public class NetworkTraffic extends TextView implements DarkReceiver {
+         if (rate < MIN_BYTES_PER_SECOND) {
+             setVisibility(View.GONE);
+         } else {
+-            setText(mContext.getString(R.string.network_traffic_rate,
+-                    Formatter.formatShortFileSize(mContext, rate)));
++            setText(format(rate));
+             setVisibility(View.VISIBLE);
+         }
+         mHandler.postDelayed(mTick, INTERVAL_MILLIS);
+     }
+ 
++    /** The rate as its number over its unit, so the meter stays narrow. */
++    private String format(long bytesPerSecond) {
++        double value = bytesPerSecond / 1024.0;
++        int unit = R.string.network_traffic_kb_per_second;
++        if (value >= 1000) {
++            value /= 1024.0;
++            unit = R.string.network_traffic_mb_per_second;
++        }
++        String number = String.format(Locale.getDefault(), value < 10 ? "%.1f" : "%.0f", value);
++        return number + "\n" + mContext.getString(unit);
++    }
++
+     private static long totalBytes() {
+         return Math.max(0, TrafficStats.getTotalRxBytes())
+                 + Math.max(0, TrafficStats.getTotalTxBytes());
+-- 
+2.43.0
+

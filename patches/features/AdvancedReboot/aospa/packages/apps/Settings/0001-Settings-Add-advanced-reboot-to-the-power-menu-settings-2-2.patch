@@ -1,0 +1,102 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Tue, 20 Oct 2026 09:24:45 +0530
+Subject: [PATCH] Settings: Add advanced reboot to the power menu settings
+ [2/2]
+
+A switch in System > Gestures > Power menu for
+Settings.Secure.ADVANCED_REBOOT, which adds restarting to recovery and
+to the bootloader to the power menu.
+---
+ res/values/advanced_reboot_strings.xml        | 10 +++++
+ res/xml/power_menu_settings.xml               |  7 ++++
+ .../AdvancedRebootPreferenceController.java   | 42 +++++++++++++++++++
+ 3 files changed, 59 insertions(+)
+ create mode 100644 res/values/advanced_reboot_strings.xml
+ create mode 100644 src/com/android/settings/gestures/AdvancedRebootPreferenceController.java
+
+diff --git a/res/values/advanced_reboot_strings.xml b/res/values/advanced_reboot_strings.xml
+new file mode 100644
+index 0000000..e85b923
+--- /dev/null
++++ b/res/values/advanced_reboot_strings.xml
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!--
++     SPDX-FileCopyrightText: 2026 Paranoid Android
++     SPDX-License-Identifier: Apache-2.0
++-->
++<resources>
++    <!-- Power menu settings: restart to recovery or to the bootloader from the power menu -->
++    <string name="advanced_reboot_title">Advanced restart</string>
++    <string name="advanced_reboot_summary">Show options in the power menu to restart to recovery or to the bootloader</string>
++</resources>
+diff --git a/res/xml/power_menu_settings.xml b/res/xml/power_menu_settings.xml
+index bf26f87..c8a7543 100644
+--- a/res/xml/power_menu_settings.xml
++++ b/res/xml/power_menu_settings.xml
+@@ -50,6 +50,13 @@
+         settings:controller="com.android.settings.gestures.LongPressPowerSensitivityPreferenceController"
+     />
+ 
++    <SwitchPreferenceCompat
++        android:key="advanced_reboot"
++        android:title="@string/advanced_reboot_title"
++        android:summary="@string/advanced_reboot_summary"
++        settings:allowDividerAbove="true"
++        settings:controller="com.android.settings.gestures.AdvancedRebootPreferenceController" />
++
+     <com.android.settingslib.widget.FooterPreference
+         android:key="power_menu_power_volume_up_hint"
+         android:title="@string/power_menu_power_volume_up_hint"
+diff --git a/src/com/android/settings/gestures/AdvancedRebootPreferenceController.java b/src/com/android/settings/gestures/AdvancedRebootPreferenceController.java
+new file mode 100644
+index 0000000..ca572d5
+--- /dev/null
++++ b/src/com/android/settings/gestures/AdvancedRebootPreferenceController.java
+@@ -0,0 +1,42 @@
++/*
++ * SPDX-FileCopyrightText: 2026 Paranoid Android
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++package com.android.settings.gestures;
++
++import android.content.Context;
++import android.provider.Settings;
++
++import com.android.settings.R;
++import com.android.settings.core.TogglePreferenceController;
++
++/** Offers restarting to recovery and to the bootloader in the power menu. */
++public class AdvancedRebootPreferenceController extends TogglePreferenceController {
++
++    public AdvancedRebootPreferenceController(Context context, String key) {
++        super(context, key);
++    }
++
++    @Override
++    public int getAvailabilityStatus() {
++        return AVAILABLE;
++    }
++
++    @Override
++    public boolean isChecked() {
++        return Settings.Secure.getInt(mContext.getContentResolver(),
++                Settings.Secure.ADVANCED_REBOOT, 0) != 0;
++    }
++
++    @Override
++    public boolean setChecked(boolean isChecked) {
++        return Settings.Secure.putInt(mContext.getContentResolver(),
++                Settings.Secure.ADVANCED_REBOOT, isChecked ? 1 : 0);
++    }
++
++    @Override
++    public int getSliceHighlightMenuRes() {
++        return R.string.menu_key_system;
++    }
++}
+-- 
+2.55.0
+

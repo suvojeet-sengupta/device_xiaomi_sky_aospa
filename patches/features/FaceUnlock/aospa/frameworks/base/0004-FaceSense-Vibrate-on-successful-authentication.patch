@@ -1,0 +1,28 @@
+From 05f5dc142fdde2e8c5f352da87b32142e84bef4f Mon Sep 17 00:00:00 2001
+From: Adithya R <gh0strider.2k18.reborn@gmail.com>
+Date: Sun, 31 Dec 2023 16:10:00 +0530
+Subject: [PATCH 4/8] FaceSense: Vibrate on successful authentication
+
+Bring back T behaviour after 0d09e5b0ba7f6365d79eafe92f4227f4228d9c85.
+
+Change-Id: If93fb382d07b00466a8ae30b1ea968488785c4f6
+Signed-off-by: Pranav Vashi <neobuddy89@gmail.com>
+---
+ .../biometrics/sensors/face/sense/FaceAuthenticationClient.java  | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/services/core/java/com/android/server/biometrics/sensors/face/sense/FaceAuthenticationClient.java b/services/core/java/com/android/server/biometrics/sensors/face/sense/FaceAuthenticationClient.java
+index 77659d3a3548..3a370f698bcc 100644
+--- a/services/core/java/com/android/server/biometrics/sensors/face/sense/FaceAuthenticationClient.java
++++ b/services/core/java/com/android/server/biometrics/sensors/face/sense/FaceAuthenticationClient.java
+@@ -173,6 +173,7 @@ class FaceAuthenticationClient
+     public void onAuthenticated(BiometricAuthenticator.Identifier identifier,
+             boolean authenticated, ArrayList<Byte> token) {
+         super.onAuthenticated(identifier, authenticated, token);
++        vibrateSuccess();
+ 
+         mState = STATE_STOPPED;
+         mUsageStats.addEvent(new UsageStats.AuthenticationEvent(
+-- 
+2.43.0
+
