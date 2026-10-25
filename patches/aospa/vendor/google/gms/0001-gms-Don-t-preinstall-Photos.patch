@@ -1,0 +1,41 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Sun, 25 Oct 2026 06:50:41 +0000
+Subject: [PATCH] gms: Don't preinstall Photos
+
+Ship Google Photos as an ordinary app from the Play Store instead, so it
+can be uninstalled and updates don't stack on a copy in /product. Drop its
+config overlay too: it makes Photos the system gallery, a role only a
+preinstalled app can hold.
+---
+ config.mk     | 1 -
+ gms-vendor.mk | 1 -
+ 2 files changed, 2 deletions(-)
+
+diff --git a/config.mk b/config.mk
+index 365e4b5..ff78eca 100644
+--- a/config.mk
++++ b/config.mk
+@@ -21,7 +21,6 @@ PRODUCT_PACKAGES += \
+     GmsConfigOverlayGeotz \
+     GmsConfigOverlayGSA \
+     GmsConfigOverlayPersonalSafety \
+-    GmsConfigOverlayPhotos \
+     GmsContactsProviderOverlay \
+     GmsSettingsOverlay \
+     GmsSettingsOverlayPersonalSafety \
+diff --git a/gms-vendor.mk b/gms-vendor.mk
+index 476b8e7..a00ff72 100644
+--- a/gms-vendor.mk
++++ b/gms-vendor.mk
+@@ -109,7 +109,6 @@ PRODUCT_PACKAGES += \
+     GoogleLocationHistory \
+     LatinImeGoogle \
+     Maps \
+-    Photos \
+     SpeechServicesByGoogle \
+     TrichromeLibrary64 \
+     WebViewGoogle64 \
+-- 
+2.43.0
+
