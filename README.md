@@ -32,4 +32,9 @@ because the QTI kernel platform makefile only installs vendor_dlkm modules that
 are in modules.load.
 
 ## publish.sh
-Copy into the root of the AOSPA tree. After `./rom-build.sh sky -z`, run `./publish.sh` to copy the newest fastboot (`-image.zip`) and recovery zips into the ServerHive web folder and print their download links. `./publish.sh fastboot` or `./publish.sh recovery` publishes one kind, `--keep N` deletes all but the N newest published zips of each kind, and `--dry-run` only shows what would be published.
+Copy into the root of the AOSPA tree. After `./rom-build.sh sky -z`, run `./publish.sh` to put the newest build into the ServerHive web folder and print its download links: the recovery zip, the fastboot (`-image.zip`) zip, and boot, vendor_boot and dtbo from its signed target files, each with a `.sha256`. It finds which ServerHive host serves the folder itself (`PUBLISH_URL` overrides that).
+
+- `./publish.sh recovery`, `fastboot` or `images` publishes one kind.
+- `./publish.sh list` only prints the links of the newest published files.
+- `--keep N` deletes all but the N newest published builds of each kind.
+- `--dry-run` only shows what would be published.
