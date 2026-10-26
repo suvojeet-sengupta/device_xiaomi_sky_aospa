@@ -1360,8 +1360,12 @@ vendor/etc/thermal-hp-normal.conf|4f80b628ce8e9c38e183edd134352fa872be254d
 vendor/etc/thermal-nolimits-india.conf|db1ad99aa882e2e4757a0c9f1e40a93f98d9e036
 
 # Touchscreen
+vendor/firmware/focaltech_8725_fw.bin
+vendor/firmware/focaltech_8725_fw.bin:recovery/root/vendor/firmware/focaltech_8725_fw.bin
 vendor/firmware/focaltech_ft8720_hx.ini
 vendor/firmware/focaltech_ft8720_hx.ini:recovery/root/vendor/firmware/focaltech_ft8720_hx.ini
+vendor/firmware/focaltech_ft8725_hx.ini
+vendor/firmware/focaltech_ft8725_hx.ini:recovery/root/vendor/firmware/focaltech_ft8725_hx.ini
 vendor/firmware/focaltech_ts_fw_.bin
 vendor/firmware/focaltech_ts_fw_.bin:recovery/root/vendor/firmware/focaltech_ts_fw_.bin
 vendor/firmware/novatek_ts_fw.bin
