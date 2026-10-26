@@ -3,13 +3,13 @@
     {
       "android_spl": "2026-08-05",
       "build_type": "unofficial",
-      "changelog_device": "New\n- Use VPN for connected devices (Settings > Network & internet > Hotspot & tethering): while the phone is on a VPN, devices on its hotspot go through the same VPN. With \"Block connections without VPN\" on, they never bypass it\n\nChanges\n- The sensors HAL no longer gets access to the touchscreen nodes again, as before 20261025\n\nOTA updates\n- Phones on 20261025 or newer update through Settings > System > System update. Older builds flash this one from recovery once",
-      "datetime": "1792953897",
-      "filename": "aospa-calcite-unofficial-sky-user-20261026-0014IST.zip",
+      "changelog_device": "New\n- Touch works on the Redmi 12R: the touch driver supports its FocalTech FT8725 panel and loads the stock FT8725 firmware, in Android and in recovery\n\nChanges\n- Novatek touch panels reload their firmware at boot again\n- The sensors HAL can reach the touchscreen nodes again\n\nOTA updates\n- Phones on 20261025 or newer update through Settings > System > System update. Older builds flash this one from recovery once",
+      "datetime": "1793013986",
+      "filename": "aospa-calcite-unofficial-sky-user-20261026-1656IST.zip",
       "maintainer": "Suvojeet Sengupta",
-      "recovery_sha256": "64da5673e6d0a4b2e330fdc19c627c2fdd4b850c70bf2ebe87ceaa75e3229218",
-      "size": "1859564499",
-      "url": "https://github.com/suvojeet-sengupta/ota_sky/releases/download/sky-20261026/aospa-calcite-unofficial-sky-user-20261026-0014IST.zip",
+      "recovery_sha256": "2c029bfd989f3f50fc83e52abb413f5de597daf6bd84f934ea0d76f90cc043d1",
+      "size": "1859576153",
+      "url": "https://github.com/suvojeet-sengupta/ota_sky/releases/download/sky-20261026-1656/aospa-calcite-unofficial-sky-user-20261026-1656IST.zip",
       "version": "Calcite",
       "version_code": "20261026"
     }

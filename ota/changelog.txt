@@ -1,8 +1,9 @@
 New
-- Use VPN for connected devices (Settings > Network & internet > Hotspot & tethering): while the phone is on a VPN, devices on its hotspot go through the same VPN. With "Block connections without VPN" on, they never bypass it
+- Touch works on the Redmi 12R: the touch driver supports its FocalTech FT8725 panel and loads the stock FT8725 firmware, in Android and in recovery
 
 Changes
-- The sensors HAL no longer gets access to the touchscreen nodes again, as before 20261025
+- Novatek touch panels reload their firmware at boot again
+- The sensors HAL can reach the touchscreen nodes again
 
 OTA updates
 - Phones on 20261025 or newer update through Settings > System > System update. Older builds flash this one from recovery once
