@@ -110,11 +110,8 @@
          The default is false. -->
     <bool name="config_lidControlsSleep">true</bool>
 
-    <!-- If true, the doze component is not started until after the screen has been
-         turned off and the screen off animation has been performed. -->
-    <bool name="config_dozeAfterScreenOffByDefault">true</bool>
-
-    <!-- Whether the always-on display mode is available. -->
+    <!-- No doze component, so there is no ambient display or always-on display. -->
+    <string name="config_dozeComponent" translatable="false"></string>
     <bool name="config_dozeAlwaysOnDisplayAvailable">false</bool>
 
     <!-- Power Management: Specifies whether to decouple the auto-suspend state of the
@@ -530,10 +527,6 @@
          will not debounce light sensor readings -->
     <integer name="config_lightSensorWarmupTime">100</integer>
 
-    <!-- True if the display hardware only has brightness buckets rather than a full range of
-         backlight values -->
-    <bool name="config_displayBrightnessBucketsInDoze">true</bool>
-
     <!-- Indicates whether device has a power button fingerprint sensor. -->
     <bool name="config_is_powerbutton_fps">true</bool>
 
@@ -612,7 +605,4 @@
         <item>0</item>
         <item>30</item>
     </integer-array>
-
-    <!-- If device supports pickup/lift gesture -->
-    <bool name="config_dozePulsePickup">true</bool>
 </resources>
