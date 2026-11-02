@@ -74,8 +74,8 @@
         <item>20</item>
     </integer-array>
 
-    <!-- Indicates that bridged AP mode is supported on this device -->
-    <bool translatable="false" name="config_wifiBridgedSoftApSupported">true</bool>
+    <!-- The driver can only run one AP interface, so bridged AP is not supported -->
+    <bool translatable="false" name="config_wifiBridgedSoftApSupported">false</bool>
 
     <!-- Indicates that the framework should auto append lower bands to band configuration for
          avoiding coexistence handling. For example: 5g only band will change to 2.4g|5g and
