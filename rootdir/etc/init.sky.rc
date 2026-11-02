@@ -4,6 +4,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 on early-boot
+    # Android's init.rc turns panic_on_oops on; leave it off so an oops
+    # kills the task and its backtrace reaches the log instead of
+    # panicking and resetting the phone, as it did during calls
+    write /proc/sys/kernel/panic_on_oops 0
+
     # SSR Setup
     write /sys/class/remoteproc/remoteproc0/recovery enabled
     write /sys/class/remoteproc/remoteproc1/recovery enabled
