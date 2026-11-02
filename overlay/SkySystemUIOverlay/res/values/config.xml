@@ -41,4 +41,7 @@
     <!-- Preferred max refresh rate at keyguard, if supported by the display. -->
     <integer name="config_keyguardMaxRefreshRate">60</integer>
 
+    <!-- With two SIMs, show one stacked signal icon: bars for the first SIM, dots for the second -->
+    <bool name="config_enable_stacked_icon">true</bool>
+
 </resources>
