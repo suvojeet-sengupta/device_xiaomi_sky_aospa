@@ -3,15 +3,15 @@
     {
       "android_spl": "2026-08-05",
       "build_type": "unofficial",
-      "changelog_device": "New\n- Touch works on the Redmi 12R: the touch driver supports its FocalTech FT8725 panel and loads the stock FT8725 firmware, in Android and in recovery\n\nChanges\n- Novatek touch panels reload their firmware at boot again\n- The sensors HAL can reach the touchscreen nodes again\n\nOTA updates\n- Phones on 20261025 or newer update through Settings > System > System update. Older builds flash this one from recovery once",
-      "datetime": "1793013986",
-      "filename": "aospa-calcite-unofficial-sky-user-20261026-1656IST.zip",
+      "changelog_device": "New\n- Kernel updated to Linux 6.6.144 (was 6.6.127), now named Suvkernel 1.0\n- Latest Qualcomm kernel fixes (CLO, up to October 2026), and the display, audio, camera, video, data and security drivers updated to LA.VENDOR.15.4.1.r1-11800\n- With two SIMs, one combined signal icon: bars for the first SIM, dots under them for the second\n\nChanges\n- Always-on display and ambient display removed, since the panel is LCD\n- Wi-Fi hotspot works again: it tried to start a dual-band hotspot the Wi-Fi chip doesn't support\n- The CPU idles at lower clocks, and touching the screen now boosts the big cores too\n- Kernel background work no longer wakes idle CPUs, for better battery life\n- Double tap to wake on the Redmi 12R only wakes the screen, it can no longer turn it off\n- The touch driver no longer writes every touch to the kernel log\n\nOTA updates\n- Phones on 20261025 or newer update through Settings > System > System update. Older builds flash this one from recovery once",
+      "datetime": "1793561086",
+      "filename": "aospa-calcite-unofficial-sky-user-20261102-0054IST.zip",
       "maintainer": "Suvojeet Sengupta",
-      "recovery_sha256": "2c029bfd989f3f50fc83e52abb413f5de597daf6bd84f934ea0d76f90cc043d1",
-      "size": "1859576153",
-      "url": "https://github.com/suvojeet-sengupta/ota_sky/releases/download/sky-20261026-1656/aospa-calcite-unofficial-sky-user-20261026-1656IST.zip",
+      "recovery_sha256": "dc4c06aa735c1236bf0b49b998f593a827a70f2809ee6b6a4c3a8f685bd3c02b",
+      "size": "1859630303",
+      "url": "https://github.com/suvojeet-sengupta/ota_sky/releases/download/sky-20261102/aospa-calcite-unofficial-sky-user-20261102-0054IST.zip",
       "version": "Calcite",
-      "version_code": "20261026"
+      "version_code": "20261102"
     }
   ]
 }

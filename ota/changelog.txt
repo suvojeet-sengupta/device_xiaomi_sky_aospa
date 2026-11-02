@@ -1,9 +1,15 @@
 New
-- Touch works on the Redmi 12R: the touch driver supports its FocalTech FT8725 panel and loads the stock FT8725 firmware, in Android and in recovery
+- Kernel updated to Linux 6.6.144 (was 6.6.127), now named Suvkernel 1.0
+- Latest Qualcomm kernel fixes (CLO, up to October 2026), and the display, audio, camera, video, data and security drivers updated to LA.VENDOR.15.4.1.r1-11800
+- With two SIMs, one combined signal icon: bars for the first SIM, dots under them for the second
 
 Changes
-- Novatek touch panels reload their firmware at boot again
-- The sensors HAL can reach the touchscreen nodes again
+- Always-on display and ambient display removed, since the panel is LCD
+- Wi-Fi hotspot works again: it tried to start a dual-band hotspot the Wi-Fi chip doesn't support
+- The CPU idles at lower clocks, and touching the screen now boosts the big cores too
+- Kernel background work no longer wakes idle CPUs, for better battery life
+- Double tap to wake on the Redmi 12R only wakes the screen, it can no longer turn it off
+- The touch driver no longer writes every touch to the kernel log
 
 OTA updates
 - Phones on 20261025 or newer update through Settings > System > System update. Older builds flash this one from recovery once
