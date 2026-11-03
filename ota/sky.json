@@ -3,15 +3,15 @@
     {
       "android_spl": "2026-08-05",
       "build_type": "unofficial",
-      "changelog_device": "Changes\n- revert cpu frequncy commit\n\nOTA updates\n- Phones on 20261025 or newer update through Settings > System > System update. Older builds flash this one from recovery once",
-      "datetime": "1793653579",
-      "filename": "aospa-calcite-unofficial-sky-20261102.zip",
+      "changelog_device": "Changes\n- A kernel error during a call no longer resets the phone: the error is logged and only the task that hit it is stopped\n- The CPU is back to the stock idle floor and hispeed load, so taps and app launches ramp up quickly again. The big core touch boost stays\n- The screen wakes faster: the touch firmware loads straight from /vendor/firmware, about 50 ms quicker on every wake\n- The per-SIM radio NV service now starts, SELinux no longer blocks it\n- Kernel: 22 memory management fixes from Linux 6.6.145 to 6.6.161 (MGLRU, zram, memcg, slub and more), and watermark boosting off\n- The charger driver no longer asks the firmware every 2.5 s for battery values it doesn't support\n- Storage I/O now gets its CPU frequency votes\n- The backlight, touch and speaker amp drivers no longer flood the kernel log\n\nOTA updates\n- Phones on 20261025 or newer update through Settings > System > System update. Older builds flash this one from recovery once",
+      "datetime": "1793684205",
+      "filename": "aospa-calcite-unofficial-sky-20261103.zip",
       "maintainer": "Suvojeet Sengupta",
-      "recovery_sha256": "14aba126223480b4276c8856bf978c4c41f567e324b8070405e3466c38472b24",
-      "size": "1859651123",
-      "url": "https://github.com/suvojeet-sengupta/ota_sky/releases/download/sky-20261102/aospa-calcite-unofficial-sky-20261102.zip",
+      "recovery_sha256": "8ec7cca9ec73c0cbb3a9ab89e50b50127019a505e3d33e949d705a7945424152",
+      "size": "1859650052",
+      "url": "https://github.com/suvojeet-sengupta/ota_sky/releases/download/sky-20261103/aospa-calcite-unofficial-sky-20261103.zip",
       "version": "Calcite",
-      "version_code": "20261102"
+      "version_code": "20261103"
     }
   ]
 }
