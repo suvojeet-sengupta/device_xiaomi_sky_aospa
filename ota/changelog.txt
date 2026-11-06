@@ -1,12 +1,13 @@
 Changes
-- A kernel error during a call no longer resets the phone: the error is logged and only the task that hit it is stopped
-- The CPU is back to the stock idle floor and hispeed load, so taps and app launches ramp up quickly again. The big core touch boost stays
-- The screen wakes faster: the touch firmware loads straight from /vendor/firmware, about 50 ms quicker on every wake
-- The per-SIM radio NV service now starts, SELinux no longer blocks it
-- Kernel: 22 memory management fixes from Linux 6.6.145 to 6.6.161 (MGLRU, zram, memcg, slub and more), and watermark boosting off
-- The charger driver no longer asks the firmware every 2.5 s for battery values it doesn't support
-- Storage I/O now gets its CPU frequency votes
-- The backlight, touch and speaker amp drivers no longer flood the kernel log
+- Kernel: Suvkernel 2.0. The scheduler runs EEVDF with PELT and EAS instead of WALT, with the schedutil governor on both clusters
+- Games get the touch game mode and a CPU boost while they are in front
+- Settings > Display > Touch game mode (and a Quick Settings tile) sets touch game mode to Auto, Always on or Off
+- Widevine can load its L1 library again, so DRM apps such as Hotstar can play in HD
+- Transparent huge pages only for apps that ask for them, so games keep more memory before they get killed
+- Stronger vibration with a quicker start
+- The display power domain no longer leaves its supply locked after screen off, a likely cause of the garbled screen after wake
+- The IR blaster clock no longer runs under-volted
+- Network Signal Guru and other DIAG tools reach the modem on user builds
 
 OTA updates
 - Phones on 20261025 or newer update through Settings > System > System update. Older builds flash this one from recovery once
