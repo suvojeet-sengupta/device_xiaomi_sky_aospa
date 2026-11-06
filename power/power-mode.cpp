@@ -7,15 +7,9 @@
 #include <aidl/android/hardware/power/BnPower.h>
 #include <android-base/file.h>
 #include <android-base/logging.h>
-#include <android-base/properties.h>
 #include <android-base/unique_fd.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
-#include <sys/system_properties.h>
-
-#include <mutex>
-#include <string>
-#include <thread>
 
 namespace aidl {
 namespace android {
@@ -23,9 +17,7 @@ namespace hardware {
 namespace power {
 namespace impl {
 
-using ::android::base::GetProperty;
 using ::android::base::unique_fd;
-using ::android::base::WaitForPropertyCreation;
 using ::android::base::WriteStringToFile;
 
 static constexpr char kTouchDevice[] = "/dev/xiaomi-touch";
@@ -34,10 +26,6 @@ static constexpr int kTouchSetCurValue = 0;
 static constexpr int kTouchGameMode = 0;
 static constexpr int kTouchValueSize = 6;
 static constexpr char kGameUclampMin[] = "20";
-static constexpr char kTouchGameModeProp[] = "persist.sys.sky.touch_game_mode";
-
-static std::mutex gTouchLock;
-static bool gGameActive = false;
 
 static void setTouchGameMode(bool enabled) {
     unique_fd fd(open(kTouchDevice, O_RDWR | O_CLOEXEC));
@@ -51,35 +39,12 @@ static void setTouchGameMode(bool enabled) {
         PLOG(ERROR) << "Failed to set touch game mode to " << enabled;
 }
 
-static void applyTouchGameMode() {
-    std::lock_guard<std::mutex> lock(gTouchLock);
-    std::string mode = GetProperty(kTouchGameModeProp, "auto");
-    setTouchGameMode(mode == "on" || (mode != "off" && gGameActive));
-}
-
-static void watchTouchGameMode() {
-    WaitForPropertyCreation(kTouchGameModeProp);
-    const prop_info* pi = __system_property_find(kTouchGameModeProp);
-    uint32_t serial = 0;
-    while (pi) {
-        applyTouchGameMode();
-        __system_property_wait(pi, serial, &serial, nullptr);
-    }
-}
-
-static void startTouchGameModeWatcher() {
-    static std::once_flag once;
-    std::call_once(once, [] { std::thread(watchTouchGameMode).detach(); });
-}
-
 static void setGameBoost(bool enabled) {
     if (!WriteStringToFile(enabled ? kGameUclampMin : "0", kTopAppUclampMin))
         PLOG(ERROR) << "Failed to write " << kTopAppUclampMin;
 }
 
 bool isDeviceSpecificModeSupported(Mode type, bool* _aidl_return) {
-    startTouchGameModeWatcher();
-
     switch (type) {
         case Mode::GAME:
             *_aidl_return = true;
@@ -92,11 +57,7 @@ bool isDeviceSpecificModeSupported(Mode type, bool* _aidl_return) {
 bool setDeviceSpecificMode(Mode type, bool enabled) {
     switch (type) {
         case Mode::GAME:
-            {
-                std::lock_guard<std::mutex> lock(gTouchLock);
-                gGameActive = enabled;
-            }
-            applyTouchGameMode();
+            setTouchGameMode(enabled);
             setGameBoost(enabled);
             return true;
         default:

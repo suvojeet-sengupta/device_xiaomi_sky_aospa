@@ -3,6 +3,3 @@ ro.boot.hwversion              u:object_r:exported_default_prop:s0
 ro.product.marketname          u:object_r:build_prop:s0
 ro.product.mod_device          u:object_r:build_prop:s0
 sys.brightness.disable_gamma_conversion u:object_r:exported3_system_prop:s0 exact bool
-
-# Touch game mode
-persist.sys.sky.touch_game_mode    u:object_r:sky_touch_game_prop:s0 exact enum auto on off
