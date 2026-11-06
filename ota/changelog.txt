@@ -7,6 +7,7 @@ Changes
 - Stronger vibration with a quicker start
 - The display power domain no longer leaves its supply locked after screen off, a likely cause of the garbled screen after wake
 - The IR blaster clock no longer runs under-volted
+- 8 GB phones get all their RAM again: the bootloader no longer holds 2 GB back, so they stop showing 6 GB
 
 OTA updates
 - Phones on 20261025 or newer update through Settings > System > System update. Older builds flash this one from recovery once

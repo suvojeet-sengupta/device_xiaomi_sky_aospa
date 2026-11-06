@@ -3,13 +3,13 @@
     {
       "android_spl": "2026-08-05",
       "build_type": "unofficial",
-      "changelog_device": "Changes\n- Kernel: Suvkernel 2.0. The scheduler runs EEVDF with PELT and EAS instead of WALT, with the schedutil governor on both clusters\n- Games get the touch game mode and a CPU boost while they are in front\n- Settings > Display > Touch game mode (and a Quick Settings tile) sets touch game mode to Auto, Always on or Off\n- Widevine can load its L1 library again, so DRM apps such as Hotstar can play in HD\n- Transparent huge pages only for apps that ask for them, so games keep more memory before they get killed\n- Stronger vibration with a quicker start\n- The display power domain no longer leaves its supply locked after screen off, a likely cause of the garbled screen after wake\n- The IR blaster clock no longer runs under-volted\n\nOTA updates\n- Phones on 20261025 or newer update through Settings > System > System update. Older builds flash this one from recovery once",
+      "changelog_device": "Changes\n- Kernel: Suvkernel 2.0. The scheduler runs EEVDF with PELT and EAS instead of WALT, with the schedutil governor on both clusters\n- Games get the touch game mode and a CPU boost while they are in front\n- Settings > Display > Touch game mode (and a Quick Settings tile) sets touch game mode to Auto, Always on or Off\n- Widevine can load its L1 library again, so DRM apps such as Hotstar can play in HD\n- Transparent huge pages only for apps that ask for them, so games keep more memory before they get killed\n- Stronger vibration with a quicker start\n- The display power domain no longer leaves its supply locked after screen off, a likely cause of the garbled screen after wake\n- The IR blaster clock no longer runs under-volted\n- 8 GB phones get all their RAM again: the bootloader no longer holds 2 GB back, so they stop showing 6 GB\n\nOTA updates\n- Phones on 20261025 or newer update through Settings > System > System update. Older builds flash this one from recovery once",
       "datetime": "1793992248",
       "filename": "aospa-calcite-unofficial-sky-20261106.zip",
       "maintainer": "Suvojeet Sengupta",
-      "recovery_sha256": "80f9b973ed771af074e4dbe4f53ea8a17dbbe05c8d6d6c6d486d09dd9ea0d63c",
-      "size": "1863031938",
-      "url": "https://github.com/suvojeet-sengupta/ota_sky/releases/download/sky-20261106-0040/aospa-calcite-unofficial-sky-20261106.zip",
+      "recovery_sha256": "65f0c5def7dbec7a9dccf3bc9c01cb08634c233840ac4f158f9e9da404477aa2",
+      "size": "1863031910",
+      "url": "https://github.com/suvojeet-sengupta/ota_sky/releases/download/sky-20261107/aospa-calcite-unofficial-sky-20261106.zip",
       "version": "Calcite",
       "version_code": "20261106"
     }
