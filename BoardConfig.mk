@@ -144,12 +144,6 @@ include device/qcom/common/sepolicy/SEPolicy.mk
 BOARD_VENDOR_SEPOLICY_DIRS := $(filter-out device/qcom/common/sepolicy/%/vendor/$(TARGET_BOARD_PLATFORM),$(BOARD_VENDOR_SEPOLICY_DIRS))
 
 BOARD_VENDOR_SEPOLICY_DIRS += $(DEVICE_PATH)/sepolicy/vendor
-
-# diag-router, so tools like NSG reach the modem on user builds too; userdebug
-# and eng builds get the same policy from sepolicy_vndr test
-ifeq ($(TARGET_BUILD_VARIANT),user)
-BOARD_VENDOR_SEPOLICY_DIRS += $(DEVICE_PATH)/sepolicy/vendor-user/diag
-endif
 SYSTEM_EXT_PRIVATE_SEPOLICY_DIRS += $(DEVICE_PATH)/sepolicy/private
 SYSTEM_EXT_PUBLIC_SEPOLICY_DIRS += $(DEVICE_PATH)/sepolicy/public
 
