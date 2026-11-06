@@ -15,10 +15,6 @@ on property:sys.boot_completed=1
 on property:vendor.post_boot.parsed=1
     exec u:r:vendor_qti_init_shell:s0 -- /vendor/bin/init.sky.perf.sh
 
-    # Configure CPU input boost: cpu0-5 are the little cluster, cpu6-7 the big one
-    write /proc/sys/walt/input_boost/input_boost_freq "1324800 0 0 0 0 0 1113600 0"
-    write /proc/sys/walt/input_boost/input_boost_ms 150
-
     # Configure scheduler
     # write /proc/sys/kernel/sched_upmigrate "80 95"
     # write /proc/sys/kernel/sched_downmigrate "75 85"
