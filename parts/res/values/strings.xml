@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: 2026 Suvojeet Sengupta
+     SPDX-License-Identifier: Apache-2.0
+-->
+<resources>
+    <string name="app_name">Sky Parts</string>
+    <string name="touch_game_title">Touch game mode</string>
+    <string name="touch_game_summary">Faster touch response for games</string>
+    <string name="touch_game_mode_title">Mode</string>
+    <string name="touch_game_footer">Auto turns game mode on while a game is in front and off when you leave it.</string>
+    <string name="touch_game_auto">Auto</string>
+    <string name="touch_game_on">Always on</string>
+    <string name="touch_game_off">Off</string>
+
+    <string-array name="touch_game_entries" translatable="false">
+        <item>@string/touch_game_auto</item>
+        <item>@string/touch_game_on</item>
+        <item>@string/touch_game_off</item>
+    </string-array>
+
+    <string-array name="touch_game_values" translatable="false">
+        <item>auto</item>
+        <item>on</item>
+        <item>off</item>
+    </string-array>
+</resources>
