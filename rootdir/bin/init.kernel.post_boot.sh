@@ -138,9 +138,9 @@ function configure_memory_parameters() {
 	# huge pages is not as necessary.
 	echo 0 > /proc/sys/vm/compaction_proactiveness
 
-	## Goal is to allow all allocations to use THP whilst minimizing allocaiton delays
-	# Allow all eligibe page faults to use THP
-	echo always > /sys/kernel/mm/transparent_hugepage/enabled
+	# Huge pages only where a process asks for them with madvise: with every
+	# eligible fault using THP, games bloated past what lmkd could keep alive.
+	echo madvise > /sys/kernel/mm/transparent_hugepage/enabled
 	# Prevent page faults on THP-elgible VMAs from causing reclaim or compaction
 	echo never > /sys/kernel/mm/transparent_hugepage/defrag
 
