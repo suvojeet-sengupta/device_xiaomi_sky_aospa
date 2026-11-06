@@ -296,6 +296,9 @@ PRODUCT_PACKAGES += \
 PRODUCT_VENDOR_PROPERTIES += \
     drm.service.enabled=true
 
+PRODUCT_VENDOR_LINKER_CONFIG_FRAGMENTS += \
+    $(LOCAL_PATH)/linker.config.json
+
 # Fastboot
 PRODUCT_PACKAGES += \
     fastbootd
