@@ -72,6 +72,8 @@ BOARD_BOOT_HEADER_VERSION := 4
 BOARD_MKBOOTIMG_ARGS := --header_version $(BOARD_BOOT_HEADER_VERSION)
 
 BOARD_KERNEL_CMDLINE += firmware_class.path=/vendor/firmware
+BOARD_KERNEL_CMDLINE += fw_devlink.sync_state=timeout
+BOARD_KERNEL_CMDLINE += rcutree.enable_rcu_lazy=1
 
 BOARD_BOOTCONFIG := \
     androidboot.hardware=qcom \
