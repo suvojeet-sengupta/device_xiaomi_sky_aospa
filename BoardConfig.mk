@@ -133,9 +133,6 @@ SOONG_CONFIG_ufsbsg_ufsframework := bsg
 # Screen density
 TARGET_SCREEN_DENSITY := 420
 
-# Vulkan
-TARGET_USES_VULKAN := true
-
 # Security patch level
 VENDOR_SECURITY_PATCH := $(PLATFORM_SECURITY_PATCH)
 
