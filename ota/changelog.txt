@@ -1,13 +1,10 @@
 Changes
-- Kernel: Suvkernel 2.0. The scheduler runs EEVDF with PELT and EAS instead of WALT, with the schedutil governor on both clusters
-- Games get the touch game mode and a CPU boost while they are in front
-- Settings > Display > Touch game mode (and a Quick Settings tile) sets touch game mode to Auto, Always on or Off
-- Widevine can load its L1 library again, so DRM apps such as Hotstar can play in HD
-- Transparent huge pages only for apps that ask for them, so games keep more memory before they get killed
-- Stronger vibration with a quicker start
-- The display power domain no longer leaves its supply locked after screen off, a likely cause of the garbled screen after wake
-- The IR blaster clock no longer runs under-volted
-- 8 GB phones get all their RAM again: the bootloader no longer holds 2 GB back, so they stop showing 6 GB
+- Refresh rate: 60 Hz is now offered next to 90 Hz in Settings > Display > Refresh rate
+- The Quick Settings media player no longer lags after pausing and resuming: the UI renders with OpenGL again
+- Downloads no longer stall the phone: the mobile data memory pool stops failing allocations that made the system kill apps
+- Better screen-off sleep with fewer wakeups (IPA interrupt and power domain fixes, lazy RCU)
+- The touchscreen tells the display again when its firmware has loaded
+- Kernel rebuilt with every module signed
 
 OTA updates
 - Phones on 20261025 or newer update through Settings > System > System update. Older builds flash this one from recovery once
