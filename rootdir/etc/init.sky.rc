@@ -83,6 +83,13 @@ on boot
     chown system system /sys/class/touch/touch_dev/palm_sensor
     chmod 0664 /sys/class/touch/touch_dev/palm_sensor
 
+on boot
+    # Network: let sockets ask for up to 8 MB of buffer instead of the 256 KB
+    # init.rc allows, which QUIC (UDP) needs to keep up on fast links. The
+    # kernel defaults to BBR, fq_codel and the TCP settings for phones.
+    write /proc/sys/net/core/rmem_max 8388608
+    write /proc/sys/net/core/wmem_max 8388608
+
 on post-fs
 
     # Allow access to dload sysfs node
