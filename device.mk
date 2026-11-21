@@ -547,6 +547,10 @@ PRODUCT_SHIPPING_API_LEVEL := 31
 PRODUCT_PACKAGES += \
     android.hardware.thermal-service.qti
 
+# mi_thermald configs without the battery rules, see configs/thermal
+PRODUCT_COPY_FILES += \
+    $(foreach f,$(wildcard $(LOCAL_PATH)/configs/thermal/*.conf),$(f):$(TARGET_COPY_OUT_VENDOR)/etc/$(notdir $(f)))
+
 # VNDK
 PRODUCT_PACKAGES += \
     libstdc++_vendor
