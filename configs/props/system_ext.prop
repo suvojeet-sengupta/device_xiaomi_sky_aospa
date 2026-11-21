@@ -5,7 +5,3 @@ persist.bluetooth.leaudio.allow.multiple.context=false
 ro.audio.ihaladaptervendorextension_enabled=true
 ro.product.mod_device=sky_in_global
 sys.brightness.disable_gamma_conversion=true
-
-# Blur
-ro.launcher.blur.appLaunch=0
-ro.sf.blurs_are_expensive=1
