@@ -330,7 +330,7 @@
         <ctl name="RX_MACRO RX2 MUX" value="AIF2_PB" />
         <ctl name="RX INT2_1 MIX1 INP0" value="RX2" />
         <ctl name="AUX_RDAC Switch" value="1" />
-        <ctl name="RX_RX2 Digital Volume" value="80" />
+        <ctl name="RX_RX2 Digital Volume" value="84" />
     </path>
 
     <path name="mainmic-ata">
@@ -661,7 +661,7 @@
 
     <path name="voice-speaker">
         <path name="speaker-mono" />
-        <ctl name="RX_RX2 Digital Volume" value="78" />
+        <ctl name="RX_RX2 Digital Volume" value="82" />
     </path>
 
     <path name="voice-speaker-stereo">
