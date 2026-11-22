@@ -12,6 +12,13 @@
 <!--follow the number format rules while specifying number, can be given
     in any format-->
 
+<!--sky: at 90 Hz, light and medium scrolls (vertical, horizontal and
+    silky types 5 and 6) floor the big cluster at 1190 or 960 MHz and the
+    little one at 940 MHz instead of holding both at about 1.5 GHz for the
+    whole scroll. schedutil and CASS raise the clock when a frame needs it.
+    Fling starts (type 4), heavy scrolls (type 7) and launches keep their
+    boosts.-->
+
 <BoostConfigs>
     <PerfBoost>
 
@@ -246,7 +253,7 @@
 
         <Config
             Id="0x00001080" Type="1" Enable="true" Fps="90"
-            Resources="0x40800000, 1497, 0x40800100, 1497,
+            Resources="0x40800000, 1190, 0x40800100, 940,
                        0x40C00000, 2, 0x40C74000, 0xF0, 0x40408000, 0x27" />
 
         <!-- CPUBOOST_MIN_FREQ BIG CORE resource opcode, value -->
@@ -316,7 +323,7 @@
 
         <Config
             Id="0x00001080" Type="2" Enable="true" Fps="90"
-            Resources="0x40800000, 1497, 0x40800100, 1497,
+            Resources="0x40800000, 1190, 0x40800100, 940,
                        0x40C00000, 2, 0x40C74000, 0xF0, 0x40408000, 0x27" />
 
         <!-- CPUBOOST_MIN_FREQ BIG CORE resource opcode, value -->
@@ -712,7 +719,7 @@
 
         <Config
             Id="0x00001080" Type="5" Enable="true" Fps="90"
-            Resources="0x40C00000, 2, 0x40800000, 1497, 0x40C78000, 0, 0x40C7C000, 0, 0x42C20000, 1" />
+            Resources="0x40C00000, 2, 0x40800000, 960, 0x40C78000, 0, 0x40C7C000, 0, 0x42C20000, 1" />
 
         <Config
             Id="0x00001080" Type="5" Enable="true" Fps="120, 144, 180"
@@ -756,7 +763,7 @@
         <Config
             Id="0x00001080" Type="6" Enable="true" Fps="90"
             Target="ravelin,montague,montaguep"
-            Resources="0x40800000, 1497, 0x40C00000, 2,
+            Resources="0x40800000, 1190, 0x40C00000, 2,
                        0x41000000, 2, 0x43480000, 0xAAE60, 0x40C78000, 0, 0x40C7C000, 0,
                        0x40C74000, 0xF0, 0x40408000, 0x27, 0x41008000, 0, 0x42C20000, 1" />
 
