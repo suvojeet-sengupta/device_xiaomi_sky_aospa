@@ -153,6 +153,19 @@ service qrtr-lookup /vendor/bin/qrtr-lookup
 on property:sys.boot_completed=1
     start qrtr-lookup
 
+# init.kernel.post_boot.sh sets up zram, THP, swappiness and min_free_kbytes.
+# The QTI memory script starts at the same time and races it: when it
+# finishes last, THP goes back to always and swappiness to 100, and when it
+# sizes zram first, zram stays on lzo-rle without the zstd recompression.
+# Keep the service name for init.qti.kernel.rc's start, but do nothing.
+service memory-post-boot /vendor/bin/sh -c :
+    override
+    class core
+    user root
+    group root
+    disabled
+    oneshot
+
 service secureelement-hal_1_2 /vendor/bin/hw/vendor.qti.secure_element@1.2-service
     class early_hal
     user system
