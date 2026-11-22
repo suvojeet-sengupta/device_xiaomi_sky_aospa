@@ -575,39 +575,34 @@
     <!-- The default volume for the ring stream -->
     <integer name="config_audio_ring_vol_default">11</integer>
 
-    <!-- sky's vibrator is an LDO-driven motor without effects, so every
-         click and tick is one of these on-times. The kernel plays each
-         one at the 3.544 V overdrive for its first 60 ms, so short pulses
-         land as a sharp tap instead of a buzz. -->
-
     <!-- Vibrator pattern for a very short but reliable vibration for soft keyboard tap -->
     <integer-array name="config_keyboardTapVibePattern">
-        <item>15</item>
+        <item>50</item>
     </integer-array>
 
     <!-- Vibrator pattern for feedback about a long screen/key press -->
     <integer-array name="config_longPressVibePattern">
         <item>0</item>
-        <item>30</item>
+        <item>50</item>
     </integer-array>
 
     <!-- Vibrator pattern for feedback about touching a virtual key -->
     <integer-array name="config_virtualKeyVibePattern">
         <item>0</item>
-        <item>20</item>
+        <item>40</item>
     </integer-array>
 
     <!-- Vibrator pattern for feedback that simulates a double click effect -->
     <integer-array name="config_doubleClickVibePattern">
         <item>0</item>
-        <item>20</item>
-        <item>80</item>
-        <item>20</item>
+        <item>50</item>
+        <item>100</item>
+        <item>50</item>
     </integer-array>
 
     <!-- Vibrator pattern for feedback when selecting an hour/minute tick of a Clock -->
     <integer-array name="config_clockTickVibePattern">
         <item>0</item>
-        <item>12</item>
+        <item>30</item>
     </integer-array>
 </resources>
