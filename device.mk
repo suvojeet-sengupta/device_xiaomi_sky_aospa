@@ -496,6 +496,7 @@ PRODUCT_VENDOR_PROPERTIES += \
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/perf/perfboostsconfig.xml:$(TARGET_COPY_OUT_VENDOR)/etc/perf/perfboostsconfig.xml \
+    $(LOCAL_PATH)/configs/perf/perfconfigstore.xml:$(TARGET_COPY_OUT_VENDOR)/etc/perf/perfconfigstore.xml \
     $(LOCAL_PATH)/configs/sysconfig/workloadclassifier.xml:$(TARGET_COPY_OUT_SYSTEM_EXT)/etc/sysconfig/workloadclassifier.xml
 
 # Platform
