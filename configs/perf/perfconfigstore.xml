@@ -69,16 +69,22 @@ ________________________________________________________________________________
                 <Prop Name="ro.vendor.perf.dplh" Value="false" />
 
                 <!--LMKD Properties -->
+                <!--sky: kill on the lmkd and AOSP defaults, not on QTI's. With zram,
+                    a full stall of 70 ms (200 ms for the super critical level)
+                    happens while pages compress, so lmkd killed perceptible apps
+                    like music and workout services with plenty of zram free.
+                    Critical 700 ms, super critical 800 ms, thrashing 100% with
+                    a decay of 10%.-->
                 <Prop Name="ro.lmk.enable_userspace_lmk"        Value="true" />
                 <Prop Name="ro.lmk.kill_heaviest_task_dup"      Value="true" />
                 <Prop Name="ro.lmk.enable_preferred_apps"       Value="true" />
                 <Prop Name="ro.lmk.kill_timeout_ms_dup"         Value="100" />
-                <Prop Name="ro.lmk.thrashing_threshold"         Value="30" />
-                <Prop Name="ro.lmk.thrashing_decay"             Value="5" />
+                <Prop Name="ro.lmk.thrashing_threshold"         Value="100" />
+                <Prop Name="ro.lmk.thrashing_decay"             Value="10" />
                 <Prop Name="ro.lmk.nstrat_low_swap"             Value="10" />
                 <Prop Name="ro.lmk.nstrat_psi_partial_ms"       Value="70" />
-                <Prop Name="ro.lmk.nstrat_psi_complete_ms"      Value="70" />
-                <Prop Name="ro.lmk.psi_scrit_complete_stall_ms" Value="200"/>
+                <Prop Name="ro.lmk.nstrat_psi_complete_ms"      Value="700" />
+                <Prop Name="ro.lmk.psi_scrit_complete_stall_ms" Value="800"/>
                 <Prop Name="ro.lmk.nstrat_wmark_boost_factor"   Value="2" />
                 <Prop Name="ro.lmk.nstrat_wmark_boost_factor"   Value="4"  Ram="8" />
                 <Prop Name="ro.lmk.cache_percent"               Value="10" />
