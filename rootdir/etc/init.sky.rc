@@ -18,21 +18,24 @@ on early-boot
 on early-init
     start vendor.audioadsprpcd_audiopd
 
+# NXP chip config per board. The stock libnfc-qrd-SN100_{CN,GLB,JP}.conf
+# ship in /odm/etc as libnfc-hcesimese.conf (CN), libnfc-hcesim.conf (GLB)
+# and libnfc-hcesim1ese.conf (JP), see proprietary-files.txt.
 on early-init && property:ro.boot.boardid=S88019BP1
-    setprop persist.vendor.nfc.config_file_name libnfc-qrd-SN100_CN.conf
+    setprop persist.vendor.nfc.config_file_name libnfc-hcesimese.conf
 
 on early-init && property:ro.boot.boardid=S88018PA1
-    setprop persist.vendor.nfc.config_file_name libnfc-qrd-SN100_GLB.conf
+    setprop persist.vendor.nfc.config_file_name libnfc-hcesim.conf
 
 on early-init && property:ro.boot.boardid=S88029JA1
-    setprop persist.vendor.nfc.config_file_name libnfc-qrd-SN100_JP.conf
+    setprop persist.vendor.nfc.config_file_name libnfc-hcesim1ese.conf
 
 on early-init && property:ro.boot.boardid=S88029EA1
-    setprop persist.vendor.nfc.config_file_name libnfc-qrd-SN100_JP.conf
+    setprop persist.vendor.nfc.config_file_name libnfc-hcesim1ese.conf
 
 on early-init && property:ro.boot.boardid=S88029AA1
     setprop ro.boot.product.hardware.sku river
-    setprop persist.vendor.nfc.config_file_name libnfc-qrd-SN100_GLB.conf
+    setprop persist.vendor.nfc.config_file_name libnfc-hcesim.conf
     setprop ro.vendor.se.type HCE,UICC
     setprop persist.vendor.nfc.factory.fwstatus unknown
     setprop ro.vendor.nfc.repair 1
