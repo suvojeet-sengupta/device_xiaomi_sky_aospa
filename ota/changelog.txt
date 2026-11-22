@@ -5,7 +5,7 @@ Changes
 - Real-time tasks no longer hold a CPU at its top speed
 - Touch and app launch boosts from the perf HAL reach the CPUs again
 - Faster charging: no more fixed thermal charging steps, and mi_thermald no longer cuts the charge current. The phone charges at the full speed the charger firmware allows, with only its own temperature safety limits
-- Short, sharp vibration for taps and clicks (a crisp tak instead of a buzz), stronger overall
+- Stronger, crisper vibration for taps and clicks
 - Better battery while scrolling: the CPUs are no longer held at 1.5 GHz for every scroll
 - The GPU starts at a higher clock, so apps open and scroll faster
 - Louder speaker
