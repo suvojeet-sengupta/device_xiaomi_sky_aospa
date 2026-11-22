@@ -3,15 +3,15 @@
     {
       "android_spl": "2026-08-05",
       "build_type": "unofficial",
-      "changelog_device": "Changes\n- Refresh rate: 60 Hz is now offered next to 90 Hz in Settings > Display > Refresh rate\n- The Quick Settings media player no longer lags after pausing and resuming: the UI renders with OpenGL again\n- Downloads no longer stall the phone: the mobile data memory pool stops failing allocations that made the system kill apps\n- Better screen-off sleep with fewer wakeups (IPA interrupt and power domain fixes, lazy RCU)\n- The touchscreen tells the display again when its firmware has loaded\n- Kernel rebuilt with every module signed\n\nOTA updates\n- Phones on 20261025 or newer update through Settings > System > System update. Older builds flash this one from recovery once",
-      "datetime": "1794673867",
-      "filename": "aospa-calcite-unofficial-sky-20261115.zip",
+      "changelog_device": "Changes\n- Kernel: Suvkernel 3.0, now on Linux 6.6.162 (Android 6.6 LTS) with every module rebuilt and signed for it\n- New CPU scheduler (CASS): tasks go to the core with the most spare capacity, so the UI stays smooth on less power\n- The CPUs idle at their lowest speed again and clock up only when there is work, with no spikes while the phone is idle\n- Real-time tasks no longer hold a CPU at its top speed\n- Touch and app launch boosts from the perf HAL reach the CPUs again\n- Faster charging: no more fixed thermal charging steps, and mi_thermald no longer cuts the charge current. The phone charges at the full speed the charger firmware allows, with only its own temperature safety limits\n- Stronger, crisper vibration for taps and clicks\n- Better battery while scrolling: the CPUs are no longer held at 1.5 GHz for every scroll\n- The GPU starts at a higher clock, so apps open and scroll faster\n- Louder speaker\n- LDAC for Bluetooth earphones that support it\n- NFC uses the right chip configuration for your region again\n- Fewer apps killed in the background: a stock Qualcomm script no longer races the sky memory tuning at boot and resets huge pages, swappiness and zram compression\n- Music players and workout trackers no longer get killed while running: the low memory killer no longer treats a short memory stall as an emergency\n- Faster, steadier internet: BBR and fq_codel, TCP tuned for phones, and bigger socket buffers for QUIC\n\nOTA updates\n- Phones on 20261025 or newer update through Settings > System > System update. Older builds flash this one from recovery once",
+      "datetime": "1795312085",
+      "filename": "aospa-calcite-unofficial-sky-20261122.zip",
       "maintainer": "Suvojeet Sengupta",
-      "recovery_sha256": "6ec72b2abf6329756125a2307dba03bf3d0accf4fa89a3001347b5b77294c361",
-      "size": "1863035437",
-      "url": "https://github.com/suvojeet-sengupta/ota_sky/releases/download/sky-20261115/aospa-calcite-unofficial-sky-20261115.zip",
+      "recovery_sha256": "5b29d69594e10b6f8f527f9528b7e8e96b2e4f38e8ce3556775e8e109fb59ccf",
+      "size": "1863046549",
+      "url": "https://github.com/suvojeet-sengupta/ota_sky/releases/download/sky-20261122/aospa-calcite-unofficial-sky-20261122.zip",
       "version": "Calcite",
-      "version_code": "20261115"
+      "version_code": "20261122"
     }
   ]
 }
