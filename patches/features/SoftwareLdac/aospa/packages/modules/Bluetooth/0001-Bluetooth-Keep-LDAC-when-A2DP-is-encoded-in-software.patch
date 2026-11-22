@@ -1,0 +1,43 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Sun, 22 Nov 2026 01:07:22 +0000
+Subject: [PATCH] Bluetooth: Keep LDAC when A2DP is encoded in software
+
+A2dpCodecs::init() disables the LDAC source codec unless the Bluetooth
+SoC reports split A2DP LDAC support. That only matters on the offload
+path, where the SoC encodes: with A2DP offload off the stack encodes
+LDAC itself with libldacBT, which is linked in either way. Phones whose
+SoC can't encode LDAC and that run A2DP in software lost LDAC for
+nothing.
+
+Only ask the SoC when A2DP offload is enabled, read the same way as
+isA2DPOffloadEnabled(): ro.bluetooth.a2dp_offload.supported and not
+persist.bluetooth.a2dp_offload.disabled.
+
+Change-Id: I32eed4050cdb824c41fad4dd997359ef4fc7ca16
+---
+ system/stack/a2dp/a2dp_codec_config.cc | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/system/stack/a2dp/a2dp_codec_config.cc b/system/stack/a2dp/a2dp_codec_config.cc
+index a0eaca3245..b7c1c09def 100644
+--- a/system/stack/a2dp/a2dp_codec_config.cc
++++ b/system/stack/a2dp/a2dp_codec_config.cc
+@@ -720,7 +720,13 @@ bool A2dpCodecs::init() {
+       log::info("LHDCv5 codec disabled");
+     }
+ 
+-    if(codec_index == BTAV_A2DP_CODEC_INDEX_SOURCE_LDAC) {
++    // The SoC only has to encode LDAC on the split (offload) path. With
++    // A2DP offload off the stack encodes it in software with libldacBT, so
++    // keep LDAC even when the SoC cannot encode it.
++    bool a2dp_offload =
++            osi_property_get_bool("ro.bluetooth.a2dp_offload.supported", false) &&
++            !osi_property_get_bool("persist.bluetooth.a2dp_offload.disabled", false);
++    if (codec_index == BTAV_A2DP_CODEC_INDEX_SOURCE_LDAC && a2dp_offload) {
+       log::verbose("codec_index is BTAV_A2DP_CODEC_INDEX_SOURCE_LDAC");
+       uint8_t soc_add_on_features_len = 0;
+       const bt_device_soc_add_on_features_t* soc_add_on_features =
+-- 
+2.43.0
+
