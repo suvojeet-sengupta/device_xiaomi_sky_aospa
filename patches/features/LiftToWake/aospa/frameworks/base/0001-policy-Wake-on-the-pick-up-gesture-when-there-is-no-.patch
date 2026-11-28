@@ -1,0 +1,54 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Sat, 28 Nov 2026 13:54:54 +0000
+Subject: [PATCH] policy: Wake on the pick up gesture when there is no wake
+ gesture sensor
+
+Lift to wake only listens to TYPE_WAKE_GESTURE, which phones like sky do
+not have. Their sensor hub has a pick up gesture sensor instead, which
+fires on the same lift and is the one-shot wake-up trigger sensor the
+listener needs. Use it when there is no wake gesture sensor, but only
+when it is one-shot and wake-up, since requestTriggerSensor() takes
+nothing else.
+
+Change-Id: Ied04ab616b5c92a599db49d505f7404b174999eb
+---
+ .../server/policy/WakeGestureListener.java    | 22 ++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
+
+diff --git a/services/core/java/com/android/server/policy/WakeGestureListener.java b/services/core/java/com/android/server/policy/WakeGestureListener.java
+index 1d5d7baa98ff..4ad57ee5e918 100644
+--- a/services/core/java/com/android/server/policy/WakeGestureListener.java
++++ b/services/core/java/com/android/server/policy/WakeGestureListener.java
+@@ -43,7 +43,27 @@ public abstract class WakeGestureListener {
+         mSensorManager = (SensorManager)context.getSystemService(Context.SENSOR_SERVICE);
+         mHandler = handler;
+ 
+-        mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_WAKE_GESTURE);
++        mSensor = getWakeGestureSensor(mSensorManager);
++    }
++
++    /**
++     * The wake gesture sensor, or on devices without one, a one-shot wake-up pick up gesture
++     * sensor, which fires on the same lift of the phone.
++     */
++    public static Sensor getWakeGestureSensor(SensorManager sensorManager) {
++        if (sensorManager == null) {
++            return null;
++        }
++        final Sensor wakeGesture = sensorManager.getDefaultSensor(Sensor.TYPE_WAKE_GESTURE);
++        if (wakeGesture != null) {
++            return wakeGesture;
++        }
++        final Sensor pickUp = sensorManager.getDefaultSensor(Sensor.TYPE_PICK_UP_GESTURE);
++        if (pickUp != null && pickUp.isWakeUpSensor()
++                && pickUp.getReportingMode() == Sensor.REPORTING_MODE_ONE_SHOT) {
++            return pickUp;
++        }
++        return null;
+     }
+ 
+     public abstract void onWakeUp();
+-- 
+2.43.0
+

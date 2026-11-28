@@ -1,0 +1,187 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Sat, 28 Nov 2026 08:34:00 +0000
+Subject: [PATCH] SystemUI: Add a switch to turn off the shade blur
+
+Read Settings.Secure sysui_shade_blur_disabled in BlurUtils and the
+window blur repository. When it is 1, the notification panel and quick
+settings stop blurring what is behind them and fall back to the solid
+scrim SystemUI already uses on devices without blur. Both watch the
+setting, so it applies without restarting SystemUI.
+
+Change-Id: I5b1d7c2e9a4f3086d1e2c7b8a9f0e1d2c3b4a5f6
+---
+ .../android/systemui/statusbar/BlurUtils.kt   | 28 ++++++++++++++++
+ .../WindowRootViewBlurRepository.kt           | 32 ++++++++++++++++++-
+ 2 files changed, 59 insertions(+), 1 deletion(-)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/BlurUtils.kt b/packages/SystemUI/src/com/android/systemui/statusbar/BlurUtils.kt
+index 50356e51033d..04462e26e62b 100644
+--- a/packages/SystemUI/src/com/android/systemui/statusbar/BlurUtils.kt
++++ b/packages/SystemUI/src/com/android/systemui/statusbar/BlurUtils.kt
+@@ -19,12 +19,14 @@ package com.android.systemui.statusbar
+ import android.annotation.SuppressLint
+ import android.app.ActivityManager
+ import android.content.res.Resources
++import android.database.ContentObserver
+ import android.gui.EarlyWakeupInfo
+ import android.os.Binder
+ import android.os.Build
+ import android.os.SystemProperties
+ import android.os.Trace
+ import android.os.Trace.TRACE_TAG_APP
++import android.os.UserHandle
+ import android.util.IndentingPrintWriter
+ import android.util.Log
+ import android.util.MathUtils
+@@ -41,6 +43,7 @@ import com.android.systemui.dagger.qualifiers.Main
+ import com.android.systemui.dump.DumpManager
+ import com.android.systemui.keyguard.ui.transitions.BlurConfig
+ import com.android.systemui.res.R
++import com.android.systemui.util.settings.SecureSettings
+ import java.io.PrintWriter
+ import javax.inject.Inject
+ 
+@@ -52,6 +55,7 @@ constructor(
+     blurConfig: BlurConfig,
+     private val crossWindowBlurListeners: CrossWindowBlurListeners,
+     dumpManager: DumpManager,
++    private val secureSettings: SecureSettings,
+ ) : Dumpable {
+     val minBlurRadius = resources.getDimensionPixelSize(R.dimen.min_window_blur_radius).toFloat()
+     val maxBlurRadius =
+@@ -76,9 +80,29 @@ constructor(
+     /** When this is true, early wakeup flag is not reset on surface flinger when blur drops to 0 */
+     private var persistentEarlyWakeupRequired = false
+ 
++    /** The user turned off the notification shade and quick settings blur. */
++    @Volatile private var shadeBlurDisabled = false
++
+     init {
+         dumpManager.registerDumpable(this)
+         earlyWakeupInfo.token = Binder()
++        val observer =
++            object : ContentObserver(null) {
++                override fun onChange(selfChange: Boolean) {
++                    updateShadeBlurDisabled()
++                }
++            }
++        secureSettings.registerContentObserverForUserAsync(
++            SHADE_BLUR_DISABLED,
++            observer,
++            UserHandle.USER_ALL,
++        )
++        updateShadeBlurDisabled()
++    }
++
++    private fun updateShadeBlurDisabled() {
++        shadeBlurDisabled =
++            secureSettings.getIntForUser(SHADE_BLUR_DISABLED, 0, UserHandle.USER_CURRENT) != 0
+     }
+ 
+     @VisibleForTesting
+@@ -242,6 +266,7 @@ constructor(
+      */
+     open fun supportsBlursOnWindows(): Boolean {
+         return supportsBlursOnWindowsBase() &&
++            !shadeBlurDisabled &&
+             crossWindowBlurListeners != null &&
+             crossWindowBlurListeners.isCrossWindowBlurEnabled
+     }
+@@ -261,6 +286,7 @@ constructor(
+             it.println("supportsBlursOnWindows: ${supportsBlursOnWindows()}")
+             it.println("CROSS_WINDOW_BLUR_SUPPORTED: $CROSS_WINDOW_BLUR_SUPPORTED")
+             it.println("isHighEndGfx: ${ActivityManager.isHighEndGfx()}")
++            it.println("shadeBlurDisabled: $shadeBlurDisabled")
+         }
+     }
+ 
+@@ -301,6 +327,8 @@ constructor(
+ 
+     companion object {
+         const val TRACK_NAME = "BlurUtils"
++        /** Secure setting: 1 turns off the notification shade and quick settings blur. */
++        const val SHADE_BLUR_DISABLED = "sysui_shade_blur_disabled"
+         private const val TAG = "BlurUtils"
+         private val PREPARE_BLUR_TRACE_NAME = BlurUtils::class.java.name + "::prepareBlur"
+         private val APPLY_BLUR_TRACE_NAME = BlurUtils::class.java.name + "::applyBlur"
+diff --git a/packages/SystemUI/src/com/android/systemui/window/data/repository/WindowRootViewBlurRepository.kt b/packages/SystemUI/src/com/android/systemui/window/data/repository/WindowRootViewBlurRepository.kt
+index 5b015ec32d4a..c10b7973fc09 100644
+--- a/packages/SystemUI/src/com/android/systemui/window/data/repository/WindowRootViewBlurRepository.kt
++++ b/packages/SystemUI/src/com/android/systemui/window/data/repository/WindowRootViewBlurRepository.kt
+@@ -18,19 +18,29 @@ package com.android.systemui.window.data.repository
+ 
+ import android.app.ActivityManager
+ import android.os.SystemProperties
++import android.os.UserHandle
+ import android.view.CrossWindowBlurListeners
+ import com.android.systemui.common.coroutine.ChannelExt.trySendWithFailureLogging
+ import com.android.systemui.dagger.SysUISingleton
+ import com.android.systemui.dagger.qualifiers.Application
++import com.android.systemui.dagger.qualifiers.Background
+ import com.android.systemui.dagger.qualifiers.Main
++import com.android.systemui.statusbar.BlurUtils
++import com.android.systemui.util.settings.SecureSettings
++import com.android.systemui.util.settings.SettingsProxyExt.observerFlow
+ import com.android.systemui.utils.coroutines.flow.conflatedCallbackFlow
+ import com.android.systemui.window.data.repository.WindowRootViewBlurRepository.Companion.isDisableBlurSysPropSet
+ import java.util.concurrent.Executor
+ import java.util.function.Consumer
+ import javax.inject.Inject
++import kotlinx.coroutines.CoroutineDispatcher
+ import kotlinx.coroutines.CoroutineScope
+ import kotlinx.coroutines.channels.awaitClose
+ import kotlinx.coroutines.flow.MutableStateFlow
++import kotlinx.coroutines.flow.combine
++import kotlinx.coroutines.flow.flowOn
++import kotlinx.coroutines.flow.map
++import kotlinx.coroutines.flow.onStart
+ import kotlinx.coroutines.flow.SharingStarted
+ import kotlinx.coroutines.flow.StateFlow
+ import kotlinx.coroutines.flow.stateIn
+@@ -70,6 +80,8 @@ constructor(
+     crossWindowBlurListeners: CrossWindowBlurListeners,
+     @Main private val executor: Executor,
+     @Application private val scope: CoroutineScope,
++    secureSettings: SecureSettings,
++    @Background bgDispatcher: CoroutineDispatcher,
+ ) : WindowRootViewBlurRepository {
+ 
+     override val trackingShadeMotion = MutableStateFlow(false)
+@@ -78,7 +90,7 @@ constructor(
+ 
+     override val scaleRequestedByShade = MutableStateFlow(1.0f)
+ 
+-    override val isBlurSupported: StateFlow<Boolean> =
++    private val crossWindowBlurEnabled =
+         conflatedCallbackFlow {
+                 val sendUpdate =
+                     Consumer<Boolean> { value: Boolean ->
+@@ -92,6 +104,24 @@ constructor(
+                 sendUpdate.accept(crossWindowBlurListeners.isCrossWindowBlurEnabled)
+ 
+                 awaitClose { crossWindowBlurListeners.removeListener(sendUpdate) }
++            }
++
++    private val shadeBlurDisabled =
++        secureSettings
++            .observerFlow(UserHandle.USER_ALL, BlurUtils.SHADE_BLUR_DISABLED)
++            .onStart { emit(Unit) }
++            .map {
++                secureSettings.getIntForUser(
++                    BlurUtils.SHADE_BLUR_DISABLED,
++                    0,
++                    UserHandle.USER_CURRENT,
++                ) != 0
++            }
++            .flowOn(bgDispatcher)
++
++    override val isBlurSupported: StateFlow<Boolean> =
++        combine(crossWindowBlurEnabled, shadeBlurDisabled) { enabled, disabled ->
++                enabled && !disabled
+             } // stateIn because this is backed by a binder call.
+             .stateIn(scope, SharingStarted.Eagerly, false)
+ 
+-- 
+2.43.0
+

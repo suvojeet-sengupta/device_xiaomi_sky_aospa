@@ -1,0 +1,38 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Sat, 28 Nov 2026 13:55:14 +0000
+Subject: [PATCH] Settings: Show lift to wake for pick up gesture sensors
+
+The framework now wakes on a one-shot wake-up pick up gesture sensor when the phone has no wake gesture sensor, so offer the lift to wake switch for those phones too.
+
+Change-Id: I2aac4bde7dca5dbecb91fb523aa17d59b13e8efb
+---
+ .../display/LiftToWakePreferenceController.java      | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/src/com/android/settings/display/LiftToWakePreferenceController.java b/src/com/android/settings/display/LiftToWakePreferenceController.java
+index 4725dc459c4..864d616e410 100644
+--- a/src/com/android/settings/display/LiftToWakePreferenceController.java
++++ b/src/com/android/settings/display/LiftToWakePreferenceController.java
+@@ -38,7 +38,17 @@ public class LiftToWakePreferenceController extends AbstractPreferenceController
+     @Override
+     public boolean isAvailable() {
+         SensorManager sensors = (SensorManager) mContext.getSystemService(Context.SENSOR_SERVICE);
+-        return sensors != null && sensors.getDefaultSensor(Sensor.TYPE_WAKE_GESTURE) != null;
++        if (sensors == null) {
++            return false;
++        }
++        if (sensors.getDefaultSensor(Sensor.TYPE_WAKE_GESTURE) != null) {
++            return true;
++        }
++        // Without a wake gesture sensor the framework wakes on a one-shot wake-up pick up
++        // gesture sensor instead, see WakeGestureListener.
++        Sensor pickUp = sensors.getDefaultSensor(Sensor.TYPE_PICK_UP_GESTURE);
++        return pickUp != null && pickUp.isWakeUpSensor()
++                && pickUp.getReportingMode() == Sensor.REPORTING_MODE_ONE_SHOT;
+     }
+ 
+     @Override
+-- 
+2.43.0
+
