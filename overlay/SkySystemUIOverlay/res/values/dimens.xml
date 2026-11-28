@@ -4,7 +4,19 @@
      SPDX-License-Identifier: Apache-2.0
 -->
 <resources>
-    <!-- The shade blurs everything behind it on the Adreno 613 every frame it moves. 10dp,
-         under a third of the default 34dp, keeps a light blur for less GPU work. -->
-    <dimen name="max_shade_window_blur_radius">10dp</dimen>
+    <!-- SurfaceFlinger's dual Kawase blur adds a pass for every 17.3px of radius, which is
+         6.6dp at sky's 420dpi: up to 13.2dp takes 2 passes, more takes 3. Every full screen
+         blur here sits at 13dp, the most blur 2 passes give on the Adreno 613. -->
+
+    <!-- Behind the notification shade, redrawn every frame it moves. Default 34dp. -->
+    <dimen name="max_shade_window_blur_radius">13dp</dimen>
+
+    <!-- Behind the power menu. Default 34dp. -->
+    <dimen name="global_actions_blur_radius">13dp</dimen>
+
+    <!-- Behind each notification. Default 25dp. -->
+    <dimen name="notification_background_blur_radius">13dp</dimen>
+
+    <!-- Behind the volume dialog. Default 23dp. -->
+    <dimen name="volume_dialog_background_surface_blur_radius">13dp</dimen>
 </resources>

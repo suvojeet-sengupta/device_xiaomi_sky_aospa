@@ -464,6 +464,7 @@ PRODUCT_PACKAGES += \
     SkyGLWifiOverlay \
     SkyINSettingsProviderOverlay \
     SkyINWifiOverlay \
+    SkyLauncherOverlay \
     SkyParanoidHubOverlay \
     SkySettingsOverlay \
     SkySystemUIOverlay \
