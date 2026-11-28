@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Android 17 Memory Limiter tiers for sky, which ships with 4, 6 and 8GB.
+    The framework reads this from /vendor/etc and keeps the Memory Limiter
+    off when the file is missing. It takes the tier with the largest
+    minimumRequiredMemTotal that is still below MemTotal (in MB, after
+    carve-outs). Values are memory.high and swap.max per process in MB.
+-->
+<MemoryLimiterConfig>
+  <version>1</version>
+  <configList>
+    <limitSet>
+      <!-- 8GB: 5G/3G/3G/3G -->
+      <minimumRequiredMemTotal>6800</minimumRequiredMemTotal>
+      <memVisible>5120</memVisible>
+      <memNotVisible>3072</memNotVisible>
+      <swapVisible>3072</swapVisible>
+      <swapNotVisible>3072</swapNotVisible>
+    </limitSet>
+    <limitSet>
+      <!-- 6GB: 4G/2G/2G/2G -->
+      <minimumRequiredMemTotal>4800</minimumRequiredMemTotal>
+      <memVisible>4096</memVisible>
+      <memNotVisible>2048</memNotVisible>
+      <swapVisible>2048</swapVisible>
+      <swapNotVisible>2048</swapNotVisible>
+    </limitSet>
+    <limitSet>
+      <!-- 4GB: 2G/1G/1G/1G -->
+      <minimumRequiredMemTotal>3200</minimumRequiredMemTotal>
+      <memVisible>2048</memVisible>
+      <memNotVisible>1024</memNotVisible>
+      <swapVisible>1024</swapVisible>
+      <swapNotVisible>1024</swapNotVisible>
+    </limitSet>
+  </configList>
+</MemoryLimiterConfig>

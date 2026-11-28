@@ -211,6 +211,10 @@ PRODUCT_VENDOR_PROPERTIES += \
 PRODUCT_VENDOR_PROPERTIES += \
     ro.lmk.kill_heaviest_task=true
 
+# Memory Limiter
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/configs/memory/memory-limiter-config.xml:$(TARGET_COPY_OUT_VENDOR)/etc/memory-limiter-config.xml
+
 # Display / Graphics
 PRODUCT_PACKAGES += \
     android.hardware.graphics.mapper@4.0-impl-qti-display \
