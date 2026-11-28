@@ -41,7 +41,7 @@ ________________________________________________________________________________
                 <!-- AOSPA Edit: Disable IOPd explicitly -->
                 <Prop Name="vendor.iop.enabled" Value="false" />
                 <Prop Name="vendor.iop.enable_speed"          Value="true" />
-                <Prop Name="vendor.debug.enable.lm"           Value="true" />
+                <Prop Name="vendor.debug.enable.lm"           Value="false" />
                 <Prop Name="vendor.perf.test_avc"             Value="false" />
                 <Prop Name="vendor.perf.fps_switch_hyst_time_secs" Value="10" />
                 <Prop Name="ro.vendor.perf.enable.prekill"        Value="true"     />
@@ -103,7 +103,7 @@ ________________________________________________________________________________
                 <Prop Name="vendor.appcompact.delta_rss_throttle_kb"       Value="8000" />
 
                 <!--System Properties -->
-                <Prop Name="vendor.perf.gestureflingboost.enable" Value="true" />
+                <Prop Name="vendor.perf.gestureflingboost.enable" Value="false" />
                 <Prop Name="ro.vendor.at_library" Value="libqti-at.so" />
 
                 <Prop Name="vendor.perf.phr.enable" Value="1" Target="parrot"/>
