@@ -208,3 +208,16 @@ vendor.qc2audio.per_frame.flac.dec.enabled=true
 vendor.qc2audio.suspend.enabled=true
 vendor.voice.path.for.pcm.voip=true
 wifi.aware.interface=wifi-aware0
+
+# ZRAM (mmd)
+mmd.zram.enabled=true
+mmd.zram.size=75%
+mmd.zram.comp_algorithm=lz4
+mmd.zram.device_priority=32758
+mmd.zram.recompression.enabled=true
+mmd.zram.recompression.algorithm=zstd
+mmd.zram.writeback.enabled=true
+mmd.zram.writeback.device_size=2147483648
+mmd.zram.writeback.max_bytes_per_day=1073741824
+mmd.zram.writeback.use_nr_tags_prop=true
+mmd.zram.writeback.nr_tags=16
