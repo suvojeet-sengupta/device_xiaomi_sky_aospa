@@ -119,6 +119,8 @@ on post-fs
     chmod 0666 /sys/class/qcom-battery/input_suspend
     chown system system /sys/class/qcom-battery/charging_enabled
     chmod 0660 /sys/class/qcom-battery/charging_enabled
+    chown system system /sys/class/qcom-battery/force_fast_chg
+    chmod 0660 /sys/class/qcom-battery/force_fast_chg
 
 on post-fs-data
     # Camera
