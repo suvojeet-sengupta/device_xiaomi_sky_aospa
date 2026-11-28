@@ -1,0 +1,40 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Sat, 28 Nov 2026 15:15:07 +0000
+Subject: [PATCH] ravelin: Don't hold the CPUs above their lowest clock
+
+The post boot script set scaling_min_freq to 672 MHz on the silver
+cluster and 691.2 MHz on the gold one, values tuned for WALT. Without
+WALT, schedutil raises the clock as the load needs, and the floor only
+kept the silver CPUs from their 499.2 MHz step while the phone is idle
+or lightly loaded. Leave both clusters at their hardware minimum from
+boot; the perf HAL can still raise the floor for a boost.
+
+Change-Id: I495e7364a7a19afbed48c8890596d926b015386b
+---
+ vendor/init/parrot/bin/init.kernel.post_boot-ravelin.sh | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/vendor/init/parrot/bin/init.kernel.post_boot-ravelin.sh b/vendor/init/parrot/bin/init.kernel.post_boot-ravelin.sh
+index 9528dc63..797bf1d5 100755
+--- a/vendor/init/parrot/bin/init.kernel.post_boot-ravelin.sh
++++ b/vendor/init/parrot/bin/init.kernel.post_boot-ravelin.sh
+@@ -84,7 +84,6 @@ echo "walt" > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
+ echo 0 > /sys/devices/system/cpu/cpufreq/policy0/walt/down_rate_limit_us
+ echo 0 > /sys/devices/system/cpu/cpufreq/policy0/walt/up_rate_limit_us
+ echo 1094000 > /sys/devices/system/cpu/cpufreq/policy0/walt/hispeed_freq
+-echo 672000 > /sys/devices/system/cpu/cpufreq/policy0/scaling_min_freq
+ echo 85 > /sys/devices/system/cpu/cpufreq/policy0/walt/hispeed_load
+ echo 0 > /sys/devices/system/cpu/cpufreq/policy0/walt/pl
+ 
+@@ -93,7 +92,6 @@ echo "walt" > /sys/devices/system/cpu/cpufreq/policy$goldpolicy_id/scaling_gover
+ echo 0 > /sys/devices/system/cpu/cpufreq/policy$goldpolicy_id/walt/down_rate_limit_us
+ echo 0 > /sys/devices/system/cpu/cpufreq/policy$goldpolicy_id/walt/up_rate_limit_us
+ echo 1190000 > /sys/devices/system/cpu/cpufreq/policy$goldpolicy_id/walt/hispeed_freq
+-echo 691200 > /sys/devices/system/cpu/cpufreq/policy$goldpolicy_id/scaling_min_freq
+ echo 85 > /sys/devices/system/cpu/cpufreq/policy$goldpolicy_id/walt/hispeed_load
+ echo -6 > /sys/devices/system/cpu/cpufreq/policy$goldpolicy_id/walt/boost
+ echo 0 > /sys/devices/system/cpu/cpufreq/policy$goldpolicy_id/walt/rtg_boost_freq
+-- 
+2.43.0
+
