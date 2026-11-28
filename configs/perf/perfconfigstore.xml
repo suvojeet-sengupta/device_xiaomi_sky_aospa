@@ -54,8 +54,8 @@ ________________________________________________________________________________
                 <Prop Name="ro.vendor.perf.enable.procomp" Value="true" />
                 <Prop Name="vendor.perf.fps_switch.enable" Value="1" />
                 <Prop Name="ro.vendor.perf.gfl.tap_ignore_enable" Value="true" />
-                <Prop Name="ro.vendor.perf.ss" Value="true" />
-                <Prop Name="ro.vendor.perf.splh" Value="true" />
+                <Prop Name="ro.vendor.perf.ss" Value="false" />
+                <Prop Name="ro.vendor.perf.splh" Value="false" />
                 <Prop Name="vendor.perf.bgt.enable" Value="true" />
 
                 <!--splh is true/false for ss -->

@@ -398,7 +398,7 @@
 
         <Config
             Id="0x00001080" Type="4" Enable="true" Timeout="115" Fps="90"
-            Resources="0x40800000, 1497, 0x40800100, 1497,
+            Resources="0x40800000, 1190, 0x40800100, 940,
                        0x40C00000, 2, 0x40C74000, 0xF0, 0x40408000, 0x27,
                        0x42804000, 0, 0x42C20000, 1" />
 
@@ -816,7 +816,7 @@
                        0x40C74000, 0xF0, 0x40408000, 0x27, 0x41008000, 0, 0x42C20000, 1" />
 
         <Config
-            Id="0x00001080" Type="7" Enable="true" Fps="90" Target="ravelin,montague,montaguep"
+            Id="0x00001080" Type="7" Enable="false" Fps="90" Target="ravelin,montague,montaguep"
             Resources="0x40800000, 1497, 0x40C00000, 2,
                        0x41000000, 2, 0x43480000, 0xAAE60, 0x40C78000, 0, 0x40C7C000, 0,
                        0x40C74000, 0xF0, 0x40408000, 0x27, 0x41008000, 0, 0x42C20000, 1" />
