@@ -1,0 +1,102 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Sat, 28 Nov 2026 14:24:41 +0000
+Subject: [PATCH] Settings: Add a switch for double tap status bar to sleep
+
+A switch at the end of Gestures for Settings.Secure status_bar_double_tap_to_sleep, which SystemUI reads to turn the screen off on a double tap of the status bar. On by default.
+
+Change-Id: I20cbedfc4637293a9a9878ab1f5c121936245b66
+---
+ res/values/double_tap_sleep_strings.xml       | 10 ++++
+ res/xml/gestures.xml                          |  6 +++
+ ...rDoubleTapToSleepPreferenceController.java | 46 +++++++++++++++++++
+ 3 files changed, 62 insertions(+)
+ create mode 100644 res/values/double_tap_sleep_strings.xml
+ create mode 100644 src/com/android/settings/gestures/StatusBarDoubleTapToSleepPreferenceController.java
+
+diff --git a/res/values/double_tap_sleep_strings.xml b/res/values/double_tap_sleep_strings.xml
+new file mode 100644
+index 00000000000..9ce516adfa2
+--- /dev/null
++++ b/res/values/double_tap_sleep_strings.xml
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!--
++     SPDX-FileCopyrightText: 2026 Paranoid Android
++     SPDX-License-Identifier: Apache-2.0
++-->
++<resources>
++    <!-- Gestures: double tap the status bar to turn the screen off -->
++    <string name="status_bar_double_tap_to_sleep_title">Double tap status bar to sleep</string>
++    <string name="status_bar_double_tap_to_sleep_summary">Turn the screen off by double tapping the status bar</string>
++</resources>
+diff --git a/res/xml/gestures.xml b/res/xml/gestures.xml
+index 2405074db8b..10bad2e691b 100644
+--- a/res/xml/gestures.xml
++++ b/res/xml/gestures.xml
+@@ -113,4 +113,10 @@
+         android:fragment="co.aospa.settings.gestures.OffscreenGestureSettings"
+         settings:controller="co.aospa.settings.gestures.OffscreenGestureSettingsController" />
+ 
++    <SwitchPreferenceCompat
++        android:key="status_bar_double_tap_to_sleep"
++        android:title="@string/status_bar_double_tap_to_sleep_title"
++        android:summary="@string/status_bar_double_tap_to_sleep_summary"
++        settings:controller="com.android.settings.gestures.StatusBarDoubleTapToSleepPreferenceController" />
++
+ </PreferenceScreen>
+diff --git a/src/com/android/settings/gestures/StatusBarDoubleTapToSleepPreferenceController.java b/src/com/android/settings/gestures/StatusBarDoubleTapToSleepPreferenceController.java
+new file mode 100644
+index 00000000000..1f21c2247e2
+--- /dev/null
++++ b/src/com/android/settings/gestures/StatusBarDoubleTapToSleepPreferenceController.java
+@@ -0,0 +1,46 @@
++/*
++ * SPDX-FileCopyrightText: 2026 Paranoid Android
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++package com.android.settings.gestures;
++
++import android.content.Context;
++import android.provider.Settings;
++
++import com.android.settings.R;
++import com.android.settings.core.TogglePreferenceController;
++
++/**
++ * Double tap the status bar to turn the screen off, in Settings.Secure
++ * status_bar_double_tap_to_sleep, which SystemUI's PhoneStatusBarView reads. On by default.
++ */
++public class StatusBarDoubleTapToSleepPreferenceController extends TogglePreferenceController {
++
++    private static final String DOUBLE_TAP_TO_SLEEP = "status_bar_double_tap_to_sleep";
++
++    public StatusBarDoubleTapToSleepPreferenceController(Context context, String key) {
++        super(context, key);
++    }
++
++    @Override
++    public int getAvailabilityStatus() {
++        return AVAILABLE;
++    }
++
++    @Override
++    public boolean isChecked() {
++        return Settings.Secure.getInt(mContext.getContentResolver(), DOUBLE_TAP_TO_SLEEP, 1) != 0;
++    }
++
++    @Override
++    public boolean setChecked(boolean isChecked) {
++        return Settings.Secure.putInt(mContext.getContentResolver(), DOUBLE_TAP_TO_SLEEP,
++                isChecked ? 1 : 0);
++    }
++
++    @Override
++    public int getSliceHighlightMenuRes() {
++        return R.string.menu_key_system;
++    }
++}
+-- 
+2.43.0
+

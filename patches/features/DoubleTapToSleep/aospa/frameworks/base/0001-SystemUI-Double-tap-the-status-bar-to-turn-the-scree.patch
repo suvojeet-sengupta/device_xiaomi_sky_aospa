@@ -1,0 +1,89 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Sat, 28 Nov 2026 14:19:40 +0000
+Subject: [PATCH] SystemUI: Double tap the status bar to turn the screen off
+
+Watch the status bar for a double tap and put the phone to sleep, as
+long as Settings.Secure status_bar_double_tap_to_sleep is not 0. It is
+on by default. The detector only looks at the events, which still reach
+the status bar and the shade as before, and it is made on the first
+touch so it gets the UI thread looper.
+
+Change-Id: I558b459a7b12419573a16b9e3b9d49c25726eb11
+---
+ .../statusbar/phone/PhoneStatusBarView.java   | 35 +++++++++++++++++++
+ 1 file changed, 35 insertions(+)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBarView.java b/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBarView.java
+index db91ce3c182f..24f5ba448585 100644
+--- a/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBarView.java
++++ b/packages/SystemUI/src/com/android/systemui/statusbar/phone/PhoneStatusBarView.java
+@@ -24,9 +24,13 @@ import android.content.res.Configuration;
+ import android.graphics.Insets;
+ import android.graphics.Rect;
+ import android.graphics.Region;
++import android.os.PowerManager;
++import android.os.UserHandle;
++import android.provider.Settings;
+ import android.util.AttributeSet;
+ import android.util.Log;
+ import android.view.DisplayCutout;
++import android.view.GestureDetector;
+ import android.view.MotionEvent;
+ import android.view.View;
+ import android.view.ViewGroup;
+@@ -74,6 +78,12 @@ public class PhoneStatusBarView extends FrameLayout {
+     private StatusBarLongPressGestureDetector mStatusBarLongPressGestureDetector;
+     private final Region mTouchableRegion = Region.obtain();
+ 
++    /** Settings.Secure key: double tap the status bar to turn the screen off. On by default. */
++    public static final String DOUBLE_TAP_TO_SLEEP = "status_bar_double_tap_to_sleep";
++
++    @Nullable
++    private GestureDetector mDoubleTapToSleepDetector;
++
+     /**
+      * Draw this many pixels into the left/right side of the cutout to optimally use the space
+      */
+@@ -83,6 +93,29 @@ public class PhoneStatusBarView extends FrameLayout {
+         super(context, attrs);
+     }
+ 
++    // Made on the first touch, on the UI thread, since the detector needs its looper.
++    private GestureDetector getDoubleTapToSleepDetector() {
++        if (mDoubleTapToSleepDetector != null) {
++            return mDoubleTapToSleepDetector;
++        }
++        mDoubleTapToSleepDetector = new GestureDetector(mContext,
++                new GestureDetector.SimpleOnGestureListener() {
++                    @Override
++                    public boolean onDoubleTap(MotionEvent e) {
++                        if (Settings.Secure.getIntForUser(mContext.getContentResolver(),
++                                DOUBLE_TAP_TO_SLEEP, 1, UserHandle.USER_CURRENT) == 0) {
++                            return false;
++                        }
++                        final PowerManager pm = mContext.getSystemService(PowerManager.class);
++                        if (pm != null) {
++                            pm.goToSleep(e.getEventTime());
++                        }
++                        return true;
++                    }
++                });
++        return mDoubleTapToSleepDetector;
++    }
++
+     void setLongPressGestureDetector(
+             StatusBarLongPressGestureDetector statusBarLongPressGestureDetector) {
+         mStatusBarLongPressGestureDetector = statusBarLongPressGestureDetector;
+@@ -242,6 +275,8 @@ public class PhoneStatusBarView extends FrameLayout {
+             // non-interactive.
+             return true;
+         }
++        // Only watches for a double tap; the events still go on to the status bar as usual.
++        getDoubleTapToSleepDetector().onTouchEvent(event);
+         return super.dispatchTouchEvent(event);
+     }
+ 
+-- 
+2.43.0
+
