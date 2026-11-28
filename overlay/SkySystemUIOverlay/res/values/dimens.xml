@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: 2026 Paranoid Android
+     SPDX-License-Identifier: Apache-2.0
+-->
+<resources>
+    <!-- The shade blurs everything behind it on the Adreno 613 every frame it moves. 10dp,
+         under a third of the default 34dp, keeps a light blur for less GPU work. -->
+    <dimen name="max_shade_window_blur_radius">10dp</dimen>
+</resources>
