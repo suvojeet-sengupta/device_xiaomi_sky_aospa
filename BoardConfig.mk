@@ -87,6 +87,10 @@ $(call soong_config_set,lineage_health,charging_control_charging_path,/sys/class
 $(call soong_config_set,lineage_health,charging_control_charging_enabled,0)
 $(call soong_config_set,lineage_health,charging_control_charging_disabled,1)
 $(call soong_config_set_bool,lineage_health,charging_control_supports_bypass,false)
+# Charging speed: Fast is the kernel's smart charging, Super fast is force fast charging
+$(call soong_config_set,lineage_health,fast_charge_node,/sys/class/qcom-battery/force_fast_chg)
+$(call soong_config_set,lineage_health,fast_charge_value_fast_charge,0)
+$(call soong_config_set,lineage_health,fast_charge_value_super_fast_charge,1)
 
 # Partitions
 BOARD_FLASH_BLOCK_SIZE := 131072

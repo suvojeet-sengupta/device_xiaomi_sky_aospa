@@ -29,3 +29,6 @@ vendor.sys.thermal.                                   u:object_r:vendor_thermal_
 odm.ril.radio.status.                                 u:object_r:vendor_radio_prop:s0
 persist.vendor.oem.cta_code                           u:object_r:vendor_radio_prop:s0
 ro.vendor.oem.ctacode                                 u:object_r:vendor_radio_prop:s0
+
+# Health
+persist.vendor.health.fast_charge                    u:object_r:vendor_health_fast_charge_prop:s0 exact string

@@ -1,1 +1,4 @@
 allow init vendor_configs_file:dir mounton;
+
+# Charging speed written again on boot, see init.sky.rc
+allow init vendor_sysfs_battery_supply:file w_file_perms;

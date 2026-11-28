@@ -6,3 +6,6 @@ vendor_public_prop(vendor_mlipay_prop)
 
 # Thermal
 vendor_internal_prop(vendor_thermal_prop)
+
+# Health
+vendor_internal_prop(vendor_health_fast_charge_prop)

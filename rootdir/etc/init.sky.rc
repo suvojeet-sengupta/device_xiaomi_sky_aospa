@@ -156,6 +156,12 @@ service qrtr-lookup /vendor/bin/qrtr-lookup
 on property:sys.boot_completed=1
     start qrtr-lookup
 
+# Charging speed from Settings > Battery. Fast is the kernel's smart charging,
+# the default; Super fast is force fast charging. The health HAL saves the
+# choice because the node forgets it on every reboot.
+on property:sys.boot_completed=1 && property:persist.vendor.health.fast_charge=1
+    write /sys/class/qcom-battery/force_fast_chg 1
+
 # init.kernel.post_boot.sh sets THP, swappiness and min_free_kbytes, and
 # mmd sets up zram after boot completes. The QTI memory script starts at
 # the same time as post_boot and races it: when it finishes last, THP goes

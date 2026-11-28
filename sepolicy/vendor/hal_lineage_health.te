@@ -1,3 +1,6 @@
 r_dir_file(hal_lineage_health_default, vendor_sysfs_battery_supply)
 allow hal_lineage_health_default vendor_sysfs_battery_supply:file rw_file_perms;
 allow hal_lineage_health_default vendor_sysfs_battery_supply:dir search;
+
+# Save the charging speed so init can write it again on boot
+set_prop(hal_lineage_health_default, vendor_health_fast_charge_prop)

@@ -1,0 +1,51 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: suvojeet-sengupta <suvojitsengupta21@gmail.com>
+Date: Sat, 28 Nov 2026 14:59:03 +0000
+Subject: [PATCH] health: Save the fast charge mode in a property
+
+A fast charge node in sysfs forgets its value on every reboot, so a
+charging speed chosen in Settings only held until the next boot. Save
+the value written to the node in persist.vendor.health.fast_charge, so
+the device can write it again on boot. A failure to save is only
+logged.
+
+Change-Id: I0aeae8a5c7d97ea4a346540576bd9113c31812ff
+---
+ interfaces/health/default/FastCharge.cpp | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/interfaces/health/default/FastCharge.cpp b/interfaces/health/default/FastCharge.cpp
+index 7b97f7a..3959d3a 100644
+--- a/interfaces/health/default/FastCharge.cpp
++++ b/interfaces/health/default/FastCharge.cpp
+@@ -8,11 +8,16 @@
+ 
+ #include <android-base/file.h>
+ #include <android-base/logging.h>
++#include <android-base/properties.h>
+ #include <android-base/strings.h>
+ #include <map>
+ 
+ #define LOG_TAG "vendor.lineage.health-service.default"
+ 
++// The value last written to the fast charge node, so the device can write it
++// again on boot: a node in sysfs forgets it on every reboot.
++static constexpr const char* kFastChargeProp = "persist.vendor.health.fast_charge";
++
+ namespace aidl {
+ namespace vendor {
+ namespace lineage {
+@@ -61,6 +66,10 @@ ndk::ScopedAStatus FastCharge::setFastChargeMode(FastChargeMode in_mode,
+         return ndk::ScopedAStatus::fromExceptionCode(EX_UNSUPPORTED_OPERATION);
+     }
+ 
++    if (!android::base::SetProperty(kFastChargeProp, *value)) {
++        LOG(WARNING) << "Failed to save the fast charge mode in " << kFastChargeProp;
++    }
++
+     return getFastChargeMode(_aidl_return);
+ }
+ 
+-- 
+2.43.0
+
